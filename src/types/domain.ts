@@ -68,6 +68,8 @@ export interface ShoppingListItem {
   unit: 'g' | 'ml' | 'pieces';
   minimum_purchase_quantity: number;
   estimated_price_eur: number;
+  owned?: boolean;
+  deleted?: boolean;
 }
 
 export interface ShoppingList {

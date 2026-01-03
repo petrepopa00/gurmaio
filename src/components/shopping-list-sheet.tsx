@@ -3,8 +3,9 @@ import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import type { ShoppingList } from '@/types/domain';
-import { ShoppingCart, CurrencyDollar, Export } from '@phosphor-icons/react';
+import { Checkbox } from '@/components/ui/checkbox';
+import type { ShoppingList, ShoppingListItem } from '@/types/domain';
+import { ShoppingCart, CurrencyDollar, Export, Trash } from '@phosphor-icons/react';
 import { exportShoppingList, GROCERY_SERVICES, type GroceryService } from '@/lib/grocery-export';
 import { toast } from 'sonner';
 import { useState } from 'react';
@@ -13,15 +14,27 @@ interface ShoppingListSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   shoppingList: ShoppingList;
+  onToggleOwned?: (ingredientId: string) => void;
+  onDeleteItem?: (ingredientId: string) => void;
 }
 
-export function ShoppingListSheet({ open, onOpenChange, shoppingList }: ShoppingListSheetProps) {
+export function ShoppingListSheet({ open, onOpenChange, shoppingList, onToggleOwned, onDeleteItem }: ShoppingListSheetProps) {
   const [showExportOptions, setShowExportOptions] = useState(false);
+
+  const visibleItems = shoppingList.items.filter(item => !item.deleted);
+  const ownedCount = visibleItems.filter(item => item.owned).length;
+  const totalCostRemaining = visibleItems
+    .filter(item => !item.owned)
+    .reduce((sum, item) => sum + item.estimated_price_eur, 0);
 
   const handleExport = (service: GroceryService) => {
     try {
       (window as any).showToast = (message: string) => toast.success(message);
-      exportShoppingList(shoppingList, service);
+      const exportList = {
+        ...shoppingList,
+        items: visibleItems.filter(item => !item.owned)
+      };
+      exportShoppingList(exportList, service);
       setShowExportOptions(false);
     } catch (error) {
       toast.error('Export failed. Please try again.');
@@ -47,7 +60,9 @@ export function ShoppingListSheet({ open, onOpenChange, shoppingList }: Shopping
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <div className="text-sm text-muted-foreground">Items</div>
-                <div className="font-heading text-xl font-bold">{shoppingList.summary.total_items}</div>
+                <div className="font-heading text-xl font-bold">
+                  {visibleItems.length - ownedCount}/{visibleItems.length}
+                </div>
               </div>
               <div>
                 <div className="text-sm text-muted-foreground">Plan Cost</div>
@@ -56,9 +71,9 @@ export function ShoppingListSheet({ open, onOpenChange, shoppingList }: Shopping
                 </div>
               </div>
               <div>
-                <div className="text-sm text-muted-foreground">Shopping Cost</div>
+                <div className="text-sm text-muted-foreground">To Buy</div>
                 <div className="font-heading text-xl font-bold tabular-nums text-accent">
-                  €{shoppingList.summary.total_shopping_cost_eur.toFixed(2)}
+                  €{totalCostRemaining.toFixed(2)}
                 </div>
               </div>
             </div>
@@ -111,13 +126,30 @@ export function ShoppingListSheet({ open, onOpenChange, shoppingList }: Shopping
             <h3 className="font-heading font-semibold text-sm text-muted-foreground uppercase tracking-wide">
               Your Shopping List
             </h3>
-            {shoppingList.items.map((item) => (
+            {visibleItems.map((item) => (
               <div
                 key={item.ingredient_id}
-                className="flex items-center justify-between py-3 px-4 rounded-lg border hover:bg-muted/50 transition-colors"
+                className={`flex items-center gap-3 py-3 px-4 rounded-lg border transition-all ${
+                  item.owned
+                    ? 'bg-muted/30 opacity-60'
+                    : 'hover:bg-muted/50'
+                }`}
               >
+                <Checkbox
+                  id={`item-${item.ingredient_id}`}
+                  checked={item.owned || false}
+                  onCheckedChange={() => onToggleOwned?.(item.ingredient_id)}
+                  className="flex-shrink-0"
+                />
                 <div className="flex-1">
-                  <div className="font-medium">{item.display_name}</div>
+                  <label
+                    htmlFor={`item-${item.ingredient_id}`}
+                    className={`font-medium cursor-pointer ${
+                      item.owned ? 'line-through text-muted-foreground' : ''
+                    }`}
+                  >
+                    {item.display_name}
+                  </label>
                   <div className="text-sm text-muted-foreground tabular-nums">
                     {item.total_quantity}{item.unit}
                     {item.minimum_purchase_quantity > item.total_quantity && (
@@ -127,8 +159,23 @@ export function ShoppingListSheet({ open, onOpenChange, shoppingList }: Shopping
                     )}
                   </div>
                 </div>
-                <div className="font-heading font-semibold text-accent tabular-nums">
-                  €{item.estimated_price_eur.toFixed(2)}
+                <div className="flex items-center gap-2">
+                  <div className={`font-heading font-semibold tabular-nums ${
+                    item.owned ? 'text-muted-foreground line-through' : 'text-accent'
+                  }`}>
+                    €{item.estimated_price_eur.toFixed(2)}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => {
+                      onDeleteItem?.(item.ingredient_id);
+                      toast.success('Item removed from list');
+                    }}
+                  >
+                    <Trash size={16} />
+                  </Button>
                 </div>
               </div>
             ))}
@@ -138,12 +185,17 @@ export function ShoppingListSheet({ open, onOpenChange, shoppingList }: Shopping
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <CurrencyDollar size={20} className="text-primary" />
-                <span className="font-heading font-semibold">Total Estimated Cost</span>
+                <span className="font-heading font-semibold">Total to Buy</span>
               </div>
               <div className="font-heading text-2xl font-bold text-primary tabular-nums">
-                €{shoppingList.summary.total_shopping_cost_eur.toFixed(2)}
+                €{totalCostRemaining.toFixed(2)}
               </div>
             </div>
+            {ownedCount > 0 && (
+              <div className="mt-2 text-sm text-muted-foreground text-center">
+                You already have {ownedCount} item{ownedCount !== 1 ? 's' : ''}
+              </div>
+            )}
           </Card>
 
           <p className="text-xs text-muted-foreground text-center">

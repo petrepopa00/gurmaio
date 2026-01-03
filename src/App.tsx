@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useKV } from '@github/spark/hooks';
-import type { MealPlan, UserProfile } from '@/types/domain';
+import type { MealPlan, UserProfile, ShoppingList } from '@/types/domain';
 import { generateMockMealPlan, generateShoppingList } from '@/lib/mock-data';
 import { OnboardingDialog } from '@/components/onboarding-dialog';
 import { MealPlanView } from '@/components/meal-plan-view';
@@ -14,12 +14,15 @@ import { toast } from 'sonner';
 function App() {
   const [userProfile, setUserProfile] = useKV<UserProfile | null>('user_profile', null);
   const [mealPlan, setMealPlan] = useKV<MealPlan | null>('current_meal_plan', null);
+  const [shoppingListState, setShoppingListState] = useKV<ShoppingList | null>('shopping_list_state', null);
   const [isOnboarding, setIsOnboarding] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [shoppingListOpen, setShoppingListOpen] = useState(false);
 
   const hasProfile = userProfile !== null;
   const hasMealPlan = mealPlan !== null;
+
+  const currentShoppingList = shoppingListState || (mealPlan ? generateShoppingList(mealPlan) : null);
 
   const handleSaveProfile = (profile: UserProfile) => {
     setUserProfile(() => profile);
@@ -39,9 +42,42 @@ function App() {
 
     const newPlan = generateMockMealPlan();
     setMealPlan(() => newPlan);
+    setShoppingListState(() => null);
     setIsGenerating(false);
     
     toast.success('Meal plan generated successfully!');
+  };
+
+  const handleToggleOwned = (ingredientId: string) => {
+    if (!currentShoppingList) return;
+    
+    setShoppingListState((current) => {
+      const base = current || currentShoppingList;
+      return {
+        ...base,
+        items: base.items.map(item =>
+          item.ingredient_id === ingredientId
+            ? { ...item, owned: !item.owned }
+            : item
+        )
+      };
+    });
+  };
+
+  const handleDeleteItem = (ingredientId: string) => {
+    if (!currentShoppingList) return;
+    
+    setShoppingListState((current) => {
+      const base = current || currentShoppingList;
+      return {
+        ...base,
+        items: base.items.map(item =>
+          item.ingredient_id === ingredientId
+            ? { ...item, deleted: true }
+            : item
+        )
+      };
+    });
   };
 
   if (!hasProfile) {
@@ -213,11 +249,13 @@ function App() {
         existingProfile={userProfile}
       />
 
-      {mealPlan && (
+      {mealPlan && currentShoppingList && (
         <ShoppingListSheet
           open={shoppingListOpen}
           onOpenChange={setShoppingListOpen}
-          shoppingList={generateShoppingList(mealPlan)}
+          shoppingList={currentShoppingList}
+          onToggleOwned={handleToggleOwned}
+          onDeleteItem={handleDeleteItem}
         />
       )}
 
