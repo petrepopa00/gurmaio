@@ -99,3 +99,16 @@ export interface ShoppingList {
     waste_cost_eur: number;
   };
 }
+
+export interface MealRating {
+  meal_id: string;
+  recipe_name: string;
+  meal_type: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  rating: 1 | 2 | 3 | 4 | 5;
+  rated_at: string;
+  ingredients: string[];
+}
+
+export interface MealRatingHistory {
+  ratings: MealRating[];
+}

@@ -5,8 +5,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import type { MealPlan, Meal } from '@/types/domain';
-import { Barbell, FireSimple, ChartBar, CurrencyDollar, Repeat } from '@phosphor-icons/react';
+import type { MealPlan, Meal, MealRating } from '@/types/domain';
+import { Barbell, FireSimple, ChartBar, CurrencyDollar, Repeat, Star } from '@phosphor-icons/react';
 import { useLanguage } from '@/hooks/use-language';
 import { translateMeal, translateIngredient } from '@/lib/i18n/content-translations';
 import type { Language } from '@/lib/i18n/translations';
@@ -16,11 +16,13 @@ import { DISCLAIMERS, INFO_LABELS, VIEW_MODES, getViewModeContext } from '@/lib/
 interface MealPlanViewProps {
   mealPlan: MealPlan;
   onSwapMeal?: (mealId: string, dayNumber: number) => Promise<void>;
+  onRateMeal?: (mealId: string, rating: 1 | 2 | 3 | 4 | 5, meal: Meal) => void;
+  mealRatings?: Map<string, number>;
 }
 
 type ViewMode = 'total' | 'average';
 
-export function MealPlanView({ mealPlan, onSwapMeal }: MealPlanViewProps) {
+export function MealPlanView({ mealPlan, onSwapMeal, onRateMeal, mealRatings }: MealPlanViewProps) {
   const { language, t } = useLanguage();
   const [selectedDay, setSelectedDay] = useState(mealPlan.days[0]?.day_number.toString() || '1');
   const [viewMode, setViewMode] = useState<ViewMode>('average');
@@ -243,6 +245,8 @@ export function MealPlanView({ mealPlan, onSwapMeal }: MealPlanViewProps) {
                   language={language} 
                   t={t}
                   onSwap={onSwapMeal}
+                  onRate={onRateMeal}
+                  currentRating={mealRatings?.get(meal.meal_id)}
                 />
               ))}
             </div>
@@ -258,15 +262,20 @@ function MealCard({
   dayNumber,
   language, 
   t,
-  onSwap
+  onSwap,
+  onRate,
+  currentRating
 }: { 
   meal: Meal; 
   dayNumber: number;
   language: Language; 
   t: any;
   onSwap?: (mealId: string, dayNumber: number) => Promise<void>;
+  onRate?: (mealId: string, rating: 1 | 2 | 3 | 4 | 5, meal: Meal) => void;
+  currentRating?: number;
 }) {
   const [isSwapping, setIsSwapping] = useState(false);
+  const [hoveredStar, setHoveredStar] = useState<number | null>(null);
 
   const handleSwap = async () => {
     if (!onSwap) return;
@@ -279,6 +288,14 @@ function MealCard({
     }
   };
 
+  const handleRating = (rating: 1 | 2 | 3 | 4 | 5) => {
+    if (onRate) {
+      onRate(meal.meal_id, rating, meal);
+    }
+  };
+
+  const displayRating = hoveredStar !== null ? hoveredStar : currentRating || 0;
+
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow">
       <Accordion type="single" collapsible>
@@ -289,9 +306,17 @@ function MealCard({
                 <Badge variant="outline" className="capitalize">
                   {t[meal.meal_type]}
                 </Badge>
-                <h3 className="font-heading text-lg font-semibold text-left">
-                  {translateMeal(meal.recipe_name, language)}
-                </h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-heading text-lg font-semibold text-left">
+                    {translateMeal(meal.recipe_name, language)}
+                  </h3>
+                  {currentRating && currentRating > 0 && (
+                    <div className="flex items-center gap-0.5">
+                      <Star size={16} weight="fill" className="text-amber-500" />
+                      <span className="text-xs text-muted-foreground">{currentRating}</span>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="flex items-center gap-6">
@@ -318,8 +343,39 @@ function MealCard({
               <span className="tabular-nums">{meal.nutrition.fats_g}g F</span>
             </div>
 
-            {onSwap && (
-              <div className="mb-4">
+            <div className="mb-4 space-y-3">
+              {onRate && (
+                <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                  <div className="text-sm font-medium">Rate this meal:</div>
+                  <div 
+                    className="flex gap-1"
+                    onMouseLeave={() => setHoveredStar(null)}
+                  >
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        onClick={() => handleRating(star as 1 | 2 | 3 | 4 | 5)}
+                        onMouseEnter={() => setHoveredStar(star)}
+                        className="transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary rounded"
+                        aria-label={`Rate ${star} stars`}
+                      >
+                        <Star
+                          size={28}
+                          weight={star <= displayRating ? 'fill' : 'regular'}
+                          className={star <= displayRating ? 'text-amber-500' : 'text-muted-foreground'}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                  {currentRating && (
+                    <div className="text-xs text-muted-foreground">
+                      Your rating helps us suggest better meals
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {onSwap && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -330,8 +386,8 @@ function MealCard({
                   <Repeat className="mr-2" />
                   {isSwapping ? t.swapping : t.swapMeal}
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
 
             <div className="space-y-6">
               {meal.cooking_instructions && meal.cooking_instructions.length > 0 && (

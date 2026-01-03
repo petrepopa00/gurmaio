@@ -1,10 +1,11 @@
-import type { Meal, UserProfile, MealPlan } from '@/types/domain';
+import type { Meal, UserProfile, MealPlan, MealRating } from '@/types/domain';
 
 export async function generateMealSubstitution(
   currentMeal: Meal,
   dayNumber: number,
   userProfile: UserProfile,
-  mealPlan: MealPlan
+  mealPlan: MealPlan,
+  mealRatings?: MealRating[]
 ): Promise<Meal> {
   const dailyBudget = mealPlan.metadata.period_budget_eur / mealPlan.metadata.days;
   const currentDayTotalCost = mealPlan.days.find(d => d.day_number === dayNumber)?.totals.cost_eur || 0;
@@ -30,6 +31,59 @@ export async function generateMealSubstitution(
     ? userProfile.cuisine_preferences.join(', ') 
     : 'any';
 
+  const highRatedMeals = mealRatings
+    ?.filter(r => r.rating >= 4 && r.meal_type === currentMeal.meal_type)
+    .slice(0, 5) || [];
+  
+  const lowRatedMeals = mealRatings
+    ?.filter(r => r.rating <= 2 && r.meal_type === currentMeal.meal_type)
+    .slice(0, 5) || [];
+
+  const highRatedIngredientsMap = new Map<string, number>();
+  highRatedMeals.forEach(meal => {
+    meal.ingredients.forEach(ing => {
+      highRatedIngredientsMap.set(ing, (highRatedIngredientsMap.get(ing) || 0) + 1);
+    });
+  });
+
+  const preferredIngredients = Array.from(highRatedIngredientsMap.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([ing]) => ing);
+
+  const dislikedIngredients = lowRatedMeals
+    .flatMap(m => m.ingredients)
+    .filter((ing, idx, arr) => arr.indexOf(ing) === idx)
+    .slice(0, 10);
+
+  const preferredRecipes = highRatedMeals.map(m => m.recipe_name);
+  const dislikedRecipes = lowRatedMeals.map(m => m.recipe_name);
+
+  let ratingGuidance = '';
+  if (preferredIngredients.length > 0 || preferredRecipes.length > 0) {
+    ratingGuidance = `\n\nUSER PREFERENCES (prioritize these):`;
+    if (preferredRecipes.length > 0) {
+      ratingGuidance += `\n- User liked these ${currentMeal.meal_type} recipes: ${preferredRecipes.join(', ')}`;
+      ratingGuidance += `\n- Generate something SIMILAR in style/flavor profile to these highly-rated meals`;
+    }
+    if (preferredIngredients.length > 0) {
+      ratingGuidance += `\n- User frequently enjoys: ${preferredIngredients.join(', ')}`;
+      ratingGuidance += `\n- TRY TO INCLUDE some of these preferred ingredients when appropriate`;
+    }
+  }
+
+  if (dislikedIngredients.length > 0 || dislikedRecipes.length > 0) {
+    ratingGuidance += `\n\nUSER DISLIKES (avoid these):`;
+    if (dislikedRecipes.length > 0) {
+      ratingGuidance += `\n- User disliked: ${dislikedRecipes.join(', ')}`;
+      ratingGuidance += `\n- AVOID recipes similar to these low-rated meals`;
+    }
+    if (dislikedIngredients.length > 0) {
+      ratingGuidance += `\n- User dislikes: ${dislikedIngredients.join(', ')}`;
+      ratingGuidance += `\n- DO NOT use these ingredients`;
+    }
+  }
+
   const prompt = (window.spark.llmPrompt as any)`You are a professional meal planner. Generate ONE alternative meal to replace an existing meal.
 
 MEAL TO REPLACE:
@@ -45,7 +99,7 @@ CONSTRAINTS:
 
 DIETARY PREFERENCES: ${dietaryPrefsStr}
 ALLERGENS TO AVOID: ${allergensStr}
-CUISINE PREFERENCES: ${cuisinesStr}
+CUISINE PREFERENCES: ${cuisinesStr}${ratingGuidance}
 
 IMPORTANT:
 1. Generate a DIFFERENT recipe than "${currentMeal.recipe_name}"
@@ -54,6 +108,8 @@ IMPORTANT:
 4. Calculate accurate nutrition per ingredient
 5. Include 3-7 step cooking instructions
 6. STAY WITHIN THE COST LIMIT OF €${remainingBudgetForMeal.toFixed(2)}
+${preferredIngredients.length > 0 ? `7. STRONGLY PREFER using ingredients from the user's preferred list above` : ''}
+${dislikedIngredients.length > 0 ? `8. ABSOLUTELY AVOID ingredients from the user's disliked list above` : ''}
 
 Return ONLY a valid JSON object (NOT an array) with the following structure:
 {

@@ -76,12 +76,12 @@ This is a commercial-grade product requiring multiple sophisticated engines (nut
 - **Progression**: Click language switcher → Dropdown menu shows available languages with flags → Select language → UI updates immediately → Preference saved to user storage
 - **Success criteria**: All UI text translates instantly, language preference persists across sessions, flag icons display correctly, translations maintain meaning and context
 
-### Meal Substitution
-- **Functionality**: Swap individual meals within a generated meal plan while maintaining budget and nutritional constraints
-- **Purpose**: Provide flexibility and variety without regenerating entire meal plan, accommodate taste preferences and ingredient availability
+### Meal Substitution with Rating System
+- **Functionality**: Swap individual meals within a generated meal plan while maintaining budget and nutritional constraints, with AI prioritizing user taste preferences learned from meal ratings
+- **Purpose**: Provide flexibility and variety without regenerating entire meal plan, accommodate taste preferences and ingredient availability, learn user preferences over time to generate increasingly personalized substitutions
 - **Trigger**: User clicks "Swap Meal" button when viewing meal details in expanded accordion
-- **Progression**: View meal plan → Expand meal card → Click "Swap Meal" → AI generates alternative meal matching meal type, budget, and macro targets → Meal replaced in plan → Plan totals recalculated → Shopping list reset → Success confirmation
-- **Success criteria**: New meal respects remaining daily budget, macro targets maintained (±10%), meal type remains consistent, all nutrition and cost totals recalculate accurately, substitution stays within original meal's budget constraints, shopping list regenerates on next view
+- **Progression**: View meal plan → Expand meal card → Rate meal 1-5 stars (optional) → Click "Swap Meal" → AI generates alternative meal using rating history to prefer liked ingredients/styles and avoid disliked ones → Meal replaced in plan → Plan totals recalculated → Shopping list reset → Success confirmation
+- **Success criteria**: New meal respects remaining daily budget, macro targets maintained (±10%), meal type remains consistent, all nutrition and cost totals recalculate accurately, substitution stays within original meal's budget constraints, shopping list regenerates on next view, highly-rated meals influence future substitutions (preferred ingredients appear more often), low-rated meals/ingredients are avoided in future generations, rating feedback confirms user action
 
 ### Account Management
 - **Functionality**: Delete all user data (GDPR compliant)

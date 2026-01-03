@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useKV } from '@github/spark/hooks';
-import type { MealPlan, UserProfile, ShoppingList } from '@/types/domain';
+import type { MealPlan, UserProfile, ShoppingList, MealRating, Meal } from '@/types/domain';
 import { generateMealPlan, generateShoppingList } from '@/lib/mock-data';
 import { generateMealSubstitution } from '@/lib/meal-substitution';
 import { OnboardingDialog } from '@/components/onboarding-dialog';
@@ -36,6 +36,7 @@ function App() {
   const [mealPlan, setMealPlan] = useKV<MealPlan | null>('current_meal_plan', null);
   const [shoppingListState, setShoppingListState] = useKV<ShoppingList | null>('shopping_list_state', null);
   const [savedMealPlans, setSavedMealPlans] = useKV<MealPlan[]>('saved_meal_plans', []);
+  const [mealRatings, setMealRatings] = useKV<MealRating[]>('meal_ratings', []);
   const [isOnboarding, setIsOnboarding] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [shoppingListOpen, setShoppingListOpen] = useState(false);
@@ -52,6 +53,11 @@ function App() {
   const isCurrentPlanAlreadySaved = mealPlan ? (savedMealPlans || []).some(p => p.plan_id === mealPlan.plan_id) : false;
 
   const currentShoppingList = shoppingListState || (mealPlan ? generateShoppingList(mealPlan) : null);
+
+  const mealRatingsMap = new Map<string, number>();
+  (mealRatings || []).forEach(rating => {
+    mealRatingsMap.set(rating.meal_id, rating.rating);
+  });
 
   useEffect(() => {
     loadUser();
@@ -231,6 +237,7 @@ function App() {
       setMealPlan(() => null);
       setShoppingListState(() => null);
       setSavedMealPlans(() => []);
+      setMealRatings(() => []);
       
       await handleLogout();
       
@@ -240,6 +247,34 @@ function App() {
       toast.error('Failed to delete account data');
       console.error('Delete account error:', error);
     }
+  };
+
+  const handleRateMeal = (mealId: string, rating: 1 | 2 | 3 | 4 | 5, meal: Meal) => {
+    setMealRatings((current) => {
+      const ratings = current || [];
+      const existingIndex = ratings.findIndex(r => r.meal_id === mealId);
+      
+      const newRating: MealRating = {
+        meal_id: mealId,
+        recipe_name: meal.recipe_name,
+        meal_type: meal.meal_type,
+        rating,
+        rated_at: new Date().toISOString(),
+        ingredients: meal.ingredients.map(ing => ing.name),
+      };
+      
+      if (existingIndex >= 0) {
+        const updated = [...ratings];
+        updated[existingIndex] = newRating;
+        return updated;
+      }
+      
+      return [...ratings, newRating];
+    });
+    
+    toast.success(`Rated ${rating} star${rating > 1 ? 's' : ''}`, {
+      description: 'Your preferences help us suggest better meals'
+    });
   };
 
   const handleSwapMeal = async (mealId: string, dayNumber: number) => {
@@ -259,7 +294,8 @@ function App() {
         currentMeal,
         dayNumber,
         userProfile,
-        mealPlan
+        mealPlan,
+        mealRatings || []
       );
 
       setMealPlan((currentPlan) => {
@@ -648,7 +684,7 @@ function App() {
               </div>
             </div>
 
-            <MealPlanView mealPlan={mealPlan!} onSwapMeal={handleSwapMeal} />
+            <MealPlanView mealPlan={mealPlan!} onSwapMeal={handleSwapMeal} onRateMeal={handleRateMeal} mealRatings={mealRatingsMap} />
           </div>
         )}
       </main>
