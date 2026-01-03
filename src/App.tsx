@@ -669,6 +669,76 @@ function App() {
     });
   };
 
+  const handleCopyWeek = (sourceDates: string[], targetStartDate: string) => {
+    if (isDemoMode) {
+      toast.error('Demo mode: Create an account to track progress', {
+        action: {
+          label: 'Create Account',
+          onClick: () => setShowCreateAccountDialog(true)
+        }
+      });
+      return;
+    }
+
+    if (!currentUser || !isVerified) {
+      toast.error('Please verify your email to track progress', {
+        action: {
+          label: 'Verify Now',
+          onClick: () => setShowEmailVerificationDialog(true)
+        }
+      });
+      return;
+    }
+
+    setDayProgress((current) => {
+      const progressList = current || [];
+      const newProgressItems: DayProgress[] = [];
+      
+      sourceDates.forEach((sourceDate, index) => {
+        const sourceDayProgress = progressList.find(p => p.date === sourceDate);
+        if (!sourceDayProgress) return;
+        
+        const targetDate = new Date(targetStartDate);
+        targetDate.setDate(targetDate.getDate() + index);
+        const targetDateStr = targetDate.toISOString().split('T')[0];
+        
+        const existingTarget = progressList.find(p => p.date === targetDateStr);
+        if (existingTarget) {
+          toast.error(`Date ${new Date(targetDateStr).toLocaleDateString()} is already scheduled`);
+          return;
+        }
+        
+        const copiedMeals: CompletedMeal[] = sourceDayProgress.completed_meals.map(meal => ({
+          ...meal,
+          meal_id: `${meal.meal_id}_copy_${Date.now()}_${index}`,
+          completed_at: new Date().toISOString(),
+          date: targetDateStr,
+        }));
+        
+        const newDayProgress: DayProgress = {
+          date: targetDateStr,
+          completed_meals: copiedMeals,
+          total_nutrition: { ...sourceDayProgress.total_nutrition },
+          total_cost: sourceDayProgress.total_cost,
+          meals_count: sourceDayProgress.meals_count,
+        };
+        
+        newProgressItems.push(newDayProgress);
+      });
+      
+      if (newProgressItems.length === 0) {
+        toast.error('Could not copy week - some dates are already scheduled');
+        return progressList;
+      }
+      
+      toast.success(`Week copied! ${newProgressItems.length} day${newProgressItems.length !== 1 ? 's' : ''} scheduled 📅`, {
+        description: `Starting from ${new Date(targetStartDate).toLocaleDateString()}`
+      });
+      
+      return [...progressList, ...newProgressItems];
+    });
+  };
+
   const handleBadgeGenerated = (badge: Badge) => {
     setBadges((current) => {
       const badges = current || [];
@@ -1341,6 +1411,7 @@ function App() {
                             completedDays={dayProgress || []}
                             onToggleDayComplete={handleToggleDayComplete}
                             onChangeDayDate={handleChangeDayDate}
+                            onCopyWeek={handleCopyWeek}
                           />
                         </div>
                       </TabsContent>

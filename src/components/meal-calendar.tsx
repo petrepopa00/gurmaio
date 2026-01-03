@@ -3,11 +3,12 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CheckCircle, Circle, CalendarBlank, PencilSimple, X } from '@phosphor-icons/react';
+import { CheckCircle, Circle, CalendarBlank, PencilSimple, X, CopySimple } from '@phosphor-icons/react';
 import type { Day, DayProgress, CompletedMeal } from '@/types/domain';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { CopyWeekDialog } from '@/components/copy-week-dialog';
 
 interface MealCalendarProps {
   mealPlan: {
@@ -16,6 +17,7 @@ interface MealCalendarProps {
   completedDays: DayProgress[];
   onToggleDayComplete: (day: Day, isComplete: boolean, selectedDate: string) => void;
   onChangeDayDate?: (oldDate: string, newDate: string, dayNumber: number) => void;
+  onCopyWeek?: (sourceDates: string[], targetStartDate: string) => void;
   currentDate?: string;
 }
 
@@ -24,11 +26,13 @@ export function MealCalendar({
   completedDays,
   onToggleDayComplete,
   onChangeDayDate,
+  onCopyWeek,
   currentDate = new Date().toISOString().split('T')[0],
 }: MealCalendarProps) {
   const [selectedDay, setSelectedDay] = useState<DayProgress | null>(null);
   const [datePickerOpen, setDatePickerOpen] = useState<string | null>(null);
   const [editingDayNumber, setEditingDayNumber] = useState<number | null>(null);
+  const [copyWeekDialogOpen, setCopyWeekDialogOpen] = useState(false);
 
   const getDayProgress = (dayNumber: number): DayProgress | undefined => {
     return completedDays.find(d => {
@@ -116,11 +120,22 @@ export function MealCalendar({
 
   return (
     <div className="space-y-6">
-      <div className="bg-muted/50 border rounded-lg p-4 mb-4">
-        <p className="text-sm text-muted-foreground">
+      <div className="flex items-center justify-between gap-4 bg-muted/50 border rounded-lg p-4 mb-4">
+        <p className="text-sm text-muted-foreground flex-1">
           📅 <strong>Quick Start:</strong> Click the calendar icon on Day 1 to choose your start date. All subsequent days will automatically be scheduled in order. 
           {completedDays.length > 0 && ' You can edit any scheduled date using the pencil icon or unmark days using the X button.'}
         </p>
+        {completedDays.length > 0 && onCopyWeek && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCopyWeekDialogOpen(true)}
+            className="shrink-0"
+          >
+            <CopySimple className="mr-2" size={16} />
+            Copy Week
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -359,6 +374,15 @@ export function MealCalendar({
             </div>
           </div>
         </Card>
+      )}
+
+      {onCopyWeek && (
+        <CopyWeekDialog
+          open={copyWeekDialogOpen}
+          onOpenChange={setCopyWeekDialogOpen}
+          completedDays={completedDays}
+          onCopyWeek={onCopyWeek}
+        />
       )}
     </div>
   );
