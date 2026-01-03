@@ -386,118 +386,132 @@ function App() {
 
   if (!hasProfile) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-6">
-        <div className="max-w-2xl w-full text-center space-y-8">
-          <div className="flex items-center justify-end gap-2">
-            <LanguageSwitcher currentLanguage={language} onLanguageChange={handleLanguageChange} />
-            {currentUser && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={currentUser.avatarUrl} alt={currentUser.login} />
-                      <AvatarFallback>{currentUser.login.slice(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{currentUser.login}</p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {currentUser.email}
-                      </p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
-                    <SignOut className="mr-2" />
-                    {t.logout}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
-          
-          <div className="space-y-4">
-            <h1 className="font-heading text-5xl font-bold text-primary tracking-tight">
-              {t.appName}
-            </h1>
-            <p className="text-xl text-muted-foreground">
-              {t.tagline}
-            </p>
-          </div>
-
-          <div className="bg-card rounded-2xl p-8 border shadow-sm space-y-6">
-            {!currentUser && (
-              <div className="bg-primary/10 border border-primary/30 rounded-lg p-4 mb-6">
-                <p className="text-sm">
-                  <strong>✨ No login required to try Gurmaio</strong>
-                </p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {EMPTY_STATES.guestMode}
-                </p>
+      <div className="min-h-screen bg-background">
+        <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b">
+          <div className="container mx-auto px-6 py-4">
+            <div className="flex items-center justify-between">
+              <h1 className="font-heading text-xl font-bold text-primary">{t.appName}</h1>
+              <div className="flex items-center gap-2">
+                <LanguageSwitcher currentLanguage={language} onLanguageChange={handleLanguageChange} />
+                {currentUser && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={currentUser.avatarUrl} alt={currentUser.login} />
+                          <AvatarFallback>{currentUser.login.slice(0, 2).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuLabel>
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-sm font-medium leading-none">{currentUser.login}</p>
+                          <p className="text-xs leading-none text-muted-foreground">
+                            {currentUser.email}
+                          </p>
+                        </div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleLogout}>
+                        <SignOut className="mr-2" />
+                        {t.logout}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
-            )}
-            
-            <div className="space-y-2">
-              <h2 className="font-heading text-2xl font-semibold">{t.welcome}</h2>
-              <p className="text-muted-foreground">
-                Let's create your personalized meal plan based on your budget, dietary preferences, and nutrition goals.
+            </div>
+          </div>
+        </header>
+
+        <main className="pt-20 pb-16 px-6">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center space-y-6 mb-12">
+              <h2 className="font-heading text-5xl md:text-6xl font-bold text-foreground tracking-tight">
+                {t.tagline}
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Create personalized meal plans based on your budget, dietary preferences, and nutrition goals
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-4">
-              <div className="space-y-2">
-                <div className="text-3xl">💰</div>
-                <h3 className="font-heading font-medium">Budget-First</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+              <div className="bg-card rounded-xl p-6 border shadow-sm space-y-3">
+                <div className="text-4xl">💰</div>
+                <h3 className="font-heading text-lg font-semibold">Budget-First</h3>
                 <p className="text-sm text-muted-foreground">
-                  Every meal plan respects your budget with transparent cost breakdowns
+                  Transparent cost breakdowns for every meal
                 </p>
               </div>
-              <div className="space-y-2">
-                <div className="text-3xl">🎯</div>
-                <h3 className="font-heading font-medium">Precise Nutrition</h3>
+              <div className="bg-card rounded-xl p-6 border shadow-sm space-y-3">
+                <div className="text-4xl">🎯</div>
+                <h3 className="font-heading text-lg font-semibold">Precise Nutrition</h3>
                 <p className="text-sm text-muted-foreground">
-                  Deterministic calculations for calories, protein, carbs, and fats
+                  Accurate calories, protein, carbs, and fats
                 </p>
               </div>
-              <div className="space-y-2">
-                <div className="text-3xl">🛒</div>
-                <h3 className="font-heading font-medium">Smart Shopping</h3>
+              <div className="bg-card rounded-xl p-6 border shadow-sm space-y-3">
+                <div className="text-4xl">🛒</div>
+                <h3 className="font-heading text-lg font-semibold">Smart Shopping</h3>
                 <p className="text-sm text-muted-foreground">
-                  Aggregated shopping lists with realistic grocery costs
+                  Aggregated lists with realistic grocery costs
                 </p>
               </div>
             </div>
 
-            <div className="flex flex-col gap-3">
+            <div className="bg-card rounded-2xl p-8 border shadow-sm space-y-6 max-w-xl mx-auto">
               {!currentUser && (
-                <Button
-                  onClick={() => window.location.href = '/.spark/login'}
-                  size="lg"
-                  className="w-full"
-                  variant="default"
-                >
-                  {t.login}
-                </Button>
+                <div className="bg-accent/10 border border-accent/30 rounded-lg p-4">
+                  <p className="text-sm font-medium">
+                    ✨ No login required to try {t.appName}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {EMPTY_STATES.guestMode}
+                  </p>
+                </div>
               )}
-              <Button
-                onClick={() => setIsOnboarding(true)}
-                size="lg"
-                className="w-full"
-                variant={currentUser ? "default" : "outline"}
-              >
-                <Plus className="mr-2" />
-                {currentUser ? t.getStarted : t.continueAsGuest}
-              </Button>
+              
+              <div className="space-y-3">
+                <h3 className="font-heading text-2xl font-semibold text-center">{t.welcome}</h3>
+                <p className="text-muted-foreground text-center text-sm">
+                  Answer a few quick questions to get your personalized meal plan
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-3 pt-2">
+                {!currentUser ? (
+                  <>
+                    <Button
+                      onClick={() => window.location.href = '/.spark/login'}
+                      size="lg"
+                      className="w-full"
+                    >
+                      {t.login}
+                    </Button>
+                    <Button
+                      onClick={() => setIsOnboarding(true)}
+                      size="lg"
+                      className="w-full"
+                      variant="outline"
+                    >
+                      {t.continueAsGuest}
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    onClick={() => setIsOnboarding(true)}
+                    size="lg"
+                    className="w-full"
+                  >
+                    <Plus className="mr-2" />
+                    {t.getStarted}
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
-
-          <p className="text-sm text-muted-foreground">
-            Production-ready architecture • Cloud-native • Edge-first
-          </p>
-        </div>
+        </main>
 
         <OnboardingDialog
           open={isOnboarding}
