@@ -92,34 +92,74 @@ export function ShoppingListSheet({ open, onOpenChange, shoppingList, onToggleOw
           </Card>
 
           <div className="space-y-3">
+            {!showExportOptions && (
+              <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 text-sm">
+                <p className="text-muted-foreground">
+                  💡 Export your shopping list to popular delivery services like <strong>Glovo</strong>, <strong>Uber Eats</strong>, <strong>Wolt</strong>, and more!
+                </p>
+              </div>
+            )}
+            
             <Button
               onClick={() => setShowExportOptions(!showExportOptions)}
               className="w-full"
               size="lg"
+              variant={showExportOptions ? "outline" : "default"}
             >
               <Export className="mr-2" />
-              {t.exportToGrocery}
+              {showExportOptions ? t.hideExportOptions : t.exportToGrocery}
             </Button>
 
             {showExportOptions && (
-              <div className="space-y-2 p-4 bg-muted/30 rounded-lg border">
+              <div className="space-y-4 p-4 bg-muted/30 rounded-lg border">
                 <h4 className="font-heading font-semibold text-sm text-muted-foreground mb-3">
                   {t.chooseExportFormat}
                 </h4>
-                <div className="grid grid-cols-1 gap-2">
-                  {(Object.entries(GROCERY_SERVICES) as [GroceryService, typeof GROCERY_SERVICES[GroceryService]][]).map(
-                    ([key, config]) => (
-                      <Button
-                        key={key}
-                        variant="outline"
-                        onClick={() => handleExport(key)}
-                        className="justify-start h-auto py-3 hover:bg-background"
-                      >
-                        <span className="text-xl mr-3">{config.icon}</span>
-                        <span className="font-medium">{config.name}</span>
-                      </Button>
-                    )
-                  )}
+                
+                <div className="space-y-3">
+                  <div>
+                    <div className="text-xs font-semibold text-muted-foreground mb-2 px-1">🇪🇺 EU DELIVERY SERVICES</div>
+                    <div className="grid grid-cols-1 gap-2">
+                      {(Object.entries(GROCERY_SERVICES) as [GroceryService, typeof GROCERY_SERVICES[GroceryService]][])
+                        .filter(([_, config]) => config.region === 'EU')
+                        .map(([key, config]) => (
+                          <Button
+                            key={key}
+                            variant="outline"
+                            onClick={() => handleExport(key)}
+                            className="justify-start h-auto py-3 hover:bg-accent/10 transition-all group"
+                          >
+                            <span className="text-xl mr-3 group-hover:scale-110 transition-transform">{config.icon}</span>
+                            <div className="flex-1 text-left">
+                              <div className="font-semibold">{config.name}</div>
+                              <div className="text-xs text-muted-foreground">{config.description}</div>
+                            </div>
+                          </Button>
+                        ))}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <div className="text-xs font-semibold text-muted-foreground mb-2 px-1">🌍 GLOBAL SERVICES</div>
+                    <div className="grid grid-cols-1 gap-2">
+                      {(Object.entries(GROCERY_SERVICES) as [GroceryService, typeof GROCERY_SERVICES[GroceryService]][])
+                        .filter(([_, config]) => config.region === 'Global' || config.region === 'US')
+                        .map(([key, config]) => (
+                          <Button
+                            key={key}
+                            variant="outline"
+                            onClick={() => handleExport(key)}
+                            className="justify-start h-auto py-3 hover:bg-accent/10 transition-all group"
+                          >
+                            <span className="text-xl mr-3 group-hover:scale-110 transition-transform">{config.icon}</span>
+                            <div className="flex-1 text-left">
+                              <div className="font-semibold">{config.name}</div>
+                              <div className="text-xs text-muted-foreground">{config.description}</div>
+                            </div>
+                          </Button>
+                        ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
