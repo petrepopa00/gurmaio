@@ -90,6 +90,13 @@ This is a commercial-grade product requiring multiple sophisticated engines (nut
 - **Progression**: Settings → Delete Account → Confirmation dialog → API call → Data deleted → Logout
 - **Success criteria**: All user data removed from database, user logged out, cannot access app without re-registering
 
+### Interactive Demo & Preview
+- **Functionality**: Animated walkthrough showing app workflow with actual UI mockups, step-by-step feature showcase with smooth transitions, play/pause controls, and manual navigation
+- **Purpose**: Help new users understand app value proposition instantly, reduce onboarding friction, increase conversion by showing real functionality before signup
+- **Trigger**: Displayed prominently on welcome screen before authentication/profile setup
+- **Progression**: Landing page loads → Animated demo auto-plays showing 4 key steps (budget entry → preference selection → AI generation → meal plan results) → User can pause, navigate steps manually, or switch between animated demo and feature overview
+- **Success criteria**: Demo cycles through all 4 scenes with smooth transitions, animations are performant and non-janky, users can control playback, visual polish matches production app quality, demo loads quickly without blocking main content
+
 ## Edge Case Handling
 
 - **Budget Impossible** - Show clear message if budget is too low for minimum viable nutrition, suggest minimum budget based on region

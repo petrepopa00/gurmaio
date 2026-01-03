@@ -11,6 +11,8 @@ import { SavedPlansDialog } from '@/components/saved-plans-dialog';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { ShareMealPlanDialog } from '@/components/share-meal-plan-dialog';
 import { AppFooter } from '@/components/app-footer';
+import { DemoPreview } from '@/components/demo-preview';
+import { AnimatedAppDemo } from '@/components/animated-app-demo';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -46,6 +48,7 @@ function App() {
   const [isSaving, setIsSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
   const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false);
+  const [showAnimatedDemo, setShowAnimatedDemo] = useState(true);
 
   const hasProfile = userProfile !== null;
   const hasMealPlan = mealPlan !== null;
@@ -426,7 +429,7 @@ function App() {
         </header>
 
         <main className="pt-20 pb-16 px-6">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <div className="text-center space-y-6 mb-12">
               <h2 className="font-heading text-5xl md:text-6xl font-bold text-foreground tracking-tight">
                 {t.tagline}
@@ -434,6 +437,31 @@ function App() {
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 Create personalized meal plans based on your budget, dietary preferences, and nutrition goals
               </p>
+            </div>
+
+            <div className="mb-12 space-y-6">
+              <div className="flex items-center justify-center gap-2">
+                <Button
+                  variant={showAnimatedDemo ? 'default' : 'outline'}
+                  onClick={() => setShowAnimatedDemo(true)}
+                  size="sm"
+                >
+                  Interactive Demo
+                </Button>
+                <Button
+                  variant={!showAnimatedDemo ? 'default' : 'outline'}
+                  onClick={() => setShowAnimatedDemo(false)}
+                  size="sm"
+                >
+                  Feature Overview
+                </Button>
+              </div>
+
+              {showAnimatedDemo ? (
+                <AnimatedAppDemo />
+              ) : (
+                <DemoPreview autoPlay={true} />
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
