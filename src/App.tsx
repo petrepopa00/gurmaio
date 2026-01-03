@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useKV } from '@github/spark/hooks';
+import { AnimatePresence, motion } from 'framer-motion';
 import type { MealPlan, UserProfile, ShoppingList, MealRating, Meal, MealPrepPlan } from '@/types/domain';
 import { generateMealPlan, generateShoppingList } from '@/lib/mock-data';
 import { generateMealSubstitution } from '@/lib/meal-substitution';
@@ -160,7 +161,7 @@ function App() {
       setMealPrepPlan(() => null);
       setActiveTab('meals');
       
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 400));
       
       const newPlan = await generateMealPlan(userProfile);
       setMealPlan(() => newPlan);
@@ -721,113 +722,189 @@ function App() {
       </header>
 
       <main className="container mx-auto px-6 py-8">
-        {!hasMealPlan ? (
-          <div className="max-w-3xl mx-auto">
-            <div className="bg-card rounded-2xl p-8 border shadow-sm space-y-6 text-center">
-              <div className="space-y-2">
-                <h2 className="font-heading text-3xl font-semibold">
-                  Ready to generate your meal plan?
-                </h2>
-                <p className="text-muted-foreground">
-                  We'll create a {userProfile!.meal_plan_days}-{t.day} meal plan with {userProfile!.meals_per_day} meals per day for €{userProfile!.budget_eur}
-                  {userProfile!.budget_period === 'daily' ? '/day' : '/week'} based on your preferences.
-                </p>
-              </div>
+        <AnimatePresence mode="wait">
+          {!hasMealPlan ? (
+            <motion.div
+              key="no-plan"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.3 }}
+              className="max-w-3xl mx-auto"
+            >
+              <div className="bg-card rounded-2xl p-8 border shadow-sm space-y-6 text-center">
+                <div className="space-y-2">
+                  <h2 className="font-heading text-3xl font-semibold">
+                    Ready to generate your meal plan?
+                  </h2>
+                  <p className="text-muted-foreground">
+                    We'll create a {userProfile!.meal_plan_days}-{t.day} meal plan with {userProfile!.meals_per_day} meals per day for €{userProfile!.budget_eur}
+                    {userProfile!.budget_period === 'daily' ? '/day' : '/week'} based on your preferences.
+                  </p>
+                </div>
 
-              <div className="flex flex-wrap gap-2 justify-center">
-                {userProfile!.dietary_preferences.map((pref) => (
-                  <span
-                    key={pref}
-                    className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium"
-                  >
-                    {pref}
-                  </span>
-                ))}
-              </div>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {userProfile!.dietary_preferences.map((pref) => (
+                    <span
+                      key={pref}
+                      className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium"
+                    >
+                      {pref}
+                    </span>
+                  ))}
+                </div>
 
-              <Button
-                onClick={handleGeneratePlan}
-                size="lg"
-                disabled={isGenerating}
-                className="w-full max-w-sm"
-              >
-                {isGenerating ? t.generating : t.generate}
-              </Button>
+                <Button
+                  onClick={handleGeneratePlan}
+                  size="lg"
+                  disabled={isGenerating}
+                  className="w-full max-w-sm"
+                >
+                  {isGenerating ? t.generating : t.generate}
+                </Button>
 
-              <div className="pt-4 border-t">
-                <p className="text-xs text-muted-foreground flex items-center justify-center gap-2">
-                  <span>🤖</span>
-                  <span>{DISCLAIMERS.ai.short}</span>
-                </p>
+                <div className="pt-4 border-t">
+                  <p className="text-xs text-muted-foreground flex items-center justify-center gap-2">
+                    <span>🤖</span>
+                    <span>{DISCLAIMERS.ai.short}</span>
+                  </p>
+                </div>
               </div>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="font-heading text-3xl font-bold">{t.yourMealPlan}</h2>
-                <p className="text-muted-foreground">
-                  {mealPlan!.metadata.days}-{t.day} plan • Generated {new Date(mealPlan!.generated_at).toLocaleDateString()}
-                </p>
-              </div>
-              <div className="flex gap-2">
-                {!mealPrepPlan && (
+            </motion.div>
+          ) : (
+            <motion.div
+              key="has-plan"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-6"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="font-heading text-3xl font-bold">{t.yourMealPlan}</h2>
+                  <p className="text-muted-foreground">
+                    {mealPlan!.metadata.days}-{t.day} plan • Generated {new Date(mealPlan!.generated_at).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  {!mealPrepPlan && (
+                    <Button
+                      onClick={handleGeneratePrepPlan}
+                      disabled={isGeneratingPrep}
+                      variant="outline"
+                    >
+                      <ChefHat className="mr-2" />
+                      {isGeneratingPrep ? 'Generating...' : 'Generate Prep Plan'}
+                    </Button>
+                  )}
                   <Button
-                    onClick={handleGeneratePrepPlan}
-                    disabled={isGeneratingPrep}
+                    onClick={handleExportToPDF}
                     variant="outline"
                   >
-                    <ChefHat className="mr-2" />
-                    {isGeneratingPrep ? 'Generating...' : 'Generate Prep Plan'}
+                    <FilePdf className="mr-2" />
+                    {t.exportPDF}
                   </Button>
-                )}
-                <Button
-                  onClick={handleExportToPDF}
-                  variant="outline"
-                >
-                  <FilePdf className="mr-2" />
-                  {t.exportPDF}
-                </Button>
-                <Button
-                  onClick={() => setShareMealPlanOpen(true)}
-                  variant="outline"
-                >
-                  <ShareNetwork className="mr-2" />
-                  {t.sharePlan}
-                </Button>
-                <Button onClick={handleGeneratePlan} disabled={isGenerating}>
-                  <Plus className="mr-2" />
-                  {isGenerating ? t.generating : t.regenerate}
-                </Button>
+                  <Button
+                    onClick={() => setShareMealPlanOpen(true)}
+                    variant="outline"
+                  >
+                    <ShareNetwork className="mr-2" />
+                    {t.sharePlan}
+                  </Button>
+                  <Button onClick={handleGeneratePlan} disabled={isGenerating}>
+                    <Plus className="mr-2" />
+                    {isGenerating ? t.generating : t.regenerate}
+                  </Button>
+                </div>
               </div>
-            </div>
 
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'meals' | 'prep')}>
-              <TabsList className="grid w-full max-w-md grid-cols-2">
-                <TabsTrigger value="meals">Meal Plan</TabsTrigger>
-                <TabsTrigger value="prep" disabled={!mealPrepPlan}>
-                  Meal Prep {mealPrepPlan && '✓'}
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="meals" className="mt-6">
-                <MealPlanView key={mealPlan!.plan_id} mealPlan={mealPlan!} onSwapMeal={handleSwapMeal} onRateMeal={handleRateMeal} mealRatings={mealRatingsMap} />
-              </TabsContent>
-              
-              <TabsContent value="prep" className="mt-6">
-                {mealPrepPlan ? (
-                  <MealPrepView key={mealPrepPlan.plan_id} prepPlan={mealPrepPlan} />
+              <AnimatePresence mode="wait">
+                {isGenerating ? (
+                  <motion.div
+                    key="loading"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="flex flex-col items-center justify-center py-20 space-y-6"
+                  >
+                    <motion.div
+                      animate={{ 
+                        rotate: 360,
+                        scale: [1, 1.1, 1]
+                      }}
+                      transition={{ 
+                        rotate: { duration: 2, repeat: Infinity, ease: "linear" },
+                        scale: { duration: 1, repeat: Infinity, ease: "easeInOut" }
+                      }}
+                      className="text-6xl"
+                    >
+                      🍽️
+                    </motion.div>
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                      className="text-center space-y-2"
+                    >
+                      <h3 className="font-heading text-2xl font-semibold text-foreground">
+                        Generating your meal plan...
+                      </h3>
+                      <p className="text-muted-foreground">
+                        Calculating nutrition, costs, and balancing your budget
+                      </p>
+                    </motion.div>
+                    <motion.div
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: 1 }}
+                      transition={{ duration: 1.5, ease: "easeInOut" }}
+                      className="w-64 h-1 bg-primary/20 rounded-full overflow-hidden"
+                    >
+                      <motion.div
+                        animate={{ x: [-100, 300] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                        className="h-full w-1/3 bg-primary rounded-full"
+                      />
+                    </motion.div>
+                  </motion.div>
                 ) : (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <ChefHat size={48} className="mx-auto mb-4 opacity-50" />
-                    <p>Generate a meal prep plan to see batch cooking recommendations</p>
-                  </div>
+                  <motion.div
+                    key={mealPlan!.plan_id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                  >
+                    <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'meals' | 'prep')}>
+                      <TabsList className="grid w-full max-w-md grid-cols-2">
+                        <TabsTrigger value="meals">Meal Plan</TabsTrigger>
+                        <TabsTrigger value="prep" disabled={!mealPrepPlan}>
+                          Meal Prep {mealPrepPlan && '✓'}
+                        </TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="meals" className="mt-6">
+                        <MealPlanView key={mealPlan!.plan_id} mealPlan={mealPlan!} onSwapMeal={handleSwapMeal} onRateMeal={handleRateMeal} mealRatings={mealRatingsMap} />
+                      </TabsContent>
+                      
+                      <TabsContent value="prep" className="mt-6">
+                        {mealPrepPlan ? (
+                          <MealPrepView key={mealPrepPlan.plan_id} prepPlan={mealPrepPlan} />
+                        ) : (
+                          <div className="text-center py-12 text-muted-foreground">
+                            <ChefHat size={48} className="mx-auto mb-4 opacity-50" />
+                            <p>Generate a meal prep plan to see batch cooking recommendations</p>
+                          </div>
+                        )}
+                      </TabsContent>
+                    </Tabs>
+                  </motion.div>
                 )}
-              </TabsContent>
-            </Tabs>
-          </div>
-        )}
+              </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
       <OnboardingDialog
