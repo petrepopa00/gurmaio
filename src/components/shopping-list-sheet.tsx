@@ -4,10 +4,13 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import type { ShoppingList, ShoppingListItem } from '@/types/domain';
-import { ShoppingCart, CurrencyDollar, Export, Trash, Share, WhatsappLogo, Envelope, Copy } from '@phosphor-icons/react';
+import { ShoppingCart, CurrencyDollar, Export, Trash, Share, WhatsappLogo, Envelope, Copy, FilePdf, Users, Minus, Plus } from '@phosphor-icons/react';
 import { exportShoppingList, GROCERY_SERVICES, type GroceryService } from '@/lib/grocery-export';
 import { generateShoppingListText, shareViaWhatsApp, shareViaEmail, copyToClipboard } from '@/lib/share-shopping-list';
+import { exportShoppingListToPDF } from '@/lib/export-shopping-list-pdf';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
@@ -27,12 +30,15 @@ export function ShoppingListSheet({ open, onOpenChange, shoppingList, onToggleOw
   const { language, t } = useLanguage();
   const [showExportOptions, setShowExportOptions] = useState(false);
   const [showShareOptions, setShowShareOptions] = useState(false);
+  const [multiplier, setMultiplier] = useState(1);
 
   const visibleItems = shoppingList.items.filter(item => !item.deleted);
   const ownedCount = visibleItems.filter(item => item.owned).length;
   const totalCostRemaining = visibleItems
     .filter(item => !item.owned)
-    .reduce((sum, item) => sum + item.estimated_price_eur, 0);
+    .reduce((sum, item) => sum + item.estimated_price_eur, 0) * multiplier;
+  
+  const adjustedPlanCost = shoppingList.summary.plan_cost_eur * multiplier;
 
   const handleExport = (service: GroceryService) => {
     try {
@@ -72,6 +78,21 @@ export function ShoppingListSheet({ open, onOpenChange, shoppingList, onToggleOw
     }
   };
 
+  const handleExportPDF = () => {
+    try {
+      exportShoppingListToPDF(shoppingList, language, multiplier);
+      toast.success('PDF downloaded successfully!');
+    } catch (error) {
+      toast.error('Failed to export PDF');
+      console.error('PDF export error:', error);
+    }
+  };
+
+  const handleMultiplierChange = (newValue: number) => {
+    const value = Math.max(1, Math.min(10, newValue));
+    setMultiplier(value);
+  };
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
@@ -86,6 +107,46 @@ export function ShoppingListSheet({ open, onOpenChange, shoppingList, onToggleOw
         </SheetHeader>
 
         <div className="mt-6 space-y-6">
+          <Card className="p-4 bg-primary/5 border-primary/20">
+            <div className="flex items-center gap-2 mb-4">
+              <Users size={20} className="text-primary" />
+              <Label className="font-heading font-semibold">Family Size Multiplier</Label>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => handleMultiplierChange(multiplier - 1)}
+                disabled={multiplier <= 1}
+              >
+                <Minus size={16} />
+              </Button>
+              <div className="flex-1">
+                <Input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={multiplier}
+                  onChange={(e) => handleMultiplierChange(parseInt(e.target.value) || 1)}
+                  className="text-center font-heading text-xl font-bold"
+                />
+              </div>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => handleMultiplierChange(multiplier + 1)}
+                disabled={multiplier >= 10}
+              >
+                <Plus size={16} />
+              </Button>
+            </div>
+            {multiplier > 1 && (
+              <p className="text-xs text-muted-foreground text-center mt-2">
+                All quantities and costs are multiplied by {multiplier}x
+              </p>
+            )}
+          </Card>
+
           <Card className="p-4 bg-accent/10 border-accent/30">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-heading font-semibold">Cost Summary</h3>
@@ -104,7 +165,7 @@ export function ShoppingListSheet({ open, onOpenChange, shoppingList, onToggleOw
               <div>
                 <div className="text-sm text-muted-foreground">{t.planCost}</div>
                 <div className="font-heading text-xl font-bold tabular-nums">
-                  €{shoppingList.summary.plan_cost_eur.toFixed(2)}
+                  €{adjustedPlanCost.toFixed(2)}
                 </div>
               </div>
               <div>
@@ -119,7 +180,7 @@ export function ShoppingListSheet({ open, onOpenChange, shoppingList, onToggleOw
               <>
                 <Separator className="my-3" />
                 <div className="text-center text-sm text-muted-foreground">
-                  <span className="font-medium">€{shoppingList.summary.waste_cost_eur.toFixed(2)}</span> estimated unused portions
+                  <span className="font-medium">€{(shoppingList.summary.waste_cost_eur * multiplier).toFixed(2)}</span> estimated unused portions
                 </div>
               </>
             )}
@@ -134,7 +195,17 @@ export function ShoppingListSheet({ open, onOpenChange, shoppingList, onToggleOw
               </div>
             )}
             
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
+              <Button
+                onClick={handleExportPDF}
+                className="w-full"
+                size="lg"
+                variant="outline"
+              >
+                <FilePdf className="mr-2" />
+                PDF
+              </Button>
+              
               <Button
                 onClick={() => {
                   setShowShareOptions(!showShareOptions);
@@ -145,7 +216,7 @@ export function ShoppingListSheet({ open, onOpenChange, shoppingList, onToggleOw
                 variant={showShareOptions ? "default" : "outline"}
               >
                 <Share className="mr-2" />
-                {t.shareList}
+                Share
               </Button>
               
               <Button
@@ -158,7 +229,7 @@ export function ShoppingListSheet({ open, onOpenChange, shoppingList, onToggleOw
                 variant={showExportOptions ? "default" : "outline"}
               >
                 <Export className="mr-2" />
-                {t.exportToGrocery}
+                Export
               </Button>
             </div>
 
@@ -292,10 +363,10 @@ export function ShoppingListSheet({ open, onOpenChange, shoppingList, onToggleOw
                     {translateIngredient(item.display_name, language)}
                   </label>
                   <div className="text-sm text-muted-foreground tabular-nums">
-                    {item.total_quantity}{item.unit}
+                    {(item.total_quantity * multiplier).toFixed(0)}{item.unit}
                     {item.minimum_purchase_quantity > item.total_quantity && (
                       <Badge variant="secondary" className="ml-2 text-xs">
-                        min {item.minimum_purchase_quantity}{item.unit}
+                        min {(item.minimum_purchase_quantity * multiplier).toFixed(0)}{item.unit}
                       </Badge>
                     )}
                   </div>
@@ -304,7 +375,7 @@ export function ShoppingListSheet({ open, onOpenChange, shoppingList, onToggleOw
                   <div className={`font-heading font-semibold tabular-nums ${
                     item.owned ? 'text-muted-foreground line-through' : 'text-accent'
                   }`}>
-                    €{item.estimated_price_eur.toFixed(2)}
+                    €{(item.estimated_price_eur * multiplier).toFixed(2)}
                   </div>
                   <Button
                     variant="ghost"
