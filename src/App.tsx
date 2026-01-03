@@ -559,7 +559,7 @@ function App() {
     }
   };
 
-  const handleToggleDayComplete = (day: any, isComplete: boolean) => {
+  const handleToggleDayComplete = (day: any, isComplete: boolean, selectedDate: string) => {
     if (isDemoMode) {
       toast.error('Demo mode: Create an account to track progress', {
         action: {
@@ -584,8 +584,9 @@ function App() {
       const progressList = current || [];
       
       if (isComplete) {
-        const existingDay = progressList.find(p => p.date === day.date);
+        const existingDay = progressList.find(p => p.date === selectedDate);
         if (existingDay) {
+          toast.error('This date is already marked for another day');
           return progressList;
         }
 
@@ -593,7 +594,7 @@ function App() {
           meal_id: meal.meal_id,
           plan_id: mealPlan?.plan_id || '',
           completed_at: new Date().toISOString(),
-          date: day.date,
+          date: selectedDate,
           meal_type: meal.meal_type,
           recipe_name: meal.recipe_name,
           nutrition: meal.nutrition,
@@ -601,18 +602,18 @@ function App() {
         }));
 
         const newDayProgress: DayProgress = {
-          date: day.date,
+          date: selectedDate,
           completed_meals: completedMeals,
           total_nutrition: day.totals,
           total_cost: day.totals.cost_eur,
           meals_count: day.meals.length,
         };
 
-        toast.success(`Day ${day.day_number} marked as complete! 🎉`);
+        toast.success(`Day ${day.day_number} scheduled for ${new Date(selectedDate).toLocaleDateString()}! 🎉`);
         return [...progressList, newDayProgress];
       } else {
         toast.info(`Day ${day.day_number} unmarked`);
-        return progressList.filter(p => p.date !== day.date);
+        return progressList.filter(p => p.date !== selectedDate);
       }
     });
   };
