@@ -81,25 +81,30 @@ function App() {
       
       setCurrentUser(null);
       
-      await fetch('/.spark/logout', { 
-        method: 'POST',
-        credentials: 'same-origin'
-      });
+      try {
+        await fetch('/.spark/logout', { 
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+      } catch (fetchError) {
+        console.log('Logout endpoint error (continuing anyway):', fetchError);
+      }
       
-      await new Promise(resolve => setTimeout(resolve, 200));
+      toast.success('Logged out successfully', { id: 'logout', duration: 1000 });
       
-      toast.success('Logged out successfully', { id: 'logout', duration: 1500 });
+      await new Promise(resolve => setTimeout(resolve, 300));
       
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      window.location.href = window.location.origin;
+      window.location.reload();
     } catch (error) {
       console.error('Logout error:', error);
-      toast.error('Logged out', { id: 'logout', duration: 1500 });
+      toast.error('Logged out', { id: 'logout', duration: 1000 });
       setCurrentUser(null);
       
-      await new Promise(resolve => setTimeout(resolve, 500));
-      window.location.href = window.location.origin;
+      await new Promise(resolve => setTimeout(resolve, 300));
+      window.location.reload();
     }
   };
 
@@ -266,18 +271,25 @@ function App() {
       
       setCurrentUser(null);
       
-      await fetch('/.spark/logout', { 
-        method: 'POST',
-        credentials: 'same-origin'
-      }).catch(() => {});
+      try {
+        await fetch('/.spark/logout', { 
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+      } catch (logoutError) {
+        console.log('Logout endpoint error during deletion (continuing):', logoutError);
+      }
       
       await new Promise(resolve => setTimeout(resolve, 300));
       
-      toast.success('Your account and all data have been deleted', { id: 'delete-account', duration: 3000 });
+      toast.success('Your account and all data have been deleted', { id: 'delete-account', duration: 2000 });
       
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      window.location.href = window.location.origin;
+      window.location.reload();
     } catch (error) {
       toast.error('Failed to delete account data', { id: 'delete-account' });
       console.error('Delete account error:', error);
