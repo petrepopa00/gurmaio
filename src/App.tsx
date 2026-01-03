@@ -77,6 +77,8 @@ function App() {
 
   const handleLogout = async () => {
     try {
+      toast.loading('Logging out...', { id: 'logout' });
+      
       setCurrentUser(null);
       
       await fetch('/.spark/logout', { 
@@ -84,13 +86,20 @@ function App() {
         credentials: 'same-origin'
       });
       
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 200));
       
-      window.location.reload();
+      toast.success('Logged out successfully', { id: 'logout', duration: 1500 });
+      
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      window.location.href = window.location.origin;
     } catch (error) {
       console.error('Logout error:', error);
+      toast.error('Logged out', { id: 'logout', duration: 1500 });
       setCurrentUser(null);
-      window.location.reload();
+      
+      await new Promise(resolve => setTimeout(resolve, 500));
+      window.location.href = window.location.origin;
     }
   };
 
