@@ -51,8 +51,17 @@ function App() {
     }
   };
 
-  const handleLogout = () => {
-    window.location.href = '/.spark/logout';
+  const handleLogout = async () => {
+    try {
+      await fetch('/.spark/logout', { 
+        method: 'POST',
+        credentials: 'same-origin'
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+    setCurrentUser(null);
+    window.location.reload();
   };
 
   const handleSaveMealPlan = async () => {
