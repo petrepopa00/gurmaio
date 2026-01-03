@@ -35,6 +35,10 @@ const ALLERGEN_OPTIONS = [
   'Shellfish',
   'Eggs',
   'Soy',
+  'Fish',
+  'Peanuts',
+  'Sesame',
+  'Sulfites',
 ];
 
 const CUISINE_OPTIONS = [
@@ -44,6 +48,13 @@ const CUISINE_OPTIONS = [
   'Mexican',
   'American',
   'Indian',
+  'French',
+  'Greek',
+  'Middle Eastern',
+  'Japanese',
+  'Thai',
+  'Spanish',
+  'Others',
 ];
 
 function getDietaryTranslationKey(option: string): keyof typeof import('@/lib/i18n/translations').translations.en.dietary {
@@ -67,6 +78,10 @@ function getAllergenTranslationKey(option: string): keyof typeof import('@/lib/i
     'Shellfish': 'shellfish',
     'Eggs': 'eggs',
     'Soy': 'soy',
+    'Fish': 'fish',
+    'Peanuts': 'peanuts',
+    'Sesame': 'sesame',
+    'Sulfites': 'sulfites',
   };
   return mapping[option] || 'gluten';
 }
@@ -79,6 +94,13 @@ function getCuisineTranslationKey(option: string): keyof typeof import('@/lib/i1
     'Mexican': 'mexican',
     'American': 'american',
     'Indian': 'indian',
+    'French': 'french',
+    'Greek': 'greek',
+    'Middle Eastern': 'middleEastern',
+    'Japanese': 'japanese',
+    'Thai': 'thai',
+    'Spanish': 'spanish',
+    'Others': 'others',
   };
   return mapping[option] || 'italian';
 }
@@ -91,6 +113,7 @@ export function OnboardingDialog({ open, onOpenChange, onSave, existingProfile }
   const [dietaryPrefs, setDietaryPrefs] = useState<string[]>(existingProfile?.dietary_preferences || ['Balanced']);
   const [allergens, setAllergens] = useState<string[]>(existingProfile?.allergens || []);
   const [cuisines, setCuisines] = useState<string[]>(existingProfile?.cuisine_preferences || ['Italian', 'Mediterranean']);
+  const [otherCuisines, setOtherCuisines] = useState(existingProfile?.other_cuisines || '');
   
   const [weight, setWeight] = useState(existingProfile?.weight_kg?.toString() || '');
   const [height, setHeight] = useState(existingProfile?.height_cm?.toString() || '');
@@ -163,6 +186,7 @@ export function OnboardingDialog({ open, onOpenChange, onSave, existingProfile }
       dietary_preferences: dietaryPrefs,
       allergens,
       cuisine_preferences: cuisines,
+      other_cuisines: cuisines.includes('Others') ? otherCuisines : undefined,
       target_calories: finalCalories,
       weight_kg: weight ? parseFloat(weight) : undefined,
       height_cm: height ? parseFloat(height) : undefined,
@@ -450,6 +474,17 @@ export function OnboardingDialog({ open, onOpenChange, onSave, existingProfile }
                 </div>
               ))}
             </div>
+            {cuisines.includes('Others') && (
+              <div className="space-y-2 pt-2">
+                <Label htmlFor="other-cuisines">{t.onboarding.otherCuisinesPrompt}</Label>
+                <Input
+                  id="other-cuisines"
+                  value={otherCuisines}
+                  onChange={(e) => setOtherCuisines(e.target.value)}
+                  placeholder="e.g., Korean, Vietnamese, Brazilian..."
+                />
+              </div>
+            )}
           </div>
         </div>
 

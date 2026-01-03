@@ -5,6 +5,7 @@ export interface UserProfile {
   dietary_preferences: string[];
   allergens: string[];
   cuisine_preferences: string[];
+  other_cuisines?: string;
   target_calories?: number;
   weight_kg?: number;
   height_cm?: number;

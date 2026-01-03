@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Toaster } from '@/components/ui/sonner';
-import { Plus, List, Gear, SignOut, FloppyDisk, Check, ClockClockwise, ShareNetwork, FilePdf } from '@phosphor-icons/react';
+import { Plus, List, UserCircleGear, SignOut, FloppyDisk, Check, ClockClockwise, ShareNetwork, FilePdf } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import { useLanguage } from '@/hooks/use-language';
 import { exportMealPlanToPDF } from '@/lib/export-meal-plan-pdf';
@@ -396,8 +396,9 @@ function App() {
               <Button
                 variant="outline"
                 onClick={() => setIsOnboarding(true)}
+                title={t.profile}
               >
-                <Gear />
+                <UserCircleGear />
               </Button>
               
               {currentUser ? (
