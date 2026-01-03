@@ -13,9 +13,10 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Toaster } from '@/components/ui/sonner';
-import { Plus, List, Gear, SignOut, FloppyDisk, Check, ClockClockwise, ShareNetwork } from '@phosphor-icons/react';
+import { Plus, List, Gear, SignOut, FloppyDisk, Check, ClockClockwise, ShareNetwork, FilePdf } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import { useLanguage } from '@/hooks/use-language';
+import { exportMealPlanToPDF } from '@/lib/export-meal-plan-pdf';
 
 interface UserInfo {
   avatarUrl: string;
@@ -193,6 +194,18 @@ function App() {
   const handleShareSavedPlan = (plan: MealPlan) => {
     setMealPlan(() => plan);
     setShareMealPlanOpen(true);
+  };
+
+  const handleExportToPDF = () => {
+    if (!mealPlan) return;
+    
+    try {
+      exportMealPlanToPDF(mealPlan, language);
+      toast.success('PDF downloaded successfully!');
+    } catch (error) {
+      toast.error('Failed to export PDF');
+      console.error('PDF export error:', error);
+    }
   };
 
   const handleLanguageChange = async (newLanguage: string) => {
@@ -471,6 +484,13 @@ function App() {
                 </p>
               </div>
               <div className="flex gap-2">
+                <Button
+                  onClick={handleExportToPDF}
+                  variant="outline"
+                >
+                  <FilePdf className="mr-2" />
+                  {t.exportPDF}
+                </Button>
                 <Button
                   onClick={() => setShareMealPlanOpen(true)}
                   variant="outline"

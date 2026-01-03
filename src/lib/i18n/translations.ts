@@ -65,6 +65,7 @@ export const translations = {
     shareMealPlanOptions: 'Share Meal Plan Options',
     fullDetails: 'Full Details',
     summary: 'Summary',
+    exportPDF: 'Export PDF',
     onboarding: {
       createProfile: 'Create Your Profile',
       updateProfile: 'Update Your Profile',
@@ -198,6 +199,7 @@ export const translations = {
     shareMealPlanOptions: 'Essensplan-Teiloptionen',
     fullDetails: 'Vollständige Details',
     summary: 'Zusammenfassung',
+    exportPDF: 'PDF exportieren',
     onboarding: {
       createProfile: 'Profil erstellen',
       updateProfile: 'Profil aktualisieren',
@@ -331,6 +333,7 @@ export const translations = {
     shareMealPlanOptions: 'Options de partage du plan de repas',
     fullDetails: 'Détails complets',
     summary: 'Résumé',
+    exportPDF: 'Exporter en PDF',
     onboarding: {
       createProfile: 'Créer votre profil',
       updateProfile: 'Mettre à jour votre profil',
@@ -464,6 +467,7 @@ export const translations = {
     shareMealPlanOptions: 'Opciones para compartir plan de comidas',
     fullDetails: 'Detalles completos',
     summary: 'Resumen',
+    exportPDF: 'Exportar PDF',
     onboarding: {
       createProfile: 'Crear tu perfil',
       updateProfile: 'Actualizar tu perfil',
@@ -597,6 +601,7 @@ export const translations = {
     shareMealPlanOptions: 'Opzioni di condivisione piano pasti',
     fullDetails: 'Dettagli completi',
     summary: 'Riepilogo',
+    exportPDF: 'Esporta PDF',
     onboarding: {
       createProfile: 'Crea il tuo profilo',
       updateProfile: 'Aggiorna il tuo profilo',
@@ -730,6 +735,7 @@ export const translations = {
     shareMealPlanOptions: 'Opções de partilha do plano de refeições',
     fullDetails: 'Detalhes completos',
     summary: 'Resumo',
+    exportPDF: 'Exportar PDF',
     onboarding: {
       createProfile: 'Criar o seu perfil',
       updateProfile: 'Atualizar o seu perfil',
@@ -863,6 +869,7 @@ export const translations = {
     shareMealPlanOptions: 'Maaltijdplan deel opties',
     fullDetails: 'Volledige details',
     summary: 'Samenvatting',
+    exportPDF: 'PDF exporteren',
     onboarding: {
       createProfile: 'Maak je profiel aan',
       updateProfile: 'Update je profiel',
@@ -996,6 +1003,7 @@ export const translations = {
     shareMealPlanOptions: 'Opcje udostępniania planu posiłków',
     fullDetails: 'Pełne szczegóły',
     summary: 'Podsumowanie',
+    exportPDF: 'Eksportuj PDF',
     onboarding: {
       createProfile: 'Utwórz swój profil',
       updateProfile: 'Zaktualizuj swój profil',
@@ -1129,6 +1137,7 @@ export const translations = {
     shareMealPlanOptions: 'Opțiuni distribuire plan de mese',
     fullDetails: 'Detalii complete',
     summary: 'Rezumat',
+    exportPDF: 'Exportă PDF',
     onboarding: {
       createProfile: 'Creează-ți profilul',
       updateProfile: 'Actualizează-ți profilul',
@@ -1262,6 +1271,7 @@ export const translations = {
     shareMealPlanOptions: 'Možnosti sdílení jídelníčku',
     fullDetails: 'Úplné detaily',
     summary: 'Souhrn',
+    exportPDF: 'Exportovat PDF',
     onboarding: {
       createProfile: 'Vytvořte svůj profil',
       updateProfile: 'Aktualizujte svůj profil',

@@ -7,8 +7,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { MealPlan } from '@/types/domain';
-import { Calendar, CurrencyDollar, FireSimple, Barbell, Trash, Eye, ShareNetwork } from '@phosphor-icons/react';
+import { Calendar, CurrencyDollar, FireSimple, Barbell, Trash, Eye, ShareNetwork, FilePdf } from '@phosphor-icons/react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { exportMealPlanToPDF } from '@/lib/export-meal-plan-pdf';
+import { useLanguage } from '@/hooks/use-language';
+import { toast } from 'sonner';
 
 interface SavedPlansDialogProps {
   open: boolean;
@@ -27,6 +30,7 @@ export function SavedPlansDialog({
   onDeletePlan,
   onSharePlan 
 }: SavedPlansDialogProps) {
+  const { language } = useLanguage();
   const [planToDelete, setPlanToDelete] = useState<string | null>(null);
 
   const handleDeleteClick = (planId: string, e: React.MouseEvent) => {
@@ -38,6 +42,17 @@ export function SavedPlansDialog({
     e.stopPropagation();
     if (onSharePlan) {
       onSharePlan(plan);
+    }
+  };
+
+  const handleExportPDF = (plan: MealPlan, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      exportMealPlanToPDF(plan, language);
+      toast.success('PDF downloaded successfully!');
+    } catch (error) {
+      toast.error('Failed to export PDF');
+      console.error('PDF export error:', error);
     }
   };
 
@@ -100,6 +115,7 @@ export function SavedPlansDialog({
                     }}
                     onDelete={(e) => handleDeleteClick(plan.plan_id, e)}
                     onShare={(e) => handleShareClick(plan, e)}
+                    onExportPDF={(e) => handleExportPDF(plan, e)}
                   />
                 ))}
               </div>
@@ -133,9 +149,10 @@ interface SavedPlanCardProps {
   onLoad: () => void;
   onDelete: (e: React.MouseEvent) => void;
   onShare: (e: React.MouseEvent) => void;
+  onExportPDF: (e: React.MouseEvent) => void;
 }
 
-function SavedPlanCard({ plan, onLoad, onDelete, onShare }: SavedPlanCardProps) {
+function SavedPlanCard({ plan, onLoad, onDelete, onShare, onExportPDF }: SavedPlanCardProps) {
   const generatedDate = new Date(plan.generated_at);
   const isOverBudget = plan.metadata.is_over_budget;
 
@@ -223,6 +240,15 @@ function SavedPlanCard({ plan, onLoad, onDelete, onShare }: SavedPlanCardProps) 
             >
               <Eye className="mr-2" />
               Load
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onExportPDF}
+              className="opacity-0 group-hover:opacity-100 transition-opacity"
+              title="Export to PDF"
+            >
+              <FilePdf />
             </Button>
             <Button
               variant="outline"
