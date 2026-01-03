@@ -17,7 +17,6 @@ import { AppFooter } from '@/components/app-footer';
 import { DemoPreview } from '@/components/demo-preview';
 import { AnimatedAppDemo } from '@/components/animated-app-demo';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Toaster } from '@/components/ui/sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -429,13 +428,7 @@ function App() {
                 <LanguageSwitcher currentLanguage={language} onLanguageChange={handleLanguageChange} />
                 {currentUser && (
                   <>
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={currentUser.avatarUrl} alt={currentUser.login} />
-                        <AvatarFallback>{currentUser.login.slice(0, 2).toUpperCase()}</AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm font-medium hidden sm:inline">{currentUser.login}</span>
-                    </div>
+                    <span className="text-sm font-medium hidden sm:inline">{currentUser.login}</span>
                     <Button
                       onClick={handleLogout}
                       variant="destructive"
@@ -675,13 +668,7 @@ function App() {
               
               {currentUser ? (
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={currentUser.avatarUrl} alt={currentUser.login} />
-                      <AvatarFallback>{currentUser.login.slice(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm font-medium hidden sm:inline">{currentUser.login}</span>
-                  </div>
+                  <span className="text-sm font-medium hidden sm:inline">{currentUser.login}</span>
                   <Button
                     onClick={handleLogout}
                     variant="destructive"
