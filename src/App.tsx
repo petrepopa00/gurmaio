@@ -453,7 +453,7 @@ function App() {
                   Ready to generate your meal plan?
                 </h2>
                 <p className="text-muted-foreground">
-                  We'll create a {userProfile!.meal_plan_days}-{t.day} meal plan for €{userProfile!.budget_eur}
+                  We'll create a {userProfile!.meal_plan_days}-{t.day} meal plan with {userProfile!.meals_per_day} meals per day for €{userProfile!.budget_eur}
                   {userProfile!.budget_period === 'daily' ? '/day' : '/week'} based on your preferences.
                 </p>
               </div>

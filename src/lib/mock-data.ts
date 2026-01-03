@@ -1,6 +1,16 @@
 import type { MealPlan, ShoppingList, ShoppingListItem, UserProfile } from '@/types/domain';
 import { calculateMacroGrams, getMacroDescription } from '@/lib/macro-calculator';
 
+function getMealTypesForDay(mealsPerDay: number): string[] {
+  if (mealsPerDay === 1) return ['lunch'];
+  if (mealsPerDay === 2) return ['breakfast', 'dinner'];
+  if (mealsPerDay === 3) return ['breakfast', 'lunch', 'dinner'];
+  if (mealsPerDay === 4) return ['breakfast', 'snack', 'lunch', 'dinner'];
+  if (mealsPerDay === 5) return ['breakfast', 'snack', 'lunch', 'snack', 'dinner'];
+  if (mealsPerDay === 6) return ['breakfast', 'snack', 'lunch', 'snack', 'dinner', 'snack'];
+  return ['breakfast', 'lunch', 'dinner'];
+}
+
 export async function generateMealPlan(userProfile: UserProfile): Promise<MealPlan> {
   const planId = crypto.randomUUID();
   const userId = 'user_123';
@@ -28,12 +38,16 @@ export async function generateMealPlan(userProfile: UserProfile): Promise<MealPl
   const dailyMacroGrams = calculateMacroGrams(dailyCalorieTarget, macroTargets);
   const macroDescription = getMacroDescription(macroTargets);
 
+  const mealsPerDay = userProfile.meals_per_day;
+  const mealTypes = getMealTypesForDay(mealsPerDay);
+  const mealTypesStr = mealTypes.join(', ');
+
   const prompt = (window.spark.llmPrompt as any)`You are a professional meal planner. Generate a ${userProfile.meal_plan_days}-day meal plan with the following constraints:
 
 BUDGET CONSTRAINT (CRITICAL):
 - Total budget: €${totalBudget.toFixed(2)} for ${userProfile.meal_plan_days} days
 - Daily budget: approximately €${dailyBudget.toFixed(2)} per day
-- Each day should have breakfast, lunch, and dinner
+- Each day should have exactly ${mealsPerDay} meals: ${mealTypesStr}
 - STAY WITHIN OR SLIGHTLY UNDER BUDGET
 
 NUTRITION TARGET:
@@ -57,13 +71,14 @@ IMPORTANT INSTRUCTIONS:
 4. Calculate accurate nutrition per ingredient (calories, protein, carbs, fats)
 5. Include 3-7 step cooking instructions for each meal
 6. Make sure total plan cost does NOT exceed €${totalBudget.toFixed(2)}
+7. Generate EXACTLY ${mealsPerDay} meals per day with the following meal types: ${mealTypesStr}
 
 Return the result as a valid JSON object with a single property called "days" that contains an array of day objects. Each day must have:
 - day_number: number (1 to ${userProfile.meal_plan_days})
-- meals: array of meal objects
+- meals: array of EXACTLY ${mealsPerDay} meal objects
 
 Each meal must have:
-- meal_type: "breakfast" | "lunch" | "dinner"
+- meal_type: one of [${mealTypes.map(t => `"${t}"`).join(', ')}]
 - recipe_name: string (appetizing name)
 - cooking_instructions: array of strings (3-7 steps)
 - ingredients: array of ingredient objects

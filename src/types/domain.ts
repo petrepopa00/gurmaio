@@ -8,6 +8,7 @@ export interface UserProfile {
   budget_eur: number;
   budget_period: 'daily' | 'weekly';
   meal_plan_days: number;
+  meals_per_day: number;
   dietary_preferences: string[];
   allergens: string[];
   cuisine_preferences: string[];

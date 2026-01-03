@@ -112,6 +112,7 @@ export function OnboardingDialog({ open, onOpenChange, onSave, existingProfile }
   const [budget, setBudget] = useState(existingProfile?.budget_eur?.toString() || '50');
   const [budgetPeriod, setBudgetPeriod] = useState<'daily' | 'weekly'>(existingProfile?.budget_period || 'weekly');
   const [days, setDays] = useState(existingProfile?.meal_plan_days?.toString() || '5');
+  const [mealsPerDay, setMealsPerDay] = useState(existingProfile?.meals_per_day?.toString() || '3');
   const [dietaryPrefs, setDietaryPrefs] = useState<string[]>(existingProfile?.dietary_preferences || ['Balanced']);
   const [allergens, setAllergens] = useState<string[]>(existingProfile?.allergens || []);
   const [cuisines, setCuisines] = useState<string[]>(existingProfile?.cuisine_preferences || ['Italian', 'Mediterranean']);
@@ -180,6 +181,7 @@ export function OnboardingDialog({ open, onOpenChange, onSave, existingProfile }
   const handleSave = () => {
     const budgetNum = parseFloat(budget);
     const daysNum = parseInt(days);
+    const mealsPerDayNum = parseInt(mealsPerDay);
     
     let finalCalories: number | undefined;
     if (useManualCalories) {
@@ -198,6 +200,11 @@ export function OnboardingDialog({ open, onOpenChange, onSave, existingProfile }
 
     if (isNaN(daysNum) || daysNum < 1 || daysNum > 14) {
       toast.error('Please enter days between 1 and 14');
+      return;
+    }
+
+    if (isNaN(mealsPerDayNum) || mealsPerDayNum < 1 || mealsPerDayNum > 6) {
+      toast.error('Please enter meals per day between 1 and 6');
       return;
     }
 
@@ -236,6 +243,7 @@ export function OnboardingDialog({ open, onOpenChange, onSave, existingProfile }
       budget_eur: budgetNum,
       budget_period: budgetPeriod,
       meal_plan_days: daysNum,
+      meals_per_day: mealsPerDayNum,
       dietary_preferences: dietaryPrefs,
       allergens,
       cuisine_preferences: cuisines,
@@ -312,17 +320,35 @@ export function OnboardingDialog({ open, onOpenChange, onSave, existingProfile }
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="days">{t.onboarding.mealPlanDaysLabel}</Label>
-            <Input
-              id="days"
-              type="number"
-              min="1"
-              max="14"
-              value={days}
-              onChange={(e) => setDays(e.target.value)}
-              placeholder="5"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="days">{t.onboarding.mealPlanDaysLabel}</Label>
+              <Input
+                id="days"
+                type="number"
+                min="1"
+                max="14"
+                value={days}
+                onChange={(e) => setDays(e.target.value)}
+                placeholder="5"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="meals-per-day">{t.onboarding.mealsPerDayLabel}</Label>
+              <Input
+                id="meals-per-day"
+                type="number"
+                min="1"
+                max="6"
+                value={mealsPerDay}
+                onChange={(e) => setMealsPerDay(e.target.value)}
+                placeholder="3"
+              />
+              <p className="text-xs text-muted-foreground">
+                Choose between 1-6 meals per day
+              </p>
+            </div>
           </div>
 
           <Separator />
