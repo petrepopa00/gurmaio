@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
-import { EnvelopeSimple, Warning, CheckCircle, Check, X } from '@phosphor-icons/react';
+import { EnvelopeSimple, Warning, CheckCircle, Check, X, Eye, EyeSlash } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 
 interface CreateAccountDialogProps {
@@ -34,6 +34,7 @@ export function CreateAccountDialog({ open, onOpenChange }: CreateAccountDialogP
   const [success, setSuccess] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -113,6 +114,7 @@ export function CreateAccountDialog({ open, onOpenChange }: CreateAccountDialogP
       setError('');
       setSuccess(false);
       setShowPassword(false);
+      setShowConfirmPassword(false);
       onOpenChange(false);
     }
   };
@@ -162,15 +164,32 @@ export function CreateAccountDialog({ open, onOpenChange }: CreateAccountDialogP
 
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="Create a strong password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={isCreating || success}
-              autoComplete="new-password"
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Create a strong password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isCreating || success}
+                autoComplete="new-password"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={isCreating || success}
+                tabIndex={-1}
+              >
+                {showPassword ? (
+                  <EyeSlash className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                )}
+              </Button>
+            </div>
             
             {password && (
               <div className="space-y-3 pt-2">
@@ -212,15 +231,32 @@ export function CreateAccountDialog({ open, onOpenChange }: CreateAccountDialogP
 
           <div className="space-y-2">
             <Label htmlFor="confirm-password">Confirm Password</Label>
-            <Input
-              id="confirm-password"
-              type="password"
-              placeholder="Re-enter your password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              disabled={isCreating || success}
-              autoComplete="new-password"
-            />
+            <div className="relative">
+              <Input
+                id="confirm-password"
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Re-enter your password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={isCreating || success}
+                autoComplete="new-password"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                disabled={isCreating || success}
+                tabIndex={-1}
+              >
+                {showConfirmPassword ? (
+                  <EyeSlash className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                )}
+              </Button>
+            </div>
             {confirmPassword && password !== confirmPassword && (
               <p className="text-xs text-destructive flex items-center gap-1">
                 <X size={14} weight="bold" />
