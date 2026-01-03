@@ -1,10 +1,194 @@
-import type { MealPlan, ShoppingList, ShoppingListItem } from '@/types/domain';
+import type { MealPlan, ShoppingList, ShoppingListItem, UserProfile } from '@/types/domain';
 
-export function generateMockMealPlan(): MealPlan {
+export async function generateMealPlan(userProfile: UserProfile): Promise<MealPlan> {
   const planId = crypto.randomUUID();
   const userId = 'user_123';
-  const budgetEur = 50;
-  const days = 5;
+  
+  const totalBudget = userProfile.budget_period === 'daily' 
+    ? userProfile.budget_eur * userProfile.meal_plan_days 
+    : userProfile.budget_eur;
+  
+  const dailyBudget = totalBudget / userProfile.meal_plan_days;
+  const dailyCalorieTarget = userProfile.target_calories || 2000;
+
+  const dietaryPrefsStr = userProfile.dietary_preferences.join(', ');
+  const allergensStr = userProfile.allergens.length > 0 ? userProfile.allergens.join(', ') : 'none';
+  const cuisinesStr = userProfile.cuisine_preferences.length > 0 
+    ? userProfile.cuisine_preferences.join(', ') 
+    : 'any';
+  const otherCuisinesStr = userProfile.other_cuisines ? ` (including ${userProfile.other_cuisines})` : '';
+
+  const prompt = (window.spark.llmPrompt as any)`You are a professional meal planner. Generate a ${userProfile.meal_plan_days}-day meal plan with the following constraints:
+
+BUDGET CONSTRAINT (CRITICAL):
+- Total budget: €${totalBudget.toFixed(2)} for ${userProfile.meal_plan_days} days
+- Daily budget: approximately €${dailyBudget.toFixed(2)} per day
+- Each day should have breakfast, lunch, and dinner
+- STAY WITHIN OR SLIGHTLY UNDER BUDGET
+
+NUTRITION TARGET:
+- Target daily calories: ${dailyCalorieTarget} kcal
+- Aim for balanced macros unless dietary preference specifies otherwise
+- Each day should be close to the calorie target (within 10%)
+
+DIETARY PREFERENCES: ${dietaryPrefsStr}
+ALLERGENS TO AVOID: ${allergensStr}
+CUISINE PREFERENCES: ${cuisinesStr}${otherCuisinesStr}
+
+IMPORTANT INSTRUCTIONS:
+1. Generate realistic, cookable recipes with simple ingredients
+2. Include specific ingredient quantities in grams
+3. Provide realistic costs per ingredient based on EU grocery prices
+4. Calculate accurate nutrition per ingredient (calories, protein, carbs, fats)
+5. Include 3-7 step cooking instructions for each meal
+6. Make sure total plan cost does NOT exceed €${totalBudget.toFixed(2)}
+
+Return the result as a valid JSON object with a single property called "days" that contains an array of day objects. Each day must have:
+- day_number: number (1 to ${userProfile.meal_plan_days})
+- meals: array of meal objects
+
+Each meal must have:
+- meal_type: "breakfast" | "lunch" | "dinner"
+- recipe_name: string (appetizing name)
+- cooking_instructions: array of strings (3-7 steps)
+- ingredients: array of ingredient objects
+
+Each ingredient must have:
+- name: string
+- quantity_g: number (in grams)
+- nutrition: { calories: number, protein_g: number, carbohydrates_g: number, fats_g: number }
+- cost_eur: number (realistic EU grocery price for that quantity)
+
+Format:
+{
+  "days": [
+    {
+      "day_number": 1,
+      "meals": [
+        {
+          "meal_type": "breakfast",
+          "recipe_name": "Recipe Name",
+          "cooking_instructions": ["Step 1", "Step 2", "Step 3"],
+          "ingredients": [
+            {
+              "name": "Ingredient Name",
+              "quantity_g": 100,
+              "nutrition": { "calories": 150, "protein_g": 10, "carbohydrates_g": 20, "fats_g": 5 },
+              "cost_eur": 0.50
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}`;
+
+  try {
+    const response = await window.spark.llm(prompt, 'gpt-4o', true);
+    const parsed = JSON.parse(response);
+    
+    const days = parsed.days.map((day: any) => {
+      const meals = day.meals.map((meal: any) => {
+        const ingredients = meal.ingredients.map((ing: any) => ({
+          ingredient_id: crypto.randomUUID(),
+          name: ing.name,
+          quantity_g: ing.quantity_g,
+          nutrition: ing.nutrition,
+          cost_eur: Number(ing.cost_eur.toFixed(2)),
+        }));
+
+        const mealNutrition = ingredients.reduce(
+          (acc, ing) => ({
+            calories: acc.calories + ing.nutrition.calories,
+            protein_g: acc.protein_g + ing.nutrition.protein_g,
+            carbohydrates_g: acc.carbohydrates_g + ing.nutrition.carbohydrates_g,
+            fats_g: acc.fats_g + ing.nutrition.fats_g,
+          }),
+          { calories: 0, protein_g: 0, carbohydrates_g: 0, fats_g: 0 }
+        );
+
+        const mealCost = ingredients.reduce((sum, ing) => sum + ing.cost_eur, 0);
+
+        return {
+          meal_id: crypto.randomUUID(),
+          meal_type: meal.meal_type,
+          recipe_name: meal.recipe_name,
+          nutrition: mealNutrition,
+          cost: { meal_cost_eur: Number(mealCost.toFixed(2)) },
+          ingredients,
+          cooking_instructions: meal.cooking_instructions || [],
+        };
+      });
+
+      const dayTotals = meals.reduce(
+        (acc, meal) => ({
+          calories: acc.calories + meal.nutrition.calories,
+          protein_g: acc.protein_g + meal.nutrition.protein_g,
+          carbohydrates_g: acc.carbohydrates_g + meal.nutrition.carbohydrates_g,
+          fats_g: acc.fats_g + meal.nutrition.fats_g,
+          cost_eur: acc.cost_eur + meal.cost.meal_cost_eur,
+        }),
+        { calories: 0, protein_g: 0, carbohydrates_g: 0, fats_g: 0, cost_eur: 0 }
+      );
+
+      const date = new Date(Date.now() + (day.day_number - 1) * 86400000)
+        .toISOString()
+        .split('T')[0];
+
+      return {
+        day_number: day.day_number,
+        date,
+        totals: dayTotals,
+        meals,
+      };
+    });
+
+    const planTotals = days.reduce(
+      (acc, day) => ({
+        calories: acc.calories + day.totals.calories,
+        protein_g: acc.protein_g + day.totals.protein_g,
+        carbohydrates_g: acc.carbohydrates_g + day.totals.carbohydrates_g,
+        fats_g: acc.fats_g + day.totals.fats_g,
+        total_cost_eur: acc.total_cost_eur + day.totals.cost_eur,
+      }),
+      { calories: 0, protein_g: 0, carbohydrates_g: 0, fats_g: 0, total_cost_eur: 0 }
+    );
+
+    const isOverBudget = planTotals.total_cost_eur > totalBudget;
+    const budgetRemaining = totalBudget - planTotals.total_cost_eur;
+
+    return {
+      plan_id: planId,
+      generated_at: new Date().toISOString(),
+      user_id: userId,
+      metadata: {
+        period_budget_eur: Number(totalBudget.toFixed(2)),
+        period_cost_eur: Number(planTotals.total_cost_eur.toFixed(2)),
+        budget_remaining_eur: Number(budgetRemaining.toFixed(2)),
+        is_over_budget: isOverBudget,
+        generation_attempts: 1,
+        days: userProfile.meal_plan_days,
+      },
+      days,
+      plan_totals: {
+        ...planTotals,
+        total_cost_eur: Number(planTotals.total_cost_eur.toFixed(2)),
+      },
+    };
+  } catch (error) {
+    console.error('Failed to generate meal plan with AI, using fallback', error);
+    return generateFallbackMealPlan(userProfile);
+  }
+}
+
+function generateFallbackMealPlan(userProfile: UserProfile): MealPlan {
+  const planId = crypto.randomUUID();
+  const userId = 'user_123';
+  const totalBudget = userProfile.budget_period === 'daily' 
+    ? userProfile.budget_eur * userProfile.meal_plan_days 
+    : userProfile.budget_eur;
+  const budgetEur = totalBudget;
+  const days = userProfile.meal_plan_days;
 
   const mealPlan: MealPlan = {
     plan_id: planId,

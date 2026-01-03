@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useKV } from '@github/spark/hooks';
 import type { MealPlan, UserProfile, ShoppingList } from '@/types/domain';
-import { generateMockMealPlan, generateShoppingList } from '@/lib/mock-data';
+import { generateMealPlan, generateShoppingList } from '@/lib/mock-data';
 import { OnboardingDialog } from '@/components/onboarding-dialog';
 import { MealPlanView } from '@/components/meal-plan-view';
 import { ShoppingListSheet } from '@/components/shopping-list-sheet';
@@ -135,14 +135,18 @@ function App() {
 
     setIsGenerating(true);
     
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    const newPlan = generateMockMealPlan();
-    setMealPlan(() => newPlan);
-    setShoppingListState(() => null);
-    setIsGenerating(false);
-    
-    toast.success('Meal plan generated successfully!');
+    try {
+      const newPlan = await generateMealPlan(userProfile);
+      setMealPlan(() => newPlan);
+      setShoppingListState(() => null);
+      
+      toast.success('Meal plan generated successfully!');
+    } catch (error) {
+      console.error('Error generating meal plan:', error);
+      toast.error('Failed to generate meal plan. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleToggleOwned = (ingredientId: string) => {
