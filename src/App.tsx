@@ -889,14 +889,71 @@ function App() {
                       </TabsContent>
                       
                       <TabsContent value="prep" className="mt-6">
-                        {mealPrepPlan ? (
-                          <MealPrepView key={mealPrepPlan.plan_id} prepPlan={mealPrepPlan} />
-                        ) : (
-                          <div className="text-center py-12 text-muted-foreground">
-                            <ChefHat size={48} className="mx-auto mb-4 opacity-50" />
-                            <p>Generate a meal prep plan to see batch cooking recommendations</p>
-                          </div>
-                        )}
+                        <AnimatePresence mode="wait">
+                          {isGeneratingPrep ? (
+                            <motion.div
+                              key="loading-prep"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.3 }}
+                              className="flex flex-col items-center justify-center py-20 space-y-6"
+                            >
+                              <motion.div
+                                animate={{ 
+                                  rotate: 360,
+                                  scale: [1, 1.1, 1]
+                                }}
+                                transition={{ 
+                                  rotate: { duration: 2, repeat: Infinity, ease: "linear" },
+                                  scale: { duration: 1, repeat: Infinity, ease: "easeInOut" }
+                                }}
+                                className="text-6xl"
+                              >
+                                👨‍🍳
+                              </motion.div>
+                              <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.2 }}
+                                className="text-center space-y-2"
+                              >
+                                <h3 className="font-heading text-2xl font-semibold text-foreground">
+                                  Generating your meal prep plan...
+                                </h3>
+                                <p className="text-muted-foreground">
+                                  Organizing batch cooking sessions and prep schedules
+                                </p>
+                              </motion.div>
+                              <motion.div
+                                initial={{ scaleX: 0 }}
+                                animate={{ scaleX: 1 }}
+                                transition={{ duration: 1.5, ease: "easeInOut" }}
+                                className="w-64 h-1 bg-primary/20 rounded-full overflow-hidden"
+                              >
+                                <motion.div
+                                  animate={{ x: [-100, 300] }}
+                                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                                  className="h-full w-1/3 bg-primary rounded-full"
+                                />
+                              </motion.div>
+                            </motion.div>
+                          ) : mealPrepPlan ? (
+                            <MealPrepView key={mealPrepPlan.plan_id} prepPlan={mealPrepPlan} />
+                          ) : (
+                            <motion.div
+                              key="no-prep"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.3 }}
+                              className="text-center py-12 text-muted-foreground"
+                            >
+                              <ChefHat size={48} className="mx-auto mb-4 opacity-50" />
+                              <p>Generate a meal prep plan to see batch cooking recommendations</p>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </TabsContent>
                     </Tabs>
                   </motion.div>

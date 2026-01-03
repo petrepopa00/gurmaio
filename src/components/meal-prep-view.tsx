@@ -5,6 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Clock, Package, CheckCircle, Flame, Timer, Lightbulb, Info } from '@phosphor-icons/react';
 import { InfoTooltip } from '@/components/info-tooltip';
+import { motion } from 'framer-motion';
 
 interface MealPrepViewProps {
   prepPlan: MealPrepPlan;
@@ -17,8 +18,19 @@ export function MealPrepView({ prepPlan }: MealPrepViewProps) {
   const mealsPerSession = Math.round(prepPlan.prep_schedule.reduce((sum, day) => sum + day.meals_prepared, 0) / prepPlan.prep_schedule.length);
 
   return (
-    <div className="space-y-6">
-      <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="space-y-6"
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+      >
+        <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-2xl">
             <Flame className="text-primary" weight="duotone" />
@@ -88,8 +100,14 @@ export function MealPrepView({ prepPlan }: MealPrepViewProps) {
           </div>
         </CardContent>
       </Card>
+      </motion.div>
 
       {prepPlan.batch_cooking_groups.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -159,8 +177,14 @@ export function MealPrepView({ prepPlan }: MealPrepViewProps) {
             </div>
           </CardContent>
         </Card>
+        </motion.div>
       )}
 
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.3 }}
+      >
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -284,7 +308,13 @@ export function MealPrepView({ prepPlan }: MealPrepViewProps) {
           </Accordion>
         </CardContent>
       </Card>
+      </motion.div>
 
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.4 }}
+      >
       <Card className="border-muted bg-muted/30">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
@@ -314,6 +344,7 @@ export function MealPrepView({ prepPlan }: MealPrepViewProps) {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
