@@ -618,6 +618,57 @@ function App() {
     });
   };
 
+  const handleChangeDayDate = (oldDate: string, newDate: string, dayNumber: number) => {
+    if (isDemoMode) {
+      toast.error('Demo mode: Create an account to track progress', {
+        action: {
+          label: 'Create Account',
+          onClick: () => setShowCreateAccountDialog(true)
+        }
+      });
+      return;
+    }
+
+    if (!currentUser || !isVerified) {
+      toast.error('Please verify your email to track progress', {
+        action: {
+          label: 'Verify Now',
+          onClick: () => setShowEmailVerificationDialog(true)
+        }
+      });
+      return;
+    }
+
+    setDayProgress((current) => {
+      const progressList = current || [];
+      
+      const existingNewDate = progressList.find(p => p.date === newDate);
+      if (existingNewDate) {
+        toast.error('This date is already marked for another day');
+        return progressList;
+      }
+
+      const updatedList = progressList.map(p => {
+        if (p.date === oldDate) {
+          const updatedMeals = p.completed_meals.map(meal => ({
+            ...meal,
+            date: newDate,
+          }));
+          
+          return {
+            ...p,
+            date: newDate,
+            completed_meals: updatedMeals,
+          };
+        }
+        return p;
+      });
+
+      toast.success(`Day ${dayNumber} rescheduled to ${new Date(newDate).toLocaleDateString()}! 📅`);
+      return updatedList;
+    });
+  };
+
   const handleBadgeGenerated = (badge: Badge) => {
     setBadges((current) => {
       const badges = current || [];
@@ -1289,6 +1340,7 @@ function App() {
                             mealPlan={mealPlan!}
                             completedDays={dayProgress || []}
                             onToggleDayComplete={handleToggleDayComplete}
+                            onChangeDayDate={handleChangeDayDate}
                           />
                         </div>
                       </TabsContent>

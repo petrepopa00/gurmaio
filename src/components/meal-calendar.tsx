@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CheckCircle, Circle, CalendarBlank } from '@phosphor-icons/react';
+import { CheckCircle, Circle, CalendarBlank, PencilSimple, X } from '@phosphor-icons/react';
 import type { Day, DayProgress, CompletedMeal } from '@/types/domain';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -15,6 +15,7 @@ interface MealCalendarProps {
   };
   completedDays: DayProgress[];
   onToggleDayComplete: (day: Day, isComplete: boolean, selectedDate: string) => void;
+  onChangeDayDate?: (oldDate: string, newDate: string, dayNumber: number) => void;
   currentDate?: string;
 }
 
@@ -22,10 +23,12 @@ export function MealCalendar({
   mealPlan,
   completedDays,
   onToggleDayComplete,
+  onChangeDayDate,
   currentDate = new Date().toISOString().split('T')[0],
 }: MealCalendarProps) {
   const [selectedDay, setSelectedDay] = useState<DayProgress | null>(null);
   const [datePickerOpen, setDatePickerOpen] = useState<string | null>(null);
+  const [editingDayNumber, setEditingDayNumber] = useState<number | null>(null);
 
   const getDayProgress = (dayNumber: number): DayProgress | undefined => {
     return completedDays.find(d => {
@@ -48,6 +51,14 @@ export function MealCalendar({
     
     const dateString = format(selectedDate, 'yyyy-MM-dd');
     const isCurrentlyComplete = isDayComplete(day.day_number);
+    const dayProgress = getDayProgress(day.day_number);
+    
+    if (editingDayNumber === day.day_number && isCurrentlyComplete && dayProgress && onChangeDayDate) {
+      onChangeDayDate(dayProgress.date, dateString, day.day_number);
+      setEditingDayNumber(null);
+      setDatePickerOpen(null);
+      return;
+    }
     
     if (day.day_number === 1 && !isCurrentlyComplete) {
       const startDate = new Date(selectedDate);
@@ -79,6 +90,26 @@ export function MealCalendar({
     setDatePickerOpen(null);
   };
 
+  const handleEditDate = (dayNumber: number) => {
+    setEditingDayNumber(dayNumber);
+    setDatePickerOpen(`day-${dayNumber}`);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingDayNumber(null);
+    setDatePickerOpen(null);
+  };
+
+  const handleUnmarkDay = (dayNumber: number) => {
+    const dayProgress = getDayProgress(dayNumber);
+    if (!dayProgress) return;
+    
+    const day = mealPlan.days.find(d => d.day_number === dayNumber);
+    if (!day) return;
+    
+    onToggleDayComplete(day, false, dayProgress.date);
+  };
+
   const getUsedDates = (): string[] => {
     return completedDays.map(d => d.date);
   };
@@ -87,7 +118,8 @@ export function MealCalendar({
     <div className="space-y-6">
       <div className="bg-muted/50 border rounded-lg p-4 mb-4">
         <p className="text-sm text-muted-foreground">
-          📅 <strong>Quick Start:</strong> Click the calendar icon on Day 1 to choose your start date. All subsequent days will automatically be scheduled in order. You can also schedule individual days separately if needed.
+          📅 <strong>Quick Start:</strong> Click the calendar icon on Day 1 to choose your start date. All subsequent days will automatically be scheduled in order. 
+          {completedDays.length > 0 && ' You can edit any scheduled date using the pencil icon or unmark days using the X button.'}
         </p>
       </div>
 
@@ -130,14 +162,64 @@ export function MealCalendar({
                   </div>
                   <div className="flex items-center gap-1">
                     {isComplete ? (
-                      <Button
-                        size="sm"
-                        variant="default"
-                        onClick={() => handleDayClick(day.day_number)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <CheckCircle weight="fill" size={20} />
-                      </Button>
+                      <>
+                        <Popover
+                          open={datePickerOpen === `day-${day.day_number}`}
+                          onOpenChange={(open) => {
+                            if (!open) {
+                              setEditingDayNumber(null);
+                            }
+                            setDatePickerOpen(open ? `day-${day.day_number}` : null);
+                          }}
+                        >
+                          <PopoverTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleEditDate(day.day_number)}
+                              className="h-8 w-8 p-0 hover:bg-primary/10"
+                              title="Change date"
+                            >
+                              <PencilSimple size={16} />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="end">
+                            <div className="p-3 border-b">
+                              <p className="text-sm font-medium">Change Date for Day {day.day_number}</p>
+                              <p className="text-xs text-muted-foreground">Select a new date</p>
+                            </div>
+                            <Calendar
+                              mode="single"
+                              selected={dayProgress ? new Date(dayProgress.date) : undefined}
+                              onSelect={(date) => handleDateSelect(day, date)}
+                              disabled={(date) => {
+                                const dateStr = format(date, 'yyyy-MM-dd');
+                                const usedDates = getUsedDates().filter(d => d !== dayProgress?.date);
+                                return usedDates.includes(dateStr);
+                              }}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleUnmarkDay(day.day_number)}
+                          className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+                          title="Unmark day"
+                        >
+                          <X size={16} />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="default"
+                          onClick={() => handleDayClick(day.day_number)}
+                          className="h-8 w-8 p-0"
+                          title="View details"
+                        >
+                          <CheckCircle weight="fill" size={20} />
+                        </Button>
+                      </>
                     ) : (
                       <Popover
                         open={datePickerOpen === `day-${day.day_number}`}
@@ -148,11 +230,18 @@ export function MealCalendar({
                             size="sm"
                             variant="outline"
                             className="h-8 w-8 p-0"
+                            title="Choose date"
                           >
                             <CalendarBlank size={20} />
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="end">
+                          {day.day_number === 1 && (
+                            <div className="p-3 border-b bg-primary/5">
+                              <p className="text-sm font-medium">Schedule All Days</p>
+                              <p className="text-xs text-muted-foreground">Choose start date - remaining days will auto-schedule</p>
+                            </div>
+                          )}
                           <Calendar
                             mode="single"
                             selected={undefined}
