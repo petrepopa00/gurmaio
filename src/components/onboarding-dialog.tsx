@@ -6,8 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
-import type { UserProfile } from '@/types/domain';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import type { UserProfile, MacroTargets } from '@/types/domain';
 import { calculateTargetCalories, getActivityLevelLabel, getObjectiveLabel, type Sex, type ActivityLevel, type Objective } from '@/lib/calorie-calculator';
+import { MACRO_PRESETS, getMacroPresetLabel, validateMacroTargets, normalizeMacroTargets, type MacroPreset } from '@/lib/macro-calculator';
 import { toast } from 'sonner';
 import { useLanguage } from '@/hooks/use-language';
 
@@ -126,6 +128,31 @@ export function OnboardingDialog({ open, onOpenChange, onSave, existingProfile }
   const [manualCalories, setManualCalories] = useState(existingProfile?.target_calories?.toString() || '');
   const [useManualCalories, setUseManualCalories] = useState(!!existingProfile?.target_calories && !existingProfile?.weight_kg);
 
+  const [macroPreset, setMacroPreset] = useState<MacroPreset>('balanced');
+  const [customProtein, setCustomProtein] = useState((existingProfile?.macro_targets?.protein_percentage || 30).toString());
+  const [customCarbs, setCustomCarbs] = useState((existingProfile?.macro_targets?.carbs_percentage || 40).toString());
+  const [customFats, setCustomFats] = useState((existingProfile?.macro_targets?.fats_percentage || 30).toString());
+
+  useEffect(() => {
+    if (existingProfile?.macro_targets) {
+      const { protein_percentage, carbs_percentage, fats_percentage } = existingProfile.macro_targets;
+      const matchedPreset = Object.entries(MACRO_PRESETS).find(([key, value]) => 
+        value.protein_percentage === protein_percentage &&
+        value.carbs_percentage === carbs_percentage &&
+        value.fats_percentage === fats_percentage
+      );
+      
+      if (matchedPreset) {
+        setMacroPreset(matchedPreset[0] as MacroPreset);
+      } else {
+        setMacroPreset('custom');
+        setCustomProtein(protein_percentage?.toString() || '30');
+        setCustomCarbs(carbs_percentage?.toString() || '40');
+        setCustomFats(fats_percentage?.toString() || '30');
+      }
+    }
+  }, [existingProfile]);
+
   useEffect(() => {
     if (!useManualCalories && weight && height && age && sex && activityLevel && objective) {
       const weightNum = parseFloat(weight);
@@ -179,6 +206,32 @@ export function OnboardingDialog({ open, onOpenChange, onSave, existingProfile }
       return;
     }
 
+    let macroTargets: MacroTargets;
+    if (macroPreset === 'custom') {
+      const proteinPct = parseFloat(customProtein);
+      const carbsPct = parseFloat(customCarbs);
+      const fatsPct = parseFloat(customFats);
+      
+      if (isNaN(proteinPct) || isNaN(carbsPct) || isNaN(fatsPct)) {
+        toast.error('Please enter valid macro percentages');
+        return;
+      }
+      
+      const total = proteinPct + carbsPct + fatsPct;
+      if (Math.abs(total - 100) > 0.5) {
+        toast.error(`Macro percentages must sum to 100% (currently ${total.toFixed(1)}%)`);
+        return;
+      }
+      
+      macroTargets = {
+        protein_percentage: proteinPct,
+        carbs_percentage: carbsPct,
+        fats_percentage: fatsPct,
+      };
+    } else {
+      macroTargets = MACRO_PRESETS[macroPreset];
+    }
+
     const profile: UserProfile = {
       budget_eur: budgetNum,
       budget_period: budgetPeriod,
@@ -194,6 +247,7 @@ export function OnboardingDialog({ open, onOpenChange, onSave, existingProfile }
       sex: sex || undefined,
       activity_level: activityLevel || undefined,
       objective: objective || undefined,
+      macro_targets: macroTargets,
     };
 
     onSave(profile);
@@ -407,6 +461,97 @@ export function OnboardingDialog({ open, onOpenChange, onSave, existingProfile }
                 <p className="text-xs text-muted-foreground">
                   {t.onboarding.enterCustomCalories}
                 </p>
+              </div>
+            )}
+          </div>
+
+          <Separator />
+
+          <div className="space-y-4">
+            <div>
+              <Label className="text-lg font-semibold">Macro Targets</Label>
+              <p className="text-sm text-muted-foreground mt-1">
+                Customize your protein, carbs, and fats distribution
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="macro-preset">Macro Preset</Label>
+              <Select value={macroPreset} onValueChange={(v) => setMacroPreset(v as MacroPreset)}>
+                <SelectTrigger id="macro-preset">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="balanced">{getMacroPresetLabel('balanced')}</SelectItem>
+                  <SelectItem value="high_protein">{getMacroPresetLabel('high_protein')}</SelectItem>
+                  <SelectItem value="low_carb">{getMacroPresetLabel('low_carb')}</SelectItem>
+                  <SelectItem value="keto">{getMacroPresetLabel('keto')}</SelectItem>
+                  <SelectItem value="endurance">{getMacroPresetLabel('endurance')}</SelectItem>
+                  <SelectItem value="custom">{getMacroPresetLabel('custom')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {macroPreset === 'custom' ? (
+              <div className="space-y-3 pt-2">
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="protein-percent">Protein %</Label>
+                    <Input
+                      id="protein-percent"
+                      type="number"
+                      min="10"
+                      max="60"
+                      value={customProtein}
+                      onChange={(e) => setCustomProtein(e.target.value)}
+                      placeholder="30"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="carbs-percent">Carbs %</Label>
+                    <Input
+                      id="carbs-percent"
+                      type="number"
+                      min="5"
+                      max="70"
+                      value={customCarbs}
+                      onChange={(e) => setCustomCarbs(e.target.value)}
+                      placeholder="40"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="fats-percent">Fats %</Label>
+                    <Input
+                      id="fats-percent"
+                      type="number"
+                      min="15"
+                      max="75"
+                      value={customFats}
+                      onChange={(e) => setCustomFats(e.target.value)}
+                      placeholder="30"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Total must equal 100%. Current: {(parseFloat(customProtein || '0') + parseFloat(customCarbs || '0') + parseFloat(customFats || '0')).toFixed(1)}%
+                </p>
+              </div>
+            ) : (
+              <div className="bg-muted/50 rounded-lg p-4">
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div className="text-2xl font-bold text-primary">{MACRO_PRESETS[macroPreset].protein_percentage}%</div>
+                    <div className="text-xs text-muted-foreground">Protein</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-primary">{MACRO_PRESETS[macroPreset].carbs_percentage}%</div>
+                    <div className="text-xs text-muted-foreground">Carbs</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-primary">{MACRO_PRESETS[macroPreset].fats_percentage}%</div>
+                    <div className="text-xs text-muted-foreground">Fats</div>
+                  </div>
+                </div>
               </div>
             )}
           </div>

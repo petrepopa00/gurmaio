@@ -1,4 +1,5 @@
 import type { MealPlan, ShoppingList, ShoppingListItem, UserProfile } from '@/types/domain';
+import { calculateMacroGrams, getMacroDescription } from '@/lib/macro-calculator';
 
 export async function generateMealPlan(userProfile: UserProfile): Promise<MealPlan> {
   const planId = crypto.randomUUID();
@@ -18,6 +19,15 @@ export async function generateMealPlan(userProfile: UserProfile): Promise<MealPl
     : 'any';
   const otherCuisinesStr = userProfile.other_cuisines ? ` (including ${userProfile.other_cuisines})` : '';
 
+  const macroTargets = userProfile.macro_targets || {
+    protein_percentage: 30,
+    carbs_percentage: 40,
+    fats_percentage: 30,
+  };
+  
+  const dailyMacroGrams = calculateMacroGrams(dailyCalorieTarget, macroTargets);
+  const macroDescription = getMacroDescription(macroTargets);
+
   const prompt = (window.spark.llmPrompt as any)`You are a professional meal planner. Generate a ${userProfile.meal_plan_days}-day meal plan with the following constraints:
 
 BUDGET CONSTRAINT (CRITICAL):
@@ -28,8 +38,13 @@ BUDGET CONSTRAINT (CRITICAL):
 
 NUTRITION TARGET:
 - Target daily calories: ${dailyCalorieTarget} kcal
-- Aim for balanced macros unless dietary preference specifies otherwise
+- Target daily protein: ${dailyMacroGrams.protein_g}g (${macroTargets.protein_percentage}% of calories)
+- Target daily carbohydrates: ${dailyMacroGrams.carbs_g}g (${macroTargets.carbs_percentage}% of calories)
+- Target daily fats: ${dailyMacroGrams.fats_g}g (${macroTargets.fats_percentage}% of calories)
+- Macro split: ${macroDescription}
 - Each day should be close to the calorie target (within 10%)
+- PRIORITIZE meeting the macro percentages - this is critical for the user's goals
+- Adjust ingredient portions to hit macro targets as closely as possible
 
 DIETARY PREFERENCES: ${dietaryPrefsStr}
 ALLERGENS TO AVOID: ${allergensStr}

@@ -13,18 +13,18 @@ This is a commercial-grade product requiring multiple sophisticated engines (nut
 ## Essential Features
 
 ### User Profile & Onboarding
-- **Functionality**: Capture budget, meal plan duration, dietary preferences, restrictions, and personal metrics for automatic calorie calculation
-- **Purpose**: Establish constraints for AI generation, enable personalized meal planning, and calculate scientifically-accurate calorie targets
+- **Functionality**: Capture budget, meal plan duration, dietary preferences, restrictions, personal metrics for automatic calorie calculation, and macro distribution targets
+- **Purpose**: Establish constraints for AI generation, enable personalized meal planning, calculate scientifically-accurate calorie targets, and define specific macronutrient goals (e.g., high protein for muscle gain)
 - **Trigger**: First app launch or profile editing
-- **Progression**: Welcome screen → Budget input → Duration selection → Nutrition goals (weight, height, age, sex, activity level, objective) → Auto-calculated calorie target display → Dietary preferences → Allergen selection → Save profile
-- **Success criteria**: Profile saved with all metrics, calorie target calculated using Mifflin-St Jeor equation, validation prevents invalid inputs, preferences correctly constrain meal generation, users can toggle between automatic and manual calorie entry
+- **Progression**: Welcome screen → Budget input → Duration selection → Nutrition goals (weight, height, age, sex, activity level, objective) → Auto-calculated calorie target display → Macro targets selection (Balanced, High Protein, Low Carb, Keto, Endurance, or Custom) → Dietary preferences → Allergen selection → Cuisine preferences → Save profile
+- **Success criteria**: Profile saved with all metrics, calorie target calculated using Mifflin-St Jeor equation, macro percentages validated to sum to 100%, validation prevents invalid inputs, preferences correctly constrain meal generation, users can toggle between automatic and manual calorie entry, users can select preset macro splits or define custom percentages
 
 ### Meal Plan Generation
-- **Functionality**: Generate a multi-day meal plan with per-meal nutrition, per-meal cost, daily totals, and full plan totals
-- **Purpose**: Provide users with a complete, budget-compliant eating schedule
+- **Functionality**: Generate a multi-day meal plan with per-meal nutrition, per-meal cost, daily totals, full plan totals, and adherence to specific macro percentage targets
+- **Purpose**: Provide users with a complete, budget-compliant eating schedule that meets their specific macronutrient goals (e.g., 40% protein for muscle building, 5% carbs for keto)
 - **Trigger**: User taps "Generate Plan" or completes onboarding
-- **Progression**: Tap generate → Loading state → AI generates composition → Backend calculates nutrition → Backend calculates costs → Check budget → Display plan with full breakdown
-- **Success criteria**: Plan stays within budget (or shows explicit overage), all nutrition values sum correctly, costs include shopping reality (minimum quantities)
+- **Progression**: Tap generate → Loading state → AI generates composition with macro constraints → Backend calculates nutrition → Backend calculates costs → Validate macro percentages → Check budget → Display plan with full breakdown including macro distribution visualization
+- **Success criteria**: Plan stays within budget (or shows explicit overage), all nutrition values sum correctly, macro percentages closely match user's targets (within 5%), costs include shopping reality (minimum quantities), visual macro distribution chart shows actual percentages achieved
 
 ### Nutrition & Cost Breakdown
 - **Functionality**: Display hierarchical view of nutrition and cost (ingredient → meal → day → plan)

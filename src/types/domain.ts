@@ -1,3 +1,9 @@
+export interface MacroTargets {
+  protein_percentage?: number;
+  carbs_percentage?: number;
+  fats_percentage?: number;
+}
+
 export interface UserProfile {
   budget_eur: number;
   budget_period: 'daily' | 'weekly';
@@ -13,6 +19,7 @@ export interface UserProfile {
   sex?: 'male' | 'female';
   activity_level?: 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
   objective?: 'lose_weight' | 'maintain' | 'gain_muscle';
+  macro_targets?: MacroTargets;
 }
 
 export interface IngredientNutrition {

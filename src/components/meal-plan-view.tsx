@@ -18,6 +18,14 @@ export function MealPlanView({ mealPlan }: MealPlanViewProps) {
   const { language, t } = useLanguage();
   const [selectedDay, setSelectedDay] = useState(mealPlan.days[0]?.day_number.toString() || '1');
 
+  const totalCaloriesFromMacros = (mealPlan.plan_totals.protein_g * 4) + 
+                                  (mealPlan.plan_totals.carbohydrates_g * 4) + 
+                                  (mealPlan.plan_totals.fats_g * 9);
+  
+  const proteinPercentage = Math.round((mealPlan.plan_totals.protein_g * 4 / totalCaloriesFromMacros) * 100);
+  const carbsPercentage = Math.round((mealPlan.plan_totals.carbohydrates_g * 4 / totalCaloriesFromMacros) * 100);
+  const fatsPercentage = Math.round((mealPlan.plan_totals.fats_g * 9 / totalCaloriesFromMacros) * 100);
+
   return (
     <div className="space-y-6">
       <Card className="p-6">
@@ -41,7 +49,7 @@ export function MealPlanView({ mealPlan }: MealPlanViewProps) {
             <div className="font-heading text-2xl font-bold tabular-nums">
               {mealPlan.plan_totals.protein_g}g
             </div>
-            <div className="text-xs text-muted-foreground">{t.total}</div>
+            <div className="text-xs text-muted-foreground">{proteinPercentage}% of calories</div>
           </div>
 
           <div className="space-y-1">
@@ -52,7 +60,7 @@ export function MealPlanView({ mealPlan }: MealPlanViewProps) {
             <div className="font-heading text-2xl font-bold tabular-nums">
               {mealPlan.plan_totals.carbohydrates_g}g
             </div>
-            <div className="text-xs text-muted-foreground">{t.total}</div>
+            <div className="text-xs text-muted-foreground">{carbsPercentage}% of calories</div>
           </div>
 
           <div className="space-y-1">
@@ -63,7 +71,7 @@ export function MealPlanView({ mealPlan }: MealPlanViewProps) {
             <div className="font-heading text-2xl font-bold tabular-nums">
               {mealPlan.plan_totals.fats_g}g
             </div>
-            <div className="text-xs text-muted-foreground">{t.total}</div>
+            <div className="text-xs text-muted-foreground">{fatsPercentage}% of calories</div>
           </div>
 
           <div className="space-y-1">
@@ -76,6 +84,43 @@ export function MealPlanView({ mealPlan }: MealPlanViewProps) {
             </div>
             <div className="text-xs text-muted-foreground">
               {mealPlan.metadata.days} {t.days}
+            </div>
+          </div>
+        </div>
+        
+        <Separator className="my-4" />
+        
+        <div className="space-y-2">
+          <div className="text-sm text-muted-foreground">Macro Distribution</div>
+          <div className="flex gap-1 h-4 rounded-full overflow-hidden">
+            <div 
+              className="bg-blue-500" 
+              style={{ width: `${proteinPercentage}%` }}
+              title={`Protein: ${proteinPercentage}%`}
+            />
+            <div 
+              className="bg-green-500" 
+              style={{ width: `${carbsPercentage}%` }}
+              title={`Carbs: ${carbsPercentage}%`}
+            />
+            <div 
+              className="bg-amber-500" 
+              style={{ width: `${fatsPercentage}%` }}
+              title={`Fats: ${fatsPercentage}%`}
+            />
+          </div>
+          <div className="flex gap-4 text-xs">
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-full bg-blue-500" />
+              <span>Protein {proteinPercentage}%</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-full bg-green-500" />
+              <span>Carbs {carbsPercentage}%</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-full bg-amber-500" />
+              <span>Fats {fatsPercentage}%</span>
             </div>
           </div>
         </div>
