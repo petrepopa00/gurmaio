@@ -10,7 +10,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Eye, EyeSlash, Lock, Envelope, User } from '@phosphor-icons/react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Separator } from '@/components/ui/separator';
+import { Eye, EyeSlash, Lock, Envelope, User, Link as LinkIcon } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 
 interface UserInfo {
@@ -49,6 +51,8 @@ export function AccountSettingsDialog({
   
   const [newUsername, setNewUsername] = useState(currentUser.login);
   const [isUpdatingUsername, setIsUpdatingUsername] = useState(false);
+  
+  const [mealPlanningEmails, setMealPlanningEmails] = useState(false);
 
   const handlePasswordChange = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
@@ -163,7 +167,7 @@ export function AccountSettingsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px]">
+      <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Lock className="h-5 w-5" />
@@ -175,10 +179,11 @@ export function AccountSettingsDialog({
         </DialogHeader>
 
         <Tabs defaultValue="password" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="password">Password</TabsTrigger>
             <TabsTrigger value="email">Email</TabsTrigger>
             <TabsTrigger value="username">Username</TabsTrigger>
+            <TabsTrigger value="preferences">Preferences</TabsTrigger>
           </TabsList>
 
           <TabsContent value="password" className="space-y-4 pt-4">
@@ -365,6 +370,96 @@ export function AccountSettingsDialog({
             >
               {isUpdatingUsername ? 'Updating...' : 'Update Username'}
             </Button>
+          </TabsContent>
+
+          <TabsContent value="preferences" className="space-y-4 pt-4">
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-sm font-medium mb-3">Email Preferences</h4>
+                <div className="flex items-start space-x-3 rounded-lg border p-4">
+                  <Checkbox
+                    id="meal-planning-emails"
+                    checked={mealPlanningEmails}
+                    onCheckedChange={(checked) => setMealPlanningEmails(checked as boolean)}
+                  />
+                  <div className="flex-1 space-y-1">
+                    <label
+                      htmlFor="meal-planning-emails"
+                      className="text-sm font-medium leading-none cursor-pointer"
+                    >
+                      Send me once-a-week email with meal ideas
+                    </label>
+                    <p className="text-xs text-muted-foreground">
+                      Optional: These can help maintain your meal planning mindset, and you can opt-out at any time.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div>
+                <h4 className="text-sm font-medium mb-3">Connected Accounts</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 rounded-lg border">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white text-sm font-semibold">
+                        G
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">Google</p>
+                        <p className="text-xs text-muted-foreground">Not connected</p>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm" disabled>
+                      Connect
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-lg border">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-foreground flex items-center justify-center text-background text-sm font-semibold">
+                        
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">Apple</p>
+                        <p className="text-xs text-muted-foreground">Not connected</p>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm" disabled>
+                      Connect
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground mt-3">
+                  Connect social accounts for easier sign-in (coming soon)
+                </p>
+              </div>
+
+              <Separator />
+
+              <div>
+                <h4 className="text-sm font-medium mb-3">Legal & Privacy</h4>
+                <div className="space-y-2">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start"
+                    onClick={() => window.open('/TERMS.md', '_blank')}
+                  >
+                    <LinkIcon className="mr-2 h-4 w-4" />
+                    Terms of Service
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start"
+                    onClick={() => window.open('/PRIVACY.md', '_blank')}
+                  >
+                    <LinkIcon className="mr-2 h-4 w-4" />
+                    Privacy Policy
+                  </Button>
+                </div>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </DialogContent>
