@@ -74,7 +74,15 @@ function App() {
   });
 
   useEffect(() => {
-    loadUser();
+    const urlParams = new URLSearchParams(window.location.search);
+    const shouldSkipAutoLogin = urlParams.get('logged_out') === 'true';
+    
+    if (shouldSkipAutoLogin) {
+      toast.success('You have been logged out successfully', { duration: 3000 });
+      window.history.replaceState({}, '', window.location.pathname);
+    } else {
+      loadUser();
+    }
   }, []);
 
   const loadUser = async () => {
@@ -91,16 +99,44 @@ function App() {
       toast.loading('Logging out...', { id: 'logout' });
       
       setCurrentUser(null);
+      setUserProfile(() => null);
+      setMealPlan(() => null);
+      setMealPrepPlan(() => null);
+      setShoppingListState(() => null);
+      setIsDemoMode(false);
       
-      await new Promise(resolve => setTimeout(resolve, 100));
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+      } catch (e) {
+        console.warn('Storage cleanup failed:', e);
+      }
       
-      window.location.href = '/.spark/logout';
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      toast.success('Logged out successfully', { id: 'logout', duration: 1500 });
+      
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const logoutUrl = new URL('/.spark/logout', window.location.origin);
+      logoutUrl.searchParams.set('redirect_uri', window.location.origin + '/?logged_out=true');
+      window.location.href = logoutUrl.toString();
     } catch (error) {
       console.error('Logout error:', error);
       
       setCurrentUser(null);
+      setUserProfile(() => null);
       
-      window.location.href = '/.spark/logout';
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+      } catch (e) {
+        console.warn('Storage cleanup failed:', e);
+      }
+      
+      const logoutUrl = new URL('/.spark/logout', window.location.origin);
+      logoutUrl.searchParams.set('redirect_uri', window.location.origin + '/?logged_out=true');
+      window.location.href = logoutUrl.toString();
     }
   };
 
