@@ -1,0 +1,200 @@
+import { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card } from '@/components/ui/card';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import type { MealPlan, Meal } from '@/types/domain';
+import { Barbell, FireSimple, ChartBar, CurrencyDollar } from '@phosphor-icons/react';
+
+interface MealPlanViewProps {
+  mealPlan: MealPlan;
+}
+
+export function MealPlanView({ mealPlan }: MealPlanViewProps) {
+  const [selectedDay, setSelectedDay] = useState(mealPlan.days[0]?.day_number.toString() || '1');
+
+  return (
+    <div className="space-y-6">
+      <Card className="p-6">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-muted-foreground text-sm">
+              <FireSimple size={16} />
+              <span>Calories</span>
+            </div>
+            <div className="font-heading text-2xl font-bold tabular-nums">
+              {mealPlan.plan_totals.calories.toLocaleString()}
+            </div>
+            <div className="text-xs text-muted-foreground">total</div>
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-muted-foreground text-sm">
+              <Barbell size={16} />
+              <span>Protein</span>
+            </div>
+            <div className="font-heading text-2xl font-bold tabular-nums">
+              {mealPlan.plan_totals.protein_g}g
+            </div>
+            <div className="text-xs text-muted-foreground">total</div>
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-muted-foreground text-sm">
+              <ChartBar size={16} />
+              <span>Carbs</span>
+            </div>
+            <div className="font-heading text-2xl font-bold tabular-nums">
+              {mealPlan.plan_totals.carbohydrates_g}g
+            </div>
+            <div className="text-xs text-muted-foreground">total</div>
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-muted-foreground text-sm">
+              <ChartBar size={16} />
+              <span>Fats</span>
+            </div>
+            <div className="font-heading text-2xl font-bold tabular-nums">
+              {mealPlan.plan_totals.fats_g}g
+            </div>
+            <div className="text-xs text-muted-foreground">total</div>
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-muted-foreground text-sm">
+              <CurrencyDollar size={16} />
+              <span>Total Cost</span>
+            </div>
+            <div className="font-heading text-2xl font-bold tabular-nums text-accent">
+              €{mealPlan.plan_totals.total_cost_eur.toFixed(2)}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {mealPlan.metadata.days} days
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <Tabs value={selectedDay} onValueChange={setSelectedDay}>
+        <TabsList className="w-full grid" style={{ gridTemplateColumns: `repeat(${mealPlan.days.length}, 1fr)` }}>
+          {mealPlan.days.map((day) => (
+            <TabsTrigger key={day.day_number} value={day.day_number.toString()}>
+              Day {day.day_number}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
+        {mealPlan.days.map((day) => (
+          <TabsContent key={day.day_number} value={day.day_number.toString()} className="space-y-4">
+            <Card className="p-4 bg-muted/30">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+                <div>
+                  <div className="text-sm text-muted-foreground">Calories</div>
+                  <div className="font-heading font-semibold tabular-nums">{day.totals.calories}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground">Protein</div>
+                  <div className="font-heading font-semibold tabular-nums">{day.totals.protein_g}g</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground">Carbs</div>
+                  <div className="font-heading font-semibold tabular-nums">{day.totals.carbohydrates_g}g</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground">Fats</div>
+                  <div className="font-heading font-semibold tabular-nums">{day.totals.fats_g}g</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground">Cost</div>
+                  <div className="font-heading font-semibold tabular-nums text-accent">€{day.totals.cost_eur.toFixed(2)}</div>
+                </div>
+              </div>
+            </Card>
+
+            <div className="space-y-3">
+              {day.meals.map((meal) => (
+                <MealCard key={meal.meal_id} meal={meal} />
+              ))}
+            </div>
+          </TabsContent>
+        ))}
+      </Tabs>
+    </div>
+  );
+}
+
+function MealCard({ meal }: { meal: Meal }) {
+  return (
+    <Card className="overflow-hidden hover:shadow-md transition-shadow">
+      <Accordion type="single" collapsible>
+        <AccordionItem value="meal" className="border-none">
+          <AccordionTrigger className="px-6 py-4 hover:no-underline">
+            <div className="flex items-center justify-between w-full pr-4">
+              <div className="flex items-center gap-4">
+                <Badge variant="outline" className="capitalize">
+                  {meal.meal_type}
+                </Badge>
+                <h3 className="font-heading text-lg font-semibold text-left">
+                  {meal.recipe_name}
+                </h3>
+              </div>
+
+              <div className="flex items-center gap-6">
+                <div className="text-sm text-muted-foreground hidden md:flex items-center gap-4">
+                  <span className="tabular-nums">{meal.nutrition.calories} cal</span>
+                  <span className="tabular-nums">{meal.nutrition.protein_g}g P</span>
+                  <span className="tabular-nums">{meal.nutrition.carbohydrates_g}g C</span>
+                  <span className="tabular-nums">{meal.nutrition.fats_g}g F</span>
+                </div>
+                <div className="font-heading font-semibold text-accent tabular-nums">
+                  €{meal.cost.meal_cost_eur.toFixed(2)}
+                </div>
+              </div>
+            </div>
+          </AccordionTrigger>
+
+          <AccordionContent className="px-6 pb-4">
+            <Separator className="mb-4" />
+            
+            <div className="md:hidden mb-4 flex gap-4 text-sm text-muted-foreground">
+              <span className="tabular-nums">{meal.nutrition.calories} cal</span>
+              <span className="tabular-nums">{meal.nutrition.protein_g}g P</span>
+              <span className="tabular-nums">{meal.nutrition.carbohydrates_g}g C</span>
+              <span className="tabular-nums">{meal.nutrition.fats_g}g F</span>
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="font-heading font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
+                Ingredients
+              </h4>
+              {meal.ingredients.map((ingredient) => (
+                <div
+                  key={ingredient.ingredient_id}
+                  className="grid grid-cols-12 gap-4 py-2 px-3 rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <div className="col-span-4 md:col-span-3 font-medium">
+                    {ingredient.name}
+                  </div>
+                  <div className="col-span-2 text-sm text-muted-foreground tabular-nums">
+                    {ingredient.quantity_g}g
+                  </div>
+                  <div className="col-span-4 md:col-span-5 text-sm text-muted-foreground hidden md:flex gap-3">
+                    <span className="tabular-nums">{ingredient.nutrition.calories} cal</span>
+                    <span className="tabular-nums">{ingredient.nutrition.protein_g}g P</span>
+                    <span className="tabular-nums">{ingredient.nutrition.carbohydrates_g}g C</span>
+                    <span className="tabular-nums">{ingredient.nutrition.fats_g}g F</span>
+                  </div>
+                  <div className="col-span-2 md:col-span-2 text-right font-medium text-accent tabular-nums">
+                    €{ingredient.cost_eur.toFixed(2)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    </Card>
+  );
+}
