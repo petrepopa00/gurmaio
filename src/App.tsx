@@ -155,10 +155,15 @@ function App() {
     setIsGenerating(true);
     
     try {
-      const newPlan = await generateMealPlan(userProfile);
-      setMealPlan(() => newPlan);
+      setMealPlan(() => null);
       setShoppingListState(() => null);
       setMealPrepPlan(() => null);
+      setActiveTab('meals');
+      
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const newPlan = await generateMealPlan(userProfile);
+      setMealPlan(() => newPlan);
       
       toast.success('Meal plan generated successfully!');
     } catch (error) {
@@ -807,12 +812,12 @@ function App() {
               </TabsList>
               
               <TabsContent value="meals" className="mt-6">
-                <MealPlanView mealPlan={mealPlan!} onSwapMeal={handleSwapMeal} onRateMeal={handleRateMeal} mealRatings={mealRatingsMap} />
+                <MealPlanView key={mealPlan!.plan_id} mealPlan={mealPlan!} onSwapMeal={handleSwapMeal} onRateMeal={handleRateMeal} mealRatings={mealRatingsMap} />
               </TabsContent>
               
               <TabsContent value="prep" className="mt-6">
                 {mealPrepPlan ? (
-                  <MealPrepView prepPlan={mealPrepPlan} />
+                  <MealPrepView key={mealPrepPlan.plan_id} prepPlan={mealPrepPlan} />
                 ) : (
                   <div className="text-center py-12 text-muted-foreground">
                     <ChefHat size={48} className="mx-auto mb-4 opacity-50" />
