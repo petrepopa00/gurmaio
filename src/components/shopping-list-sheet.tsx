@@ -5,8 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { ShoppingList, ShoppingListItem } from '@/types/domain';
-import { ShoppingCart, CurrencyDollar, Export, Trash } from '@phosphor-icons/react';
+import { ShoppingCart, CurrencyDollar, Export, Trash, Share, WhatsappLogo, Envelope, Copy } from '@phosphor-icons/react';
 import { exportShoppingList, GROCERY_SERVICES, type GroceryService } from '@/lib/grocery-export';
+import { generateShoppingListText, shareViaWhatsApp, shareViaEmail, copyToClipboard } from '@/lib/share-shopping-list';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
@@ -23,6 +24,7 @@ interface ShoppingListSheetProps {
 export function ShoppingListSheet({ open, onOpenChange, shoppingList, onToggleOwned, onDeleteItem }: ShoppingListSheetProps) {
   const { language, t } = useLanguage();
   const [showExportOptions, setShowExportOptions] = useState(false);
+  const [showShareOptions, setShowShareOptions] = useState(false);
 
   const visibleItems = shoppingList.items.filter(item => !item.deleted);
   const ownedCount = visibleItems.filter(item => item.owned).length;
@@ -42,6 +44,29 @@ export function ShoppingListSheet({ open, onOpenChange, shoppingList, onToggleOw
     } catch (error) {
       toast.error('Export failed. Please try again.');
       console.error('Export error:', error);
+    }
+  };
+
+  const handleShareWhatsApp = () => {
+    const text = generateShoppingListText(shoppingList, language, true);
+    shareViaWhatsApp(text);
+    toast.success(t.shareViaWhatsApp);
+  };
+
+  const handleShareEmail = () => {
+    const text = generateShoppingListText(shoppingList, language, true);
+    const subject = `${t.shoppingList} - ${t.appName}`;
+    shareViaEmail(text, subject);
+    toast.success(t.shareViaEmail);
+  };
+
+  const handleCopyToClipboard = async () => {
+    try {
+      const text = generateShoppingListText(shoppingList, language, true);
+      await copyToClipboard(text);
+      toast.success(t.copiedToClipboard);
+    } catch (error) {
+      toast.error('Failed to copy to clipboard');
     }
   };
 
@@ -92,23 +117,87 @@ export function ShoppingListSheet({ open, onOpenChange, shoppingList, onToggleOw
           </Card>
 
           <div className="space-y-3">
-            {!showExportOptions && (
+            {!showExportOptions && !showShareOptions && (
               <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 text-sm">
                 <p className="text-muted-foreground">
-                  💡 Export your shopping list to popular delivery services like <strong>Glovo</strong>, <strong>Uber Eats</strong>, <strong>Wolt</strong>, and more!
+                  💡 Share your list via <strong>WhatsApp</strong> or <strong>Email</strong>, or export to delivery services!
                 </p>
               </div>
             )}
             
-            <Button
-              onClick={() => setShowExportOptions(!showExportOptions)}
-              className="w-full"
-              size="lg"
-              variant={showExportOptions ? "outline" : "default"}
-            >
-              <Export className="mr-2" />
-              {showExportOptions ? t.hideExportOptions : t.exportToGrocery}
-            </Button>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                onClick={() => {
+                  setShowShareOptions(!showShareOptions);
+                  setShowExportOptions(false);
+                }}
+                className="w-full"
+                size="lg"
+                variant={showShareOptions ? "default" : "outline"}
+              >
+                <Share className="mr-2" />
+                {t.shareList}
+              </Button>
+              
+              <Button
+                onClick={() => {
+                  setShowExportOptions(!showExportOptions);
+                  setShowShareOptions(false);
+                }}
+                className="w-full"
+                size="lg"
+                variant={showExportOptions ? "default" : "outline"}
+              >
+                <Export className="mr-2" />
+                {t.exportToGrocery}
+              </Button>
+            </div>
+
+            {showShareOptions && (
+              <div className="space-y-3 p-4 bg-muted/30 rounded-lg border">
+                <h4 className="font-heading font-semibold text-sm text-muted-foreground mb-3">
+                  {t.shareOptions}
+                </h4>
+                
+                <div className="grid grid-cols-1 gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={handleShareWhatsApp}
+                    className="justify-start h-auto py-3 hover:bg-green-500/10 transition-all group"
+                  >
+                    <WhatsappLogo size={24} className="mr-3 text-green-600 group-hover:scale-110 transition-transform" weight="fill" />
+                    <div className="flex-1 text-left">
+                      <div className="font-semibold">{t.shareViaWhatsApp}</div>
+                      <div className="text-xs text-muted-foreground">Share your shopping list instantly</div>
+                    </div>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={handleShareEmail}
+                    className="justify-start h-auto py-3 hover:bg-blue-500/10 transition-all group"
+                  >
+                    <Envelope size={24} className="mr-3 text-blue-600 group-hover:scale-110 transition-transform" weight="fill" />
+                    <div className="flex-1 text-left">
+                      <div className="font-semibold">{t.shareViaEmail}</div>
+                      <div className="text-xs text-muted-foreground">Send via your email client</div>
+                    </div>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={handleCopyToClipboard}
+                    className="justify-start h-auto py-3 hover:bg-accent/10 transition-all group"
+                  >
+                    <Copy size={24} className="mr-3 text-accent group-hover:scale-110 transition-transform" weight="bold" />
+                    <div className="flex-1 text-left">
+                      <div className="font-semibold">{t.copyToClipboard}</div>
+                      <div className="text-xs text-muted-foreground">Copy as text to share anywhere</div>
+                    </div>
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {showExportOptions && (
               <div className="space-y-4 p-4 bg-muted/30 rounded-lg border">
