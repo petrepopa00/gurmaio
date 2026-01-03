@@ -683,37 +683,43 @@ function App() {
               </Button>
               
               {currentUser ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={currentUser.avatarUrl} alt={currentUser.login} />
-                        <AvatarFallback>{currentUser.login.slice(0, 2).toUpperCase()}</AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel>
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{currentUser.login}</p>
-                        <p className="text-xs leading-none text-muted-foreground">
-                          {currentUser.email}
-                        </p>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout}>
-                      <SignOut className="mr-2" />
-                      Log out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <div className="flex items-center gap-3">
+                  <div className="hidden sm:flex flex-col items-end">
+                    <p className="text-sm font-medium leading-none">{currentUser.login}</p>
+                    <p className="text-xs text-muted-foreground">{currentUser.email}</p>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={currentUser.avatarUrl} alt={currentUser.login} />
+                          <AvatarFallback>{currentUser.login.slice(0, 2).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuLabel>
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-sm font-medium leading-none">{currentUser.login}</p>
+                          <p className="text-xs leading-none text-muted-foreground">
+                            {currentUser.email}
+                          </p>
+                        </div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleLogout}>
+                        <SignOut className="mr-2" />
+                        {t.logout}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               ) : (
                 <Button
                   variant="default"
                   onClick={() => window.location.href = '/.spark/login'}
                 >
-                  Log in
+                  {t.login}
                 </Button>
               )}
             </div>
