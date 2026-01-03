@@ -13,11 +13,11 @@ This is a commercial-grade product requiring multiple sophisticated engines (nut
 ## Essential Features
 
 ### User Profile & Onboarding
-- **Functionality**: Capture budget, meal plan duration, dietary preferences, and restrictions
-- **Purpose**: Establish constraints for AI generation and enable personalized meal planning
+- **Functionality**: Capture budget, meal plan duration, dietary preferences, restrictions, and personal metrics for automatic calorie calculation
+- **Purpose**: Establish constraints for AI generation, enable personalized meal planning, and calculate scientifically-accurate calorie targets
 - **Trigger**: First app launch or profile editing
-- **Progression**: Welcome screen → Budget input → Duration selection → Dietary preferences → Allergen selection → Save profile
-- **Success criteria**: Profile saved to Supabase, validation prevents invalid budgets, preferences correctly constrain meal generation
+- **Progression**: Welcome screen → Budget input → Duration selection → Nutrition goals (weight, height, age, sex, activity level, objective) → Auto-calculated calorie target display → Dietary preferences → Allergen selection → Save profile
+- **Success criteria**: Profile saved with all metrics, calorie target calculated using Mifflin-St Jeor equation, validation prevents invalid inputs, preferences correctly constrain meal generation, users can toggle between automatic and manual calorie entry
 
 ### Meal Plan Generation
 - **Functionality**: Generate a multi-day meal plan with per-meal nutrition, per-meal cost, daily totals, and full plan totals
@@ -91,6 +91,34 @@ This is a commercial-grade product requiring multiple sophisticated engines (nut
 - **Avatar Load Failure** - Display fallback with user's initials in colored background
 - **Empty Saved Plans** - Show encouraging empty state with icon and call-to-action when no plans have been saved yet
 - **Deleted Current Plan** - If user deletes the currently active meal plan from history, plan remains in current view but is removed from saved list
+- **Incomplete Calorie Data** - When user hasn't filled all required fields for auto-calculation, system gracefully shows no calculated value and allows profile saving without target calories
+- **Invalid Biometric Data** - Validate weight (30-300kg), height (100-250cm), age (13-120) to prevent calculation errors and nonsensical results
+- **Manual vs Auto Calorie Toggle** - Preserve both manual entry and calculated values when switching modes, prevent data loss on accidental toggles
+
+## Calorie Calculation Algorithm
+
+**Method**: Mifflin-St Jeor Equation (internationally recognized, clinically validated)
+
+**Basal Metabolic Rate (BMR) Calculation**:
+- Male: BMR = (10 × weight_kg) + (6.25 × height_cm) - (5 × age) + 5
+- Female: BMR = (10 × weight_kg) + (6.25 × height_cm) - (5 × age) - 161
+
+**Total Daily Energy Expenditure (TDEE)**:
+TDEE = BMR × Activity Multiplier
+
+**Activity Multipliers**:
+- Sedentary (little or no exercise): 1.2
+- Light (exercise 1-3 days/week): 1.375
+- Moderate (exercise 3-5 days/week): 1.55
+- Active (exercise 6-7 days/week): 1.725
+- Very Active (intense exercise daily): 1.9
+
+**Objective Adjustments**:
+- Lose Weight: TDEE - 500 cal/day (safe 0.5kg/week loss)
+- Maintain Weight: TDEE (no adjustment)
+- Gain Muscle: TDEE + 300 cal/day (lean bulk)
+
+**Final Target Calories** = TDEE + Objective Adjustment (rounded to nearest whole number)
 
 ## Design Direction
 

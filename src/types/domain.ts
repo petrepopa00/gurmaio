@@ -6,6 +6,12 @@ export interface UserProfile {
   allergens: string[];
   cuisine_preferences: string[];
   target_calories?: number;
+  weight_kg?: number;
+  height_cm?: number;
+  age?: number;
+  sex?: 'male' | 'female';
+  activity_level?: 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
+  objective?: 'lose_weight' | 'maintain' | 'gain_muscle';
 }
 
 export interface IngredientNutrition {
