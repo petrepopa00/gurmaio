@@ -47,6 +47,20 @@ This is a commercial-grade product requiring multiple sophisticated engines (nut
 - **Progression**: Tap export → Choose service → Content copied to clipboard or file downloaded → Paste into grocery service app or open file
 - **Success criteria**: Export formats are service-appropriate, clipboard copy works reliably, file downloads succeed, exported data is complete and formatted correctly
 
+### User Authentication & Session Management
+- **Functionality**: GitHub OAuth login/logout with persistent user sessions and profile display
+- **Purpose**: Enable personalized data persistence across devices and secure meal plan storage
+- **Trigger**: User clicks "Log in" button on welcome screen or avatar dropdown in header
+- **Progression**: Click login → GitHub OAuth flow → Return to app with session → Avatar displays in header with dropdown menu (username, email, logout option)
+- **Success criteria**: User session persists across page reloads, avatar displays correctly, logout clears session and redirects appropriately
+
+### Meal Plan Saving & Persistence
+- **Functionality**: Save generated meal plans to user's account for access across sessions and devices
+- **Purpose**: Allow users to reference meal plans over time and maintain history of past plans
+- **Trigger**: User clicks "Save Plan" button when viewing an active meal plan (only available when logged in)
+- **Progression**: Generate meal plan → Click "Save Plan" → Plan saved to useKV storage → Visual confirmation (checkmark + "Saved" state) → Plan accessible in future sessions
+- **Success criteria**: Saved plans persist across sessions, duplicate saves update existing plan, visual feedback confirms save action, unauthenticated users see appropriate message
+
 ### Account Management
 - **Functionality**: Delete all user data (GDPR compliant)
 - **Purpose**: Comply with data protection regulations and user privacy rights
@@ -65,6 +79,9 @@ This is a commercial-grade product requiring multiple sophisticated engines (nut
 - **Malformed AI Response** - Schema validation, detailed error logging, automatic retry with simplified prompt
 - **Clipboard API Unavailable** - Fallback to legacy document.execCommand copy method for export functionality
 - **Export Format Errors** - Graceful error handling with user-friendly messages, offer alternative export formats
+- **Unauthenticated Save Attempt** - Show informative toast message prompting user to log in, disable save button for guests
+- **Session Expiration** - Graceful handling of expired sessions with re-authentication prompt
+- **Avatar Load Failure** - Display fallback with user's initials in colored background
 
 ## Design Direction
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useKV } from '@github/spark/hooks';
 import type { MealPlan, UserProfile, ShoppingList } from '@/types/domain';
 import { generateMockMealPlan, generateShoppingList } from '@/lib/mock-data';
@@ -7,22 +7,79 @@ import { MealPlanView } from '@/components/meal-plan-view';
 import { ShoppingListSheet } from '@/components/shopping-list-sheet';
 import { BudgetGauge } from '@/components/budget-gauge';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Toaster } from '@/components/ui/sonner';
-import { Plus, List, Gear } from '@phosphor-icons/react';
+import { Plus, List, Gear, SignOut, FloppyDisk, Check } from '@phosphor-icons/react';
 import { toast } from 'sonner';
+
+interface UserInfo {
+  avatarUrl: string;
+  email: string;
+  id: string;
+  isOwner: boolean;
+  login: string;
+}
 
 function App() {
   const [userProfile, setUserProfile] = useKV<UserProfile | null>('user_profile', null);
   const [mealPlan, setMealPlan] = useKV<MealPlan | null>('current_meal_plan', null);
   const [shoppingListState, setShoppingListState] = useKV<ShoppingList | null>('shopping_list_state', null);
+  const [savedMealPlans, setSavedMealPlans] = useKV<MealPlan[]>('saved_meal_plans', []);
   const [isOnboarding, setIsOnboarding] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [shoppingListOpen, setShoppingListOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<UserInfo | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
 
   const hasProfile = userProfile !== null;
   const hasMealPlan = mealPlan !== null;
 
   const currentShoppingList = shoppingListState || (mealPlan ? generateShoppingList(mealPlan) : null);
+
+  useEffect(() => {
+    loadUser();
+  }, []);
+
+  const loadUser = async () => {
+    try {
+      const user = await window.spark.user();
+      setCurrentUser(user as unknown as UserInfo);
+    } catch (error) {
+      setCurrentUser(null);
+    }
+  };
+
+  const handleLogout = () => {
+    window.location.href = '/.spark/logout';
+  };
+
+  const handleSaveMealPlan = async () => {
+    if (!mealPlan || !currentUser) {
+      toast.error('Please log in to save meal plans');
+      return;
+    }
+
+    setIsSaving(true);
+    
+    setSavedMealPlans((current) => {
+      const plans = current || [];
+      const existingIndex = plans.findIndex(p => p.plan_id === mealPlan.plan_id);
+      if (existingIndex >= 0) {
+        const updated = [...plans];
+        updated[existingIndex] = mealPlan;
+        return updated;
+      }
+      return [...plans, mealPlan];
+    });
+
+    setIsSaving(false);
+    setJustSaved(true);
+    toast.success('Meal plan saved successfully!');
+    
+    setTimeout(() => setJustSaved(false), 2000);
+  };
 
   const handleSaveProfile = (profile: UserProfile) => {
     setUserProfile(() => profile);
@@ -84,6 +141,36 @@ function App() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-6">
         <div className="max-w-2xl w-full text-center space-y-8">
+          {currentUser && (
+            <div className="flex items-center justify-end">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={currentUser.avatarUrl} alt={currentUser.login} />
+                      <AvatarFallback>{currentUser.login.slice(0, 2).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{currentUser.login}</p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {currentUser.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <SignOut className="mr-2" />
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
+          
           <div className="space-y-4">
             <h1 className="font-heading text-5xl font-bold text-primary tracking-tight">
               Gurmaio
@@ -94,6 +181,14 @@ function App() {
           </div>
 
           <div className="bg-card rounded-2xl p-8 border shadow-sm space-y-6">
+            {!currentUser && (
+              <div className="bg-accent/10 border border-accent/30 rounded-lg p-4 mb-6">
+                <p className="text-sm text-accent-foreground">
+                  💡 <strong>Tip:</strong> Log in to save your meal plans and access them from any device
+                </p>
+              </div>
+            )}
+            
             <div className="space-y-2">
               <h2 className="font-heading text-2xl font-semibold">Welcome</h2>
               <p className="text-muted-foreground">
@@ -125,14 +220,27 @@ function App() {
               </div>
             </div>
 
-            <Button
-              onClick={() => setIsOnboarding(true)}
-              size="lg"
-              className="w-full"
-            >
-              <Plus className="mr-2" />
-              Get Started
-            </Button>
+            <div className="flex flex-col gap-3">
+              {!currentUser && (
+                <Button
+                  onClick={() => window.location.href = '/.spark/login'}
+                  size="lg"
+                  className="w-full"
+                  variant="default"
+                >
+                  Log in to Get Started
+                </Button>
+              )}
+              <Button
+                onClick={() => setIsOnboarding(true)}
+                size="lg"
+                className="w-full"
+                variant={currentUser ? "default" : "outline"}
+              >
+                <Plus className="mr-2" />
+                {currentUser ? 'Get Started' : 'Continue as Guest'}
+              </Button>
+            </div>
           </div>
 
           <p className="text-sm text-muted-foreground">
@@ -167,6 +275,25 @@ function App() {
             </div>
 
             <div className="flex items-center gap-2">
+              {hasMealPlan && currentUser && (
+                <Button
+                  variant={justSaved ? "default" : "outline"}
+                  onClick={handleSaveMealPlan}
+                  disabled={isSaving}
+                >
+                  {justSaved ? (
+                    <>
+                      <Check className="mr-2" />
+                      Saved
+                    </>
+                  ) : (
+                    <>
+                      <FloppyDisk className="mr-2" />
+                      {isSaving ? 'Saving...' : 'Save Plan'}
+                    </>
+                  )}
+                </Button>
+              )}
               {hasMealPlan && (
                 <Button
                   variant="outline"
@@ -182,6 +309,41 @@ function App() {
               >
                 <Gear />
               </Button>
+              
+              {currentUser ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={currentUser.avatarUrl} alt={currentUser.login} />
+                        <AvatarFallback>{currentUser.login.slice(0, 2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{currentUser.login}</p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {currentUser.email}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout}>
+                      <SignOut className="mr-2" />
+                      Log out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button
+                  variant="default"
+                  onClick={() => window.location.href = '/.spark/login'}
+                >
+                  Log in
+                </Button>
+              )}
             </div>
           </div>
         </div>
