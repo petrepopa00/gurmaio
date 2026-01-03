@@ -17,7 +17,7 @@ export function AppFooter({ onDeleteAccount }: AppFooterProps) {
             </h3>
             <div className="flex flex-col gap-2">
               <a
-                href="https://github.com/yourusername/gurmaio/blob/main/PRIVACY.md"
+                href="/PRIVACY.md"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
@@ -26,7 +26,7 @@ export function AppFooter({ onDeleteAccount }: AppFooterProps) {
                 Privacy Policy
               </a>
               <a
-                href="https://github.com/yourusername/gurmaio/blob/main/TERMS.md"
+                href="/TERMS.md"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
