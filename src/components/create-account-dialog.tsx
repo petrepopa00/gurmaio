@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
+import { Checkbox } from '@/components/ui/checkbox';
 import { EnvelopeSimple, Warning, CheckCircle, Check, X, Eye, EyeSlash } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 
@@ -35,6 +36,8 @@ export function CreateAccountDialog({ open, onOpenChange }: CreateAccountDialogP
   const [isCreating, setIsCreating] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [subscribeToEmails, setSubscribeToEmails] = useState(false);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -90,6 +93,11 @@ export function CreateAccountDialog({ open, onOpenChange }: CreateAccountDialogP
       return;
     }
 
+    if (!agreeToTerms) {
+      setError('You must agree to the Terms of Service to create an account');
+      return;
+    }
+
     setIsCreating(true);
 
     try {
@@ -115,6 +123,8 @@ export function CreateAccountDialog({ open, onOpenChange }: CreateAccountDialogP
       setSuccess(false);
       setShowPassword(false);
       setShowConfirmPassword(false);
+      setAgreeToTerms(false);
+      setSubscribeToEmails(false);
       onOpenChange(false);
     }
   };
@@ -269,6 +279,56 @@ export function CreateAccountDialog({ open, onOpenChange }: CreateAccountDialogP
                 Passwords match
               </p>
             )}
+          </div>
+
+          <div className="space-y-3 pt-2">
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="terms"
+                checked={agreeToTerms}
+                onCheckedChange={(checked) => setAgreeToTerms(checked as boolean)}
+                disabled={isCreating || success}
+                className="mt-1"
+              />
+              <div className="flex-1">
+                <label
+                  htmlFor="terms"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                >
+                  I agree to the{' '}
+                  <a
+                    href="https://gurmaio.com/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Terms of Service
+                  </a>
+                </label>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="newsletter"
+                checked={subscribeToEmails}
+                onCheckedChange={(checked) => setSubscribeToEmails(checked as boolean)}
+                disabled={isCreating || success}
+                className="mt-1"
+              />
+              <div className="flex-1">
+                <label
+                  htmlFor="newsletter"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                >
+                  Send me a once-a-week email with meal ideas
+                </label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Optional! These can help maintain your meal planning mindset, and you can opt-out at any time.
+                </p>
+              </div>
+            </div>
           </div>
 
           <p className="text-xs text-muted-foreground">
