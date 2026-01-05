@@ -24,6 +24,9 @@ export async function generateMealPlan(userProfile: UserProfile): Promise<MealPl
 
   const dietaryPrefsStr = userProfile.dietary_preferences.join(', ');
   const allergensStr = userProfile.allergens.length > 0 ? userProfile.allergens.join(', ') : 'none';
+  const excludedIngredientsStr = userProfile.excluded_ingredients && userProfile.excluded_ingredients.length > 0 
+    ? userProfile.excluded_ingredients.join(', ') 
+    : 'none';
   const cuisinesStr = userProfile.cuisine_preferences.length > 0 
     ? userProfile.cuisine_preferences.join(', ') 
     : 'any';
@@ -79,6 +82,7 @@ NUTRITION TARGET:
 
 DIETARY PREFERENCES (MUST FOLLOW): ${dietaryPrefsStr}
 ALLERGENS TO AVOID (CRITICAL - NEVER INCLUDE): ${allergensStr}
+EXCLUDED INGREDIENTS (CRITICAL - NEVER INCLUDE THESE): ${excludedIngredientsStr}
 CUISINE PREFERENCES (PRIORITIZE THESE): ${cuisinesStr}${otherCuisinesStr}
 
 IMPORTANT INSTRUCTIONS:
@@ -89,6 +93,7 @@ IMPORTANT INSTRUCTIONS:
 5. Include 3-7 step cooking instructions for each meal
 6. Make sure total plan cost does NOT exceed €${totalBudget.toFixed(2)}
 7. Generate EXACTLY ${mealsPerDay} meals per day with the following meal types: ${mealTypesStr}
+8. NEVER use any ingredient from the excluded ingredients list - this is a strict requirement
 
 Return the result as a valid JSON object with a single property called "days" that contains an array of day objects. Each day must have:
 - day_number: number (1 to ${userProfile.meal_plan_days})

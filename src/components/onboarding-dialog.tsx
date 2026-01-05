@@ -117,6 +117,8 @@ export function OnboardingDialog({ open, onOpenChange, onSave, existingProfile }
   const [allergens, setAllergens] = useState<string[]>(existingProfile?.allergens || []);
   const [cuisines, setCuisines] = useState<string[]>(existingProfile?.cuisine_preferences || ['Italian', 'Mediterranean']);
   const [otherCuisines, setOtherCuisines] = useState(existingProfile?.other_cuisines || '');
+  const [excludedIngredients, setExcludedIngredients] = useState<string[]>(existingProfile?.excluded_ingredients || []);
+  const [newIngredient, setNewIngredient] = useState('');
   
   const [weight, setWeight] = useState(existingProfile?.weight_kg?.toString() || '');
   const [height, setHeight] = useState(existingProfile?.height_cm?.toString() || '');
@@ -259,6 +261,7 @@ export function OnboardingDialog({ open, onOpenChange, onSave, existingProfile }
       allergens,
       cuisine_preferences: cuisines,
       other_cuisines: cuisines.includes('Others') ? otherCuisines : undefined,
+      excluded_ingredients: excludedIngredients.length > 0 ? excludedIngredients : undefined,
       target_calories: finalCalories,
       weight_kg: weight ? parseFloat(weight) : undefined,
       height_cm: height ? parseFloat(height) : undefined,
@@ -288,6 +291,18 @@ export function OnboardingDialog({ open, onOpenChange, onSave, existingProfile }
     setCuisines((prev) =>
       prev.includes(option) ? prev.filter((p) => p !== option) : [...prev, option]
     );
+  };
+
+  const addExcludedIngredient = () => {
+    const trimmed = newIngredient.trim();
+    if (trimmed && !excludedIngredients.includes(trimmed.toLowerCase())) {
+      setExcludedIngredients((prev) => [...prev, trimmed.toLowerCase()]);
+      setNewIngredient('');
+    }
+  };
+
+  const removeExcludedIngredient = (ingredient: string) => {
+    setExcludedIngredients((prev) => prev.filter((i) => i !== ingredient));
   };
 
   return (
@@ -668,6 +683,68 @@ export function OnboardingDialog({ open, onOpenChange, onSave, existingProfile }
                   onChange={(e) => setOtherCuisines(e.target.value)}
                   placeholder="e.g., Korean, Vietnamese, Brazilian..."
                 />
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <Label>Exclude Specific Ingredients</Label>
+              <p className="text-xs text-muted-foreground mt-1">
+                Add ingredients you want to avoid in your meal plans (e.g., mushrooms, cilantro, bell peppers)
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Input
+                value={newIngredient}
+                onChange={(e) => setNewIngredient(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addExcludedIngredient();
+                  }
+                }}
+                placeholder="Type ingredient and press Enter"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addExcludedIngredient}
+                disabled={!newIngredient.trim()}
+              >
+                Add
+              </Button>
+            </div>
+            {excludedIngredients.length > 0 && (
+              <div className="flex flex-wrap gap-2 pt-2">
+                {excludedIngredients.map((ingredient) => (
+                  <div
+                    key={ingredient}
+                    className="inline-flex items-center gap-1 px-3 py-1 bg-destructive/10 text-destructive rounded-full text-sm"
+                  >
+                    <span className="capitalize">{ingredient}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeExcludedIngredient(ingredient)}
+                      className="hover:bg-destructive/20 rounded-full p-0.5 ml-1"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </div>

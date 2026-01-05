@@ -27,6 +27,9 @@ export async function generateMealSubstitution(
 
   const dietaryPrefsStr = userProfile.dietary_preferences.join(', ');
   const allergensStr = userProfile.allergens.length > 0 ? userProfile.allergens.join(', ') : 'none';
+  const excludedIngredientsStr = userProfile.excluded_ingredients && userProfile.excluded_ingredients.length > 0 
+    ? userProfile.excluded_ingredients.join(', ') 
+    : 'none';
   const cuisinesStr = userProfile.cuisine_preferences.length > 0 
     ? userProfile.cuisine_preferences.join(', ') 
     : 'any';
@@ -117,6 +120,7 @@ CONSTRAINTS:
 
 DIETARY PREFERENCES (MUST FOLLOW): ${dietaryPrefsStr}
 ALLERGENS TO AVOID (CRITICAL - NEVER INCLUDE): ${allergensStr}
+EXCLUDED INGREDIENTS (CRITICAL - NEVER INCLUDE THESE): ${excludedIngredientsStr}
 CUISINE PREFERENCES (PRIORITIZE THESE): ${cuisinesStr}${otherCuisinesStr}${ratingGuidance}
 
 IMPORTANT:
@@ -126,8 +130,9 @@ IMPORTANT:
 4. Calculate accurate nutrition per ingredient
 5. Include 3-7 step cooking instructions
 6. STAY WITHIN THE COST LIMIT OF €${remainingBudgetForMeal.toFixed(2)}
-${preferredIngredients.length > 0 ? `7. STRONGLY PREFER using ingredients from the user's preferred list above` : ''}
-${dislikedIngredients.length > 0 ? `8. ABSOLUTELY AVOID ingredients from the user's disliked list above` : ''}
+7. NEVER use any ingredient from the excluded ingredients list
+${preferredIngredients.length > 0 ? `8. STRONGLY PREFER using ingredients from the user's preferred list above` : ''}
+${dislikedIngredients.length > 0 ? `9. ABSOLUTELY AVOID ingredients from the user's disliked list above` : ''}
 
 Return ONLY a valid JSON object (NOT an array) with the following structure:
 {

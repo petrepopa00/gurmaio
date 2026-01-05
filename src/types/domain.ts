@@ -13,6 +13,7 @@ export interface UserProfile {
   allergens: string[];
   cuisine_preferences: string[];
   other_cuisines?: string;
+  excluded_ingredients?: string[];
   target_calories?: number;
   weight_kg?: number;
   height_cm?: number;
