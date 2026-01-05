@@ -91,10 +91,6 @@ export function ProfileDropdown({
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={onProfileClick}>
-          <UserCircleGear className="mr-2 h-4 w-4" />
-          <span>{profileLabel}</span>
-        </DropdownMenuItem>
         <DropdownMenuItem onClick={onEditMealProfile}>
           <PencilSimple className="mr-2 h-4 w-4" />
           <span>Edit Meal Profile</span>
