@@ -169,8 +169,8 @@ const ANIMATION_SCENES = [
     render: () => (
       <div className="space-y-2.5">
         <motion.div
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           className="bg-gradient-to-br from-primary/5 via-accent/5 to-primary/5 border border-primary/20 rounded-lg p-4 space-y-2"
         >
           <div className="flex items-center justify-between">
