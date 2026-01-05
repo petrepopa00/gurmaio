@@ -1373,6 +1373,13 @@ function App() {
                       <Plus className="mr-2" />
                       {isGenerating ? 'Generating...' : 'New Plan'}
                     </Button>
+                    <Button
+                      variant="default"
+                      onClick={() => setShoppingListOpen(true)}
+                    >
+                      <List className="mr-2" />
+                      Shopping List
+                    </Button>
                   </div>
                 </div>
 
@@ -1437,14 +1444,6 @@ function App() {
                         )}
                       </Button>
                     )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShoppingListOpen(true)}
-                    >
-                      <List className="mr-2" />
-                      Shopping
-                    </Button>
                     <Button
                       onClick={handleExportToPDF}
                       variant="outline"
