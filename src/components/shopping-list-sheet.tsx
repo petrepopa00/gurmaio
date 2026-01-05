@@ -106,45 +106,42 @@ export function ShoppingListSheet({ open, onOpenChange, shoppingList, onToggleOw
           </SheetDescription>
         </SheetHeader>
 
-        <div className="mt-6 space-y-6">
-          <Card className="p-4 bg-primary/5 border-primary/20">
-            <div className="flex items-center gap-2 mb-4">
-              <Users size={20} className="text-primary" />
-              <Label className="font-heading font-semibold">Family Size Multiplier</Label>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => handleMultiplierChange(multiplier - 1)}
-                disabled={multiplier <= 1}
-              >
-                <Minus size={16} />
-              </Button>
-              <div className="flex-1">
+        <div className="mt-6 space-y-4">
+          <Card className="p-3 bg-primary/5 border-primary/20">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Users size={18} className="text-primary" />
+                <Label className="font-medium text-sm">Multiply portions by</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => handleMultiplierChange(multiplier - 1)}
+                  disabled={multiplier <= 1}
+                >
+                  <Minus size={14} />
+                </Button>
                 <Input
                   type="number"
                   min="1"
                   max="10"
                   value={multiplier}
                   onChange={(e) => handleMultiplierChange(parseInt(e.target.value) || 1)}
-                  className="text-center font-heading text-xl font-bold"
+                  className="text-center font-heading font-bold w-14 h-8 text-base"
                 />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => handleMultiplierChange(multiplier + 1)}
+                  disabled={multiplier >= 10}
+                >
+                  <Plus size={14} />
+                </Button>
               </div>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => handleMultiplierChange(multiplier + 1)}
-                disabled={multiplier >= 10}
-              >
-                <Plus size={16} />
-              </Button>
             </div>
-            {multiplier > 1 && (
-              <p className="text-xs text-muted-foreground text-center mt-2">
-                All quantities and costs are multiplied by {multiplier}x
-              </p>
-            )}
           </Card>
 
           <Card className="p-4 bg-accent/10 border-accent/30">
@@ -155,13 +152,7 @@ export function ShoppingListSheet({ open, onOpenChange, shoppingList, onToggleOw
                 ariaLabel={INFO_LABELS.costInfo}
               />
             </div>
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div>
-                <div className="text-sm text-muted-foreground">{t.items}</div>
-                <div className="font-heading text-xl font-bold">
-                  {visibleItems.length - ownedCount}/{visibleItems.length}
-                </div>
-              </div>
+            <div className="grid grid-cols-2 gap-4 text-center">
               <div>
                 <div className="text-sm text-muted-foreground">{t.planCost}</div>
                 <div className="font-heading text-xl font-bold tabular-nums">
