@@ -129,11 +129,7 @@ function App() {
     }
   }, [currentUser, needsVerification, isDemoMode]);
 
-  useEffect(() => {
-    if (activeTab === 'prep' && mealPlan && !mealPrepPlan && !isGeneratingPrep) {
-      handleGeneratePrepPlan();
-    }
-  }, [activeTab]);
+
 
   const loadUser = async () => {
     try {
@@ -1524,7 +1520,7 @@ function App() {
                     <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'meals' | 'prep' | 'calendar')}>
                       <TabsList className="grid w-full max-w-2xl grid-cols-3">
                         <TabsTrigger value="meals">Meal Plan</TabsTrigger>
-                        <TabsTrigger value="prep" disabled={!mealPrepPlan}>
+                        <TabsTrigger value="prep">
                           Meal Prep {mealPrepPlan && '✓'}
                         </TabsTrigger>
                         <TabsTrigger value="calendar">
@@ -1605,10 +1601,26 @@ function App() {
                               animate={{ opacity: 1 }}
                               exit={{ opacity: 0 }}
                               transition={{ duration: 0.3 }}
-                              className="text-center py-12 text-muted-foreground"
+                              className="flex flex-col items-center justify-center py-12 space-y-6"
                             >
-                              <ChefHat size={48} className="mx-auto mb-4 opacity-50" />
-                              <p>Generate a meal prep plan to see batch cooking recommendations</p>
+                              <ChefHat size={48} className="mx-auto opacity-50 text-muted-foreground" />
+                              <div className="text-center space-y-2">
+                                <h3 className="font-heading text-xl font-semibold text-foreground">
+                                  Generate Meal Prep Plan
+                                </h3>
+                                <p className="text-muted-foreground max-w-md mx-auto">
+                                  Get batch cooking recommendations and save time during the week
+                                </p>
+                              </div>
+                              <Button
+                                onClick={handleGeneratePrepPlan}
+                                disabled={isGeneratingPrep}
+                                size="lg"
+                                className="mt-4"
+                              >
+                                <ChefHat className="mr-2" />
+                                Generate Meal Prep
+                              </Button>
                             </motion.div>
                           )}
                         </AnimatePresence>
