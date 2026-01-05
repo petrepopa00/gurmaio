@@ -430,6 +430,19 @@ function MealCard({
           <AccordionContent className="px-6 pb-4">
             <Separator className="mb-4" />
 
+            {onPortionAdjustment && (
+              <div className="mb-6 bg-muted/30 rounded-xl p-4 border space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-heading font-semibold text-sm">Portion Size</h4>
+                    <InfoTooltip 
+                      content="Adjust the portion size for this meal. All ingredients and nutrition values will scale proportionally."
+                      ariaLabel="Portion size adjustment"
+                    />
+                  </div>
+                  <div className="text-sm font-medium text-primary tabular-nums">
+                    {localMultiplier === 1 
+                      ? 'Standard serving'
                       : `${(localMultiplier * 100).toFixed(0)}% of standard`}
                   </div>
                 </div>
