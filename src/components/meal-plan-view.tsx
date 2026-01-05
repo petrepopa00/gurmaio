@@ -430,13 +430,6 @@ function MealCard({
           <AccordionContent className="px-6 pb-4">
             <Separator className="mb-4" />
 
-            {onPortionAdjustment && (
-              <div className="mb-6 bg-muted/50 rounded-lg p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-medium">Portion Size</div>
-                  <div className="text-sm text-muted-foreground">
-                    {localMultiplier === 1 
-                      ? 'Standard serving' 
                       : `${(localMultiplier * 100).toFixed(0)}% of standard`}
                   </div>
                 </div>
