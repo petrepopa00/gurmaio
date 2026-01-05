@@ -31,7 +31,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Toaster } from '@/components/ui/sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, List, SignOut, FloppyDisk, Check, ShareNetwork, FilePdf, ChefHat, GoogleLogo, AppleLogo, FacebookLogo, TwitterLogo, Trophy, CalendarCheck, UserCircleGear, ShoppingCart } from '@phosphor-icons/react';
+import { Plus, List, SignOut, FloppyDisk, Check, ShareNetwork, FilePdf, ChefHat, GoogleLogo, AppleLogo, FacebookLogo, TwitterLogo, Trophy, CalendarCheck, UserCircleGear, ShoppingCart, Sparkle } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import { useLanguage } from '@/hooks/use-language';
 import { useEmailVerification } from '@/hooks/use-email-verification';
@@ -1370,7 +1370,7 @@ function App() {
                   </div>
                   <div className="flex gap-2">
                     <Button onClick={handleGeneratePlan} disabled={isGenerating} variant="default">
-                      <Plus className="mr-2" />
+                      <Sparkle className="mr-2" />
                       {isGenerating ? 'Generating...' : 'New Plan'}
                     </Button>
                     <Button
