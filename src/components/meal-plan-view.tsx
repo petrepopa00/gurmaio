@@ -483,7 +483,7 @@ function MealCard({
                       }}
                       disabled={isSwapping}
                       className="h-8 w-8 p-0"
-                      title="Swap this meal"
+                      title="Swap meal"
                     >
                       <Repeat size={16} />
                     </Button>
@@ -587,7 +587,7 @@ function MealCard({
                 <Accordion type="single" collapsible className="w-full">
                   <AccordionItem value="cooking-steps" className="border-none">
                     <AccordionTrigger className="hover:no-underline py-3 px-4 bg-muted/30 rounded-lg">
-                      <span className="font-heading font-semibold">Show cooking steps</span>
+                      <span className="font-heading font-semibold">Cooking Steps</span>
                     </AccordionTrigger>
                     <AccordionContent className="px-4 pb-4">
                       <ol className="space-y-3">
