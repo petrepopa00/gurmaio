@@ -152,15 +152,15 @@ export function ShoppingListSheet({ open, onOpenChange, shoppingList, onToggleOw
                 ariaLabel={INFO_LABELS.costInfo}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4 text-center">
-              <div>
-                <div className="text-sm text-muted-foreground">{t.planCost}</div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">{t.planCost}:</div>
                 <div className="font-heading text-xl font-bold tabular-nums">
                   €{adjustedPlanCost.toFixed(2)}
                 </div>
               </div>
-              <div>
-                <div className="text-sm text-muted-foreground">{t.toBuy}</div>
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">{t.toBuy}:</div>
                 <div className="font-heading text-xl font-bold tabular-nums text-accent">
                   €{totalCostRemaining.toFixed(2)}
                 </div>
