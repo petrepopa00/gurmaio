@@ -14,7 +14,6 @@ import { SavedPlansDialog } from '@/components/saved-plans-dialog';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { ShareMealPlanDialog } from '@/components/share-meal-plan-dialog';
 import { AppFooter } from '@/components/app-footer';
-import { DemoPreview } from '@/components/demo-preview';
 import { AnimatedAppDemo } from '@/components/animated-app-demo';
 import { ProfileDropdown } from '@/components/profile-dropdown';
 import { ProfileDialog } from '@/components/profile-dialog';
@@ -30,13 +29,12 @@ import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Toaster } from '@/components/ui/sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, List, SignOut, FloppyDisk, Check, ShareNetwork, FilePdf, ChefHat, GoogleLogo, AppleLogo, FacebookLogo, TwitterLogo, Trophy, CalendarCheck, UserCircleGear, ShoppingCart, Sparkle } from '@phosphor-icons/react';
+import { Plus, SignOut, FloppyDisk, Check, ShareNetwork, FilePdf, ChefHat, GoogleLogo, AppleLogo, FacebookLogo, TwitterLogo, Trophy, CalendarCheck, UserCircleGear, ShoppingCart, Sparkle } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import { useLanguage } from '@/hooks/use-language';
 import { useEmailVerification } from '@/hooks/use-email-verification';
 import { exportMealPlanToPDF } from '@/lib/export-meal-plan-pdf';
-import { DISCLAIMERS, EMPTY_STATES } from '@/lib/disclaimers';
+import { DISCLAIMERS } from '@/lib/disclaimers';
 
 interface UserInfo {
   avatarUrl: string;
@@ -69,7 +67,6 @@ function App() {
   const [isSaving, setIsSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
   const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false);
-  const [showAnimatedDemo, setShowAnimatedDemo] = useState(true);
   const [activeTab, setActiveTab] = useState<'meals' | 'prep' | 'calendar'>('meals');
   const [showAccountSettings, setShowAccountSettings] = useState(false);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
@@ -1035,29 +1032,8 @@ function App() {
               </p>
             </div>
 
-            <div className="mb-12 space-y-6">
-              <div className="flex items-center justify-center gap-2">
-                <Button
-                  variant={showAnimatedDemo ? 'default' : 'outline'}
-                  onClick={() => setShowAnimatedDemo(true)}
-                  size="sm"
-                >
-                  Interactive Demo
-                </Button>
-                <Button
-                  variant={!showAnimatedDemo ? 'default' : 'outline'}
-                  onClick={() => setShowAnimatedDemo(false)}
-                  size="sm"
-                >
-                  Feature Overview
-                </Button>
-              </div>
-
-              {showAnimatedDemo ? (
-                <AnimatedAppDemo />
-              ) : (
-                <DemoPreview autoPlay={true} />
-              )}
+            <div className="mb-12">
+              <AnimatedAppDemo />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
