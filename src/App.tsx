@@ -1354,14 +1354,33 @@ function App() {
               transition={{ duration: 0.3 }}
               className="space-y-6"
             >
-              <div className="flex items-start justify-between">
-                <div className="space-y-3">
+              <div className="space-y-4">
+                <div className="flex items-start justify-between">
                   <div>
                     <h2 className="font-heading text-3xl font-bold">{t.yourMealPlan}</h2>
                     <p className="text-muted-foreground">
                       {mealPlan!.metadata.days}-{t.day} plan • Generated {new Date(mealPlan!.generated_at).toLocaleDateString()}
                     </p>
                   </div>
+                  <div className="flex gap-2">
+                    <Button onClick={handleGeneratePlan} disabled={isGenerating} variant="default">
+                      <Plus className="mr-2" />
+                      {isGenerating ? 'Generating...' : 'New Plan'}
+                    </Button>
+                    {!mealPrepPlan && (
+                      <Button
+                        onClick={handleGeneratePrepPlan}
+                        disabled={isGeneratingPrep}
+                        variant="default"
+                      >
+                        <ChefHat className="mr-2" />
+                        Meal Prep
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4 flex-wrap">
                     <BudgetGauge
                       budget={mealPlan!.metadata.period_budget_eur}
@@ -1373,86 +1392,80 @@ function App() {
                       <StreakCounter completedDays={dayProgress || []} compact />
                     )}
                   </div>
-                </div>
-                <div className="flex gap-2 flex-wrap">
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsOnboarding(true)}
-                    title="Edit your meal preferences and budget"
-                  >
-                    <UserCircleGear className="mr-2" />
-                    Profile
-                  </Button>
-                  {isDemoMode ? (
+
+                  <div className="flex gap-2 flex-wrap justify-end">
                     <Button
                       variant="outline"
-                      onClick={() => {
-                        toast.info('Demo mode: Create an account to save plans', {
-                          action: {
-                            label: 'Create Account',
-                            onClick: () => setShowCreateAccountDialog(true)
-                          }
-                        });
-                      }}
-                      title="Create an account to save meal plans"
+                      size="sm"
+                      onClick={() => setIsOnboarding(true)}
+                      title="Edit your meal preferences and budget"
                     >
-                      <FloppyDisk className="mr-2" />
-                      Save (Demo)
+                      <UserCircleGear className="mr-2" />
+                      Edit Profile
                     </Button>
-                  ) : currentUser && (
+                    {isDemoMode ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          toast.info('Demo mode: Create an account to save plans', {
+                            action: {
+                              label: 'Create Account',
+                              onClick: () => setShowCreateAccountDialog(true)
+                            }
+                          });
+                        }}
+                        title="Create an account to save meal plans"
+                      >
+                        <FloppyDisk className="mr-2" />
+                        Save
+                      </Button>
+                    ) : currentUser && (
+                      <Button
+                        variant={justSaved ? "default" : "outline"}
+                        size="sm"
+                        onClick={handleSaveMealPlan}
+                        disabled={isSaving || (!canSaveMorePlans && !isCurrentPlanAlreadySaved)}
+                        title={!canSaveMorePlans && !isCurrentPlanAlreadySaved ? "Maximum 5 saved plans reached" : ""}
+                      >
+                        {justSaved ? (
+                          <>
+                            <Check className="mr-2" />
+                            Saved
+                          </>
+                        ) : (
+                          <>
+                            <FloppyDisk className="mr-2" />
+                            {isSaving ? 'Saving...' : 'Save'}
+                          </>
+                        )}
+                      </Button>
+                    )}
                     <Button
-                      variant={justSaved ? "default" : "outline"}
-                      onClick={handleSaveMealPlan}
-                      disabled={isSaving || (!canSaveMorePlans && !isCurrentPlanAlreadySaved)}
-                      title={!canSaveMorePlans && !isCurrentPlanAlreadySaved ? "Maximum 5 saved plans reached" : ""}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShoppingListOpen(true)}
                     >
-                      {justSaved ? (
-                        <>
-                          <Check className="mr-2" />
-                          Saved
-                        </>
-                      ) : (
-                        <>
-                          <FloppyDisk className="mr-2" />
-                          {isSaving ? 'Saving...' : 'Save'}
-                        </>
-                      )}
+                      <List className="mr-2" />
+                      Shopping
                     </Button>
-                  )}
-                  <Button
-                    variant="outline"
-                    onClick={() => setShoppingListOpen(true)}
-                  >
-                    <List className="mr-2" />
-                    Shopping
-                  </Button>
-                  <Button
-                    onClick={handleExportToPDF}
-                    variant="outline"
-                  >
-                    <FilePdf className="mr-2" />
-                    Export
-                  </Button>
-                  <Button
-                    onClick={() => setShareMealPlanOpen(true)}
-                    variant="outline"
-                  >
-                    <ShareNetwork className="mr-2" />
-                    Share
-                  </Button>
-                  {!mealPrepPlan && (
                     <Button
-                      onClick={handleGeneratePrepPlan}
-                      disabled={isGeneratingPrep}
+                      onClick={handleExportToPDF}
+                      variant="outline"
+                      size="sm"
                     >
-                      <ChefHat className="mr-2" />
-                      Prep Plan
+                      <FilePdf className="mr-2" />
+                      PDF
                     </Button>
-                  )}
-                  <Button onClick={handleGeneratePlan} disabled={isGenerating}>
-                    <Plus className="mr-2" />
-                    {isGenerating ? 'Generating...' : 'New Plan'}
-                  </Button>
+                    <Button
+                      onClick={() => setShareMealPlanOpen(true)}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <ShareNetwork className="mr-2" />
+                      Share
+                    </Button>
+                  </div>
                 </div>
               </div>
 
