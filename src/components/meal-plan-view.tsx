@@ -431,24 +431,18 @@ function MealCard({
             <Separator className="mb-4" />
 
             {onPortionAdjustment && (
-              <div className="mb-6 bg-muted/30 rounded-xl p-4 border">
-                <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="mb-4 bg-muted/30 rounded-lg p-3 border">
+                <div className="flex items-center gap-3 flex-wrap text-xs">
+                  <span className="font-medium text-muted-foreground">Portion:</span>
                   <div className="flex items-center gap-2">
-                    <h4 className="font-heading font-semibold text-sm">Portion Size</h4>
-                    <InfoTooltip 
-                      content="Adjust the portion size for this meal. All ingredients and nutrition values will scale proportionally."
-                      ariaLabel="Portion size adjustment"
-                    />
-                  </div>
-                  <div className="flex items-center gap-3">
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => handlePortionChange(localMultiplier - 0.25)}
                       disabled={localMultiplier <= 0.25}
-                      className="h-8 w-8 p-0"
+                      className="h-6 w-6 p-0"
                     >
-                      <Minus size={16} />
+                      <Minus size={12} />
                     </Button>
                     <Input
                       type="number"
@@ -457,33 +451,34 @@ function MealCard({
                       min="0.25"
                       max="5"
                       step="0.25"
-                      className="w-20 text-center tabular-nums"
+                      className="w-14 h-6 text-center tabular-nums text-xs px-1"
                     />
-                    <span className="text-sm text-muted-foreground">×</span>
+                    <span className="text-muted-foreground">×</span>
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => handlePortionChange(localMultiplier + 0.25)}
                       disabled={localMultiplier >= 5}
-                      className="h-8 w-8 p-0"
+                      className="h-6 w-6 p-0"
                     >
-                      <Plus size={16} />
+                      <Plus size={12} />
                     </Button>
-                    {localMultiplier !== 1 && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handlePortionChange(1)}
-                      >
-                        Reset
-                      </Button>
-                    )}
                   </div>
-                  <div className="text-sm font-medium text-primary tabular-nums">
+                  <span className="text-muted-foreground tabular-nums">
                     {localMultiplier === 1 
-                      ? 'Standard serving'
-                      : `${(localMultiplier * 100).toFixed(0)}% of standard`}
-                  </div>
+                      ? 'Standard'
+                      : `${(localMultiplier * 100).toFixed(0)}%`}
+                  </span>
+                  {localMultiplier !== 1 && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handlePortionChange(1)}
+                      className="h-6 px-2 text-xs"
+                    >
+                      Reset
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
