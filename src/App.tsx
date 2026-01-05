@@ -1259,20 +1259,24 @@ function App() {
             <h1 className="font-heading text-2xl font-bold text-primary">{t.appName}</h1>
             <div className="flex items-center gap-3">
               {currentUser ? (
-                <>
-                  <Avatar className="h-9 w-9">
-                    <AvatarImage src={currentUser.avatarUrl} alt={currentUser.login} />
-                    <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                      {currentUser.login
-                        .split(' ')
-                        .map(word => word[0])
-                        .join('')
-                        .toUpperCase()
-                        .slice(0, 2)}
-                    </AvatarFallback>
-                  </Avatar>
+                <div className="flex items-center gap-3">
                   <span className="text-sm font-medium text-foreground">{currentUser.login}</span>
-                </>
+                  <ProfileDropdown
+                    currentUser={currentUser}
+                    savedPlansCount={savedMealPlans?.length ?? 0}
+                    preferencesCount={mealPreferences?.length ?? 0}
+                    onProfileClick={() => setShowProfileDialog(true)}
+                    onHistoryClick={() => setSavedPlansOpen(true)}
+                    onPreferencesClick={() => setShowMealPreferences(true)}
+                    onAccountSettingsClick={() => setShowAccountSettings(true)}
+                    onLogoutClick={handleLogout}
+                    onDeleteAccountClick={() => setShowDeleteAccountDialog(true)}
+                    profileLabel="Profile"
+                    historyLabel="Saved Plans"
+                    logoutLabel={t.logout}
+                    deleteAccountLabel="Delete Account"
+                  />
+                </div>
               ) : isDemoMode ? (
                 <Button
                   variant="default"

@@ -1,4 +1,4 @@
-import { UserCircleGear, SignOut, ClockClockwise, Trash, Gear, Heart } from '@phosphor-icons/react';
+import { UserCircleGear, SignOut, ClockClockwise, Trash, Gear, Heart, CaretDown } from '@phosphor-icons/react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -63,13 +63,20 @@ export function ProfileDropdown({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-          <Avatar className="h-10 w-10">
+        <Button 
+          variant="ghost" 
+          className="relative h-10 w-10 rounded-full hover:bg-accent transition-colors ring-2 ring-transparent hover:ring-primary/20"
+          title="Open profile menu"
+        >
+          <Avatar className="h-10 w-10 cursor-pointer">
             <AvatarImage src={currentUser.avatarUrl} alt={currentUser.login} />
             <AvatarFallback className="bg-primary text-primary-foreground">
               {initials}
             </AvatarFallback>
           </Avatar>
+          <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-0.5 shadow-sm border">
+            <CaretDown size={12} weight="bold" className="text-muted-foreground" />
+          </div>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-64" align="end" forceMount>
