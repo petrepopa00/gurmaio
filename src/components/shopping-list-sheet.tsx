@@ -152,29 +152,28 @@ export function ShoppingListSheet({ open, onOpenChange, shoppingList, onToggleOw
                 ariaLabel={INFO_LABELS.costInfo}
               />
             </div>
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground">{t.planCost}:</span>
-                <span className="font-heading text-base font-bold tabular-nums">
+                <span className="font-heading text-xs font-bold tabular-nums">
                   €{adjustedPlanCost.toFixed(2)}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground">{t.toBuy}:</span>
-                <span className="font-heading text-base font-bold tabular-nums text-accent">
+                <span className="font-heading text-xs font-bold tabular-nums text-accent">
                   €{totalCostRemaining.toFixed(2)}
                 </span>
               </div>
-            </div>
-
-            {shoppingList.summary.waste_cost_eur > 0 && (
-              <>
-                <Separator className="my-2" />
-                <div className="text-center text-xs text-muted-foreground">
-                  <span className="font-medium">€{(shoppingList.summary.waste_cost_eur * multiplier).toFixed(2)}</span> estimated unused portions
+              {shoppingList.summary.waste_cost_eur > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Unused:</span>
+                  <span className="font-heading text-xs font-bold tabular-nums">
+                    €{(shoppingList.summary.waste_cost_eur * multiplier).toFixed(2)}
+                  </span>
                 </div>
-              </>
-            )}
+              )}
+            </div>
           </Card>
 
           <div className="space-y-3">
