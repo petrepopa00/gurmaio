@@ -547,19 +547,25 @@ function MealCard({
             <Separator className="mb-4" />
 
             <div className="space-y-4">
-              <div>
-                <h4 className="font-heading text-base font-semibold mb-3">Ingredients</h4>
-                <ul className="space-y-2">
-                  {adjustedMeal.ingredients.map((ingredient, index) => (
-                    <li key={index} className="flex items-center gap-2 text-sm">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                      <span className="flex-1">
-                        {translateIngredient(ingredient.name, language)} - {ingredient.quantity_g}g
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <Accordion type="single" collapsible className="border rounded-lg">
+                <AccordionItem value="ingredients" className="border-none">
+                  <AccordionTrigger className="px-4 py-3 text-sm hover:no-underline">
+                    <span className="font-heading font-semibold">Show ingredients</span>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-4 pb-4">
+                    <ul className="space-y-2">
+                      {adjustedMeal.ingredients.map((ingredient, index) => (
+                        <li key={index} className="flex items-center gap-2 text-sm">
+                          <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                          <span className="flex-1">
+                            {translateIngredient(ingredient.name, language)} - {ingredient.quantity_g}g
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
 
               {meal.cooking_instructions && meal.cooking_instructions.length > 0 && (
                 <Accordion type="single" collapsible className="border rounded-lg">
