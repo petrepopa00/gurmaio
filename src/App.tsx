@@ -17,6 +17,7 @@ import { AppFooter } from '@/components/app-footer';
 import { DemoPreview } from '@/components/demo-preview';
 import { AnimatedAppDemo } from '@/components/animated-app-demo';
 import { ProfileDropdown } from '@/components/profile-dropdown';
+import { ProfileDialog } from '@/components/profile-dialog';
 import { AccountSettingsDialog } from '@/components/account-settings-dialog';
 import { CreateAccountDialog } from '@/components/create-account-dialog';
 import { EmailVerificationDialog } from '@/components/email-verification-dialog';
@@ -30,7 +31,8 @@ import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Toaster } from '@/components/ui/sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, List, SignOut, FloppyDisk, Check, ShareNetwork, FilePdf, ChefHat, GoogleLogo, AppleLogo, FacebookLogo, TwitterLogo, Trophy, CalendarCheck } from '@phosphor-icons/react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Plus, List, SignOut, FloppyDisk, Check, ShareNetwork, FilePdf, ChefHat, GoogleLogo, AppleLogo, FacebookLogo, TwitterLogo, Trophy, CalendarCheck, UserCircleGear } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import { useLanguage } from '@/hooks/use-language';
 import { useEmailVerification } from '@/hooks/use-email-verification';
@@ -72,6 +74,7 @@ function App() {
   const [showAnimatedDemo, setShowAnimatedDemo] = useState(true);
   const [activeTab, setActiveTab] = useState<'meals' | 'prep' | 'calendar'>('meals');
   const [showAccountSettings, setShowAccountSettings] = useState(false);
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [showCreateAccountDialog, setShowCreateAccountDialog] = useState(false);
   const [showEmailVerificationDialog, setShowEmailVerificationDialog] = useState(false);
@@ -1253,27 +1256,27 @@ function App() {
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <h1 className="font-heading text-2xl font-bold text-primary">{t.appName}</h1>
+            <h1 className="font-heading text-2xl font-bold text-primary">{t.appName}</h1>
+            <div className="flex items-center gap-3">
               {currentUser ? (
-                <ProfileDropdown
-                  currentUser={currentUser}
-                  onHistoryClick={() => setSavedPlansOpen(true)}
-                  onPreferencesClick={() => setShowMealPreferences(true)}
-                  onAccountSettingsClick={() => setShowAccountSettings(true)}
-                  onHistoryClick={() => setSavedPlansOpen(true)}
-                  onPreferencesClick={() => setShowMealPreferences(true)}
-                  onAccountSettingsClick={() => setShowAccountSettings(true)}
-                  onLogoutClick={handleLogout}
-                  onDeleteAccountClick={() => setShowDeleteAccountDialog(true)}
-                  profileLabel={t.profile}
-                  historyLabel={t.history}
-                  logoutLabel={t.logout}
-                  deleteAccountLabel="Delete Account"
-                />
+                <>
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src={currentUser.avatarUrl} alt={currentUser.login} />
+                    <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                      {currentUser.login
+                        .split(' ')
+                        .map(word => word[0])
+                        .join('')
+                        .toUpperCase()
+                        .slice(0, 2)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm font-medium text-foreground">{currentUser.login}</span>
+                </>
               ) : isDemoMode ? (
                 <Button
                   variant="default"
+                  size="sm"
                   onClick={() => setShowCreateAccountDialog(true)}
                 >
                   Create Account
@@ -1281,6 +1284,7 @@ function App() {
               ) : (
                 <Button
                   variant="default"
+                  size="sm"
                   onClick={() => window.location.href = '/.spark/login'}
                 >
                   {t.login}
@@ -1403,6 +1407,16 @@ function App() {
                   </div>
                 </div>
                 <div className="flex gap-2 flex-wrap">
+                  {currentUser && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowProfileDialog(true)}
+                      title="Profile & Settings"
+                    >
+                      <UserCircleGear className="mr-2" />
+                      Profile
+                    </Button>
+                  )}
                   {isDemoMode ? (
                     <Button
                       variant="outline"
@@ -1749,6 +1763,21 @@ function App() {
         onRemovePreference={handleRemovePreference}
         onClearAll={handleClearAllPreferences}
       />
+
+      {currentUser && (
+        <ProfileDialog
+          open={showProfileDialog}
+          onOpenChange={setShowProfileDialog}
+          currentUser={currentUser}
+          savedPlansCount={savedMealPlans?.length ?? 0}
+          preferencesCount={mealPreferences?.length ?? 0}
+          onHistoryClick={() => setSavedPlansOpen(true)}
+          onPreferencesClick={() => setShowMealPreferences(true)}
+          onAccountSettingsClick={() => setShowAccountSettings(true)}
+          onLogoutClick={handleLogout}
+          onDeleteAccountClick={() => setShowDeleteAccountDialog(true)}
+        />
+      )}
 
       <AppFooter onDeleteAccount={currentUser ? () => setShowDeleteAccountDialog(true) : undefined} />
 
