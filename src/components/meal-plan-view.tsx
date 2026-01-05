@@ -507,19 +507,13 @@ function MealCard({
                   {adjustedMeal.ingredients.map((ingredient) => (
                     <div
                       key={ingredient.ingredient_id}
-                      className="grid grid-cols-1 md:grid-cols-12 gap-2 py-3 px-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border"
+                      className="grid grid-cols-1 md:grid-cols-3 gap-2 py-3 px-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border"
                     >
-                      <div className="md:col-span-4 font-medium">
+                      <div className="md:col-span-1 font-medium">
                         {translateIngredient(ingredient.name, language)}
                       </div>
-                      <div className="md:col-span-2 text-sm text-muted-foreground tabular-nums">
+                      <div className="md:col-span-1 text-sm text-muted-foreground tabular-nums">
                         {ingredient.quantity_g}g
-                      </div>
-                      <div className="md:col-span-5 flex gap-3 text-xs text-muted-foreground">
-                        <span className="tabular-nums">{ingredient.nutrition.calories} cal</span>
-                        <span className="tabular-nums">{ingredient.nutrition.protein_g}g P</span>
-                        <span className="tabular-nums">{ingredient.nutrition.carbohydrates_g}g C</span>
-                        <span className="tabular-nums">{ingredient.nutrition.fats_g}g F</span>
                       </div>
                       <div className="md:col-span-1 text-right font-medium text-accent tabular-nums">
                         €{ingredient.cost_eur.toFixed(2)}
