@@ -14,32 +14,25 @@ export function StreakCounter({ completedDays, compact = false }: StreakCounterP
 
   if (compact) {
     return (
-      <div className="flex items-center gap-3 px-4 py-2 bg-card border rounded-lg">
+      <div className="flex items-center gap-3 px-4 py-2 bg-card rounded-lg border">
+        <Flame 
+          size={20} 
+          weight="fill" 
+          className={streakInfo.streakActive ? 'text-orange-500' : 'text-muted-foreground'}
+        />
         <div className="flex items-center gap-2">
-          <Flame 
-            size={20} 
-            weight="fill" 
-            className={streakInfo.streakActive ? 'text-orange-500' : 'text-muted-foreground'}
-          />
-          <div className="flex flex-col">
-            <span className="text-xs text-muted-foreground">Streak</span>
-            <span className="text-sm font-bold">{streakInfo.currentStreak} days</span>
-          </div>
+          <span className="text-sm font-medium tabular-nums">
+            {streakInfo.currentStreak} {streakInfo.currentStreak === 1 ? 'day' : 'days'}
+          </span>
+          {streakInfo.longestStreak > 0 && (
+            <>
+              <span className="text-muted-foreground">/</span>
+              <span className="text-sm text-muted-foreground tabular-nums">
+                Best: {streakInfo.longestStreak}
+              </span>
+            </>
+          )}
         </div>
-        
-        {streakInfo.longestStreak > 0 && (
-          <div className="h-6 w-px bg-border" />
-        )}
-        
-        {streakInfo.longestStreak > 0 && (
-          <div className="flex items-center gap-2">
-            <TrendUp size={16} className="text-muted-foreground" />
-            <div className="flex flex-col">
-              <span className="text-xs text-muted-foreground">Best</span>
-              <span className="text-sm font-medium">{streakInfo.longestStreak}</span>
-            </div>
-          </div>
-        )}
       </div>
     );
   }
