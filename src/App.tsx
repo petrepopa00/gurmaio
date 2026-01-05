@@ -1255,17 +1255,6 @@ function App() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <h1 className="font-heading text-2xl font-bold text-primary">{t.appName}</h1>
-              {mealPlan && (
-                <BudgetGauge
-                  budget={mealPlan.metadata.period_budget_eur}
-                  spent={mealPlan.metadata.period_cost_eur}
-                  isOverBudget={mealPlan.metadata.is_over_budget}
-                  compact
-                />
-              )}
-              {(dayProgress?.length ?? 0) > 0 && (
-                <StreakCounter completedDays={dayProgress || []} compact />
-              )}
             </div>
 
             <div className="flex items-center gap-2">
@@ -1398,12 +1387,25 @@ function App() {
               transition={{ duration: 0.3 }}
               className="space-y-6"
             >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="font-heading text-3xl font-bold">{t.yourMealPlan}</h2>
-                  <p className="text-muted-foreground">
-                    {mealPlan!.metadata.days}-{t.day} plan • Generated {new Date(mealPlan!.generated_at).toLocaleDateString()}
-                  </p>
+              <div className="flex items-start justify-between">
+                <div className="space-y-3">
+                  <div>
+                    <h2 className="font-heading text-3xl font-bold">{t.yourMealPlan}</h2>
+                    <p className="text-muted-foreground">
+                      {mealPlan!.metadata.days}-{t.day} plan • Generated {new Date(mealPlan!.generated_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <BudgetGauge
+                      budget={mealPlan!.metadata.period_budget_eur}
+                      spent={mealPlan!.metadata.period_cost_eur}
+                      isOverBudget={mealPlan!.metadata.is_over_budget}
+                      compact
+                    />
+                    {(dayProgress?.length ?? 0) > 0 && (
+                      <StreakCounter completedDays={dayProgress || []} compact />
+                    )}
+                  </div>
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   {isDemoMode ? (
