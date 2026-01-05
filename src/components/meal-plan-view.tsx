@@ -562,19 +562,25 @@ function MealCard({
               </div>
 
               {meal.cooking_instructions && meal.cooking_instructions.length > 0 && (
-                <div>
-                  <h4 className="font-heading text-base font-semibold mb-3">Cooking Instructions</h4>
-                  <ol className="space-y-3">
-                    {meal.cooking_instructions.map((instruction, index) => (
-                      <li key={index} className="flex gap-3">
-                        <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold shadow-sm">
-                          {index + 1}
-                        </span>
-                        <span className="flex-1 text-sm leading-relaxed pt-1">{instruction}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
+                <Accordion type="single" collapsible className="border rounded-lg">
+                  <AccordionItem value="cooking-steps" className="border-none">
+                    <AccordionTrigger className="px-4 py-3 text-sm hover:no-underline">
+                      <span className="font-heading font-semibold">Show cooking steps</span>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-4">
+                      <ol className="space-y-3">
+                        {meal.cooking_instructions.map((instruction, index) => (
+                          <li key={index} className="flex gap-3">
+                            <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold shadow-sm">
+                              {index + 1}
+                            </span>
+                            <span className="flex-1 text-sm leading-relaxed pt-1">{instruction}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               )}
             </div>
           </AccordionContent>
