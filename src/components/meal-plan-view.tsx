@@ -7,7 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { MealPlan, Meal, MealPortionAdjustment } from '@/types/domain';
-import { Barbell, FireSimple, ChartBar, CurrencyDollar, Repeat, ThumbsUp, ThumbsDown, Minus, Plus } from '@phosphor-icons/react';
+import { Barbell, FireSimple, ChartBar, CurrencyDollar, Repeat, ThumbsUp, ThumbsDown, Minus, Plus, ListBullets } from '@phosphor-icons/react';
 import { useLanguage } from '@/hooks/use-language';
 import { translateMeal, translateIngredient } from '@/lib/i18n/content-translations';
 import type { Language } from '@/lib/i18n/translations';
@@ -365,6 +365,7 @@ function MealCard({
 }) {
   const [isSwapping, setIsSwapping] = useState(false);
   const [localMultiplier, setLocalMultiplier] = useState(portionMultiplier);
+  const [showIngredients, setShowIngredients] = useState(false);
 
   const handleSwap = async () => {
     if (!onSwap) return;
@@ -478,6 +479,18 @@ function MealCard({
                       <Repeat size={16} />
                     </Button>
                   )}
+                  <Button
+                    size="sm"
+                    variant={showIngredients ? 'default' : 'outline'}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowIngredients(!showIngredients);
+                    }}
+                    className="h-8 w-8 p-0"
+                    title="Show ingredients"
+                  >
+                    <ListBullets size={16} weight={showIngredients ? 'fill' : 'regular'} />
+                  </Button>
                   {onPortionAdjustment && (
                     <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center gap-1 bg-muted/50 rounded-md px-1.5 py-0.5">
@@ -547,25 +560,21 @@ function MealCard({
             <Separator className="mb-4" />
 
             <div className="space-y-4">
-              <Accordion type="single" collapsible className="border rounded-lg">
-                <AccordionItem value="ingredients" className="border-none">
-                  <AccordionTrigger className="px-4 py-3 text-sm hover:no-underline">
-                    <span className="font-heading font-semibold">Show ingredients</span>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-4 pb-4">
-                    <ul className="space-y-2">
-                      {adjustedMeal.ingredients.map((ingredient, index) => (
-                        <li key={index} className="flex items-center gap-2 text-sm">
-                          <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                          <span className="flex-1">
-                            {translateIngredient(ingredient.name, language)} - {ingredient.quantity_g}g
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
+              {showIngredients && (
+                <div className="border rounded-lg p-4">
+                  <h4 className="font-heading font-semibold text-sm mb-3">Ingredients</h4>
+                  <ul className="space-y-2">
+                    {adjustedMeal.ingredients.map((ingredient, index) => (
+                      <li key={index} className="flex items-center gap-2 text-sm">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                        <span className="flex-1">
+                          {translateIngredient(ingredient.name, language)} - {ingredient.quantity_g}g
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {meal.cooking_instructions && meal.cooking_instructions.length > 0 && (
                 <Accordion type="single" collapsible className="border rounded-lg">
