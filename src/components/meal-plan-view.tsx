@@ -411,6 +411,46 @@ function MealCard({
                       <Repeat size={16} />
                     </Button>
                   )}
+                  {onPortionAdjustment && (
+                    <div className="flex items-center gap-1 bg-muted/50 rounded-md px-2 py-1" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePortionChange(localMultiplier - 0.25);
+                        }}
+                        className="h-6 w-6 p-0"
+                      >
+                        <Minus size={12} />
+                      </Button>
+                      <Input
+                        type="number"
+                        value={localMultiplier}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          handlePortionChange(parseFloat(e.target.value) || 1);
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        min="0.25"
+                        max="5"
+                        step="0.25"
+                        className="w-12 h-6 text-center tabular-nums text-xs px-1"
+                      />
+                      <span className="text-xs text-muted-foreground">×</span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePortionChange(localMultiplier + 0.25);
+                        }}
+                        className="h-6 w-6 p-0"
+                      >
+                        <Plus size={12} />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex items-center justify-between w-full pr-4">
@@ -429,54 +469,6 @@ function MealCard({
 
           <AccordionContent className="px-6 pb-4">
             <Separator className="mb-4" />
-
-            {onPortionAdjustment && (
-              <div className="mb-4 bg-muted/30 rounded-lg p-3 border">
-                <div className="flex items-center gap-3 flex-wrap text-xs">
-                  <span className="font-medium text-muted-foreground">Portion:</span>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handlePortionChange(localMultiplier - 0.25)}
-                      className="h-6 w-6 p-0"
-                    >
-                      <Minus size={12} />
-                    </Button>
-                    <Input
-                      type="number"
-                      value={localMultiplier}
-                      onChange={(e) => handlePortionChange(parseFloat(e.target.value) || 1)}
-                      min="0.25"
-                      max="5"
-                      step="0.25"
-                      className="w-14 h-6 text-center tabular-nums text-xs px-1"
-                    />
-                    <span className="text-muted-foreground">×</span>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handlePortionChange(localMultiplier + 0.25)}
-                      className="h-6 w-6 p-0"
-                    >
-                      <Plus size={12} />
-                    </Button>
-                  </div>
-                  <span className="text-muted-foreground tabular-nums">
-                    {localMultiplier === 1 ? 'Standard' : `${((localMultiplier - 1) * 100).toFixed(0)}%`}
-                  </span>
-                  {localMultiplier !== 1 && (
-                    <Button
-                      size="sm"
-                      onClick={() => handlePortionChange(1)}
-                      className="h-6 px-2 text-xs"
-                    >
-                      Reset
-                    </Button>
-                  )}
-                </div>
-              </div>
-            )}
 
             <div className="space-y-4">
               <div className="space-y-3">
