@@ -426,7 +426,7 @@ function MealCard({
                       </Button>
                       <Input
                         type="number"
-                        value={localMultiplier}
+                        value={localMultiplier.toFixed(2)}
                         onChange={(e) => {
                           e.stopPropagation();
                           handlePortionChange(parseFloat(e.target.value) || 1);
@@ -435,7 +435,7 @@ function MealCard({
                         min="0.25"
                         max="5"
                         step="0.25"
-                        className="w-12 h-6 text-center tabular-nums text-xs px-1"
+                        className="w-14 h-6 text-center tabular-nums text-xs px-1"
                       />
                       <span className="text-xs text-muted-foreground">×</span>
                       <Button
