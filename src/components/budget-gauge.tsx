@@ -16,7 +16,7 @@ export function BudgetGauge({ budget, spent, isOverBudget, compact = false }: Bu
 
   if (compact) {
     return (
-      <div className="flex items-center gap-3 px-4 py-2 bg-card rounded-lg border min-w-fit">
+      <div className="flex items-center gap-3 px-4 py-2 bg-card rounded-lg border">
         <CurrencyDollar className="text-primary" size={20} />
         <div className="flex items-center gap-2 whitespace-nowrap">
           <span className="text-sm font-medium tabular-nums">

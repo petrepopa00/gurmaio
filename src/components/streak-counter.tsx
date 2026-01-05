@@ -14,7 +14,7 @@ export function StreakCounter({ completedDays, compact = false }: StreakCounterP
 
   if (compact) {
     return (
-      <div className="flex items-center gap-3 px-4 py-2 bg-card rounded-lg border min-w-fit">
+      <div className="flex items-center gap-3 px-4 py-2 bg-card rounded-lg border">
         <Flame 
           size={20} 
           weight="fill" 
