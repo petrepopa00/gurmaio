@@ -25,9 +25,10 @@ interface ShoppingListSheetProps {
   shoppingList: ShoppingList;
   onToggleOwned?: (ingredientId: string) => void;
   onDeleteItem?: (ingredientId: string) => void;
+  planDays?: number;
 }
 
-export function ShoppingListSheet({ open, onOpenChange, shoppingList, onToggleOwned, onDeleteItem }: ShoppingListSheetProps) {
+export function ShoppingListSheet({ open, onOpenChange, shoppingList, onToggleOwned, onDeleteItem, planDays = 7 }: ShoppingListSheetProps) {
   const { language, t } = useLanguage();
   const [showExportOptions, setShowExportOptions] = useState(false);
   const [showShareOptions, setShowShareOptions] = useState(false);
@@ -160,7 +161,9 @@ export function ShoppingListSheet({ open, onOpenChange, shoppingList, onToggleOw
           <Card className="p-3 bg-accent/10 border-accent/30">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Plan estimated cost:</span>
+                <span className="text-sm text-muted-foreground">
+                  Plan estimated cost ({planDays} {planDays === 1 ? 'day' : 'days'}):
+                </span>
                 <InfoTooltip 
                   content={DISCLAIMERS.cost.full} 
                   ariaLabel={INFO_LABELS.costInfo}

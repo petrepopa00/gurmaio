@@ -1718,6 +1718,7 @@ function App() {
           shoppingList={currentShoppingList}
           onToggleOwned={handleToggleOwned}
           onDeleteItem={handleDeleteItem}
+          planDays={mealPlan.metadata.days}
         />
       )}
 
