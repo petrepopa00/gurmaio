@@ -113,6 +113,20 @@ export interface MealRatingHistory {
   ratings: MealRating[];
 }
 
+export interface MealPreference {
+  meal_id: string;
+  recipe_name: string;
+  meal_type: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  preference: 'like' | 'dislike';
+  rated_at: string;
+  ingredients: string[];
+}
+
+export interface MealPortionAdjustment {
+  meal_id: string;
+  portion_multiplier: number;
+}
+
 export interface PrepTask {
   task_id: string;
   task_name: string;

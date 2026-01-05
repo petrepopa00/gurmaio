@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useKV } from '@github/spark/hooks';
 import { AnimatePresence, motion } from 'framer-motion';
-import type { MealPlan, UserProfile, ShoppingList, MealRating, Meal, MealPrepPlan, DayProgress, Badge, CompletedMeal, ScheduledDay } from '@/types/domain';
+import type { MealPlan, UserProfile, ShoppingList, MealPreference, Meal, MealPrepPlan, DayProgress, Badge, CompletedMeal, ScheduledDay, MealPortionAdjustment } from '@/types/domain';
 import { generateMealPlan, generateShoppingList } from '@/lib/mock-data';
 import { generateMealSubstitution } from '@/lib/meal-substitution';
 import { generateMealPrepPlan } from '@/lib/meal-prep-generator';
@@ -51,7 +51,8 @@ function App() {
   const [mealPrepPlan, setMealPrepPlan] = useKV<MealPrepPlan | null>('current_meal_prep_plan', null);
   const [shoppingListState, setShoppingListState] = useKV<ShoppingList | null>('shopping_list_state', null);
   const [savedMealPlans, setSavedMealPlans] = useKV<MealPlan[]>('saved_meal_plans', []);
-  const [mealRatings, setMealRatings] = useKV<MealRating[]>('meal_ratings', []);
+  const [mealPreferences, setMealPreferences] = useKV<MealPreference[]>('meal_preferences', []);
+  const [portionAdjustments, setPortionAdjustments] = useKV<MealPortionAdjustment[]>('portion_adjustments', []);
   const [scheduledDays, setScheduledDays] = useKV<ScheduledDay[]>('scheduled_days', []);
   const [dayProgress, setDayProgress] = useKV<DayProgress[]>('day_progress', []);
   const [badges, setBadges] = useKV<Badge[]>('earned_badges', []);
@@ -91,9 +92,14 @@ function App() {
 
   const currentShoppingList = shoppingListState || (mealPlan ? generateShoppingList(mealPlan) : null);
 
-  const mealRatingsMap = new Map<string, number>();
-  (mealRatings || []).forEach(rating => {
-    mealRatingsMap.set(rating.meal_id, rating.rating);
+  const mealPreferencesMap = new Map<string, 'like' | 'dislike'>();
+  (mealPreferences || []).forEach(pref => {
+    mealPreferencesMap.set(pref.meal_id, pref.preference);
+  });
+
+  const portionAdjustmentsMap = new Map<string, number>();
+  (portionAdjustments || []).forEach(adj => {
+    portionAdjustmentsMap.set(adj.meal_id, adj.portion_multiplier);
   });
 
   useEffect(() => {
@@ -145,6 +151,8 @@ function App() {
       setScheduledDays(() => []);
       setDayProgress(() => []);
       setBadges(() => []);
+      setMealPreferences(() => []);
+      setPortionAdjustments(() => []);
       setIsDemoMode(false);
       
       resetVerification();
@@ -152,7 +160,7 @@ function App() {
       try {
         const storageKeys = await window.spark.kv.keys();
         for (const key of storageKeys) {
-          if (key.startsWith('user_') || key.startsWith('current_') || key.startsWith('shopping_') || key.startsWith('saved_') || key.startsWith('meal_') || key.startsWith('email_verification_') || key.startsWith('scheduled_') || key.startsWith('day_progress') || key.startsWith('earned_badges')) {
+          if (key.startsWith('user_') || key.startsWith('current_') || key.startsWith('shopping_') || key.startsWith('saved_') || key.startsWith('meal_') || key.startsWith('email_verification_') || key.startsWith('scheduled_') || key.startsWith('day_progress') || key.startsWith('earned_badges') || key.startsWith('portion_')) {
             await window.spark.kv.delete(key);
           }
         }
@@ -408,7 +416,8 @@ function App() {
       setMealPlan(() => null);
       setShoppingListState(() => null);
       setSavedMealPlans(() => []);
-      setMealRatings(() => []);
+      setMealPreferences(() => []);
+      setPortionAdjustments(() => []);
       setMealPrepPlan(() => null);
       setScheduledDays(() => []);
       setDayProgress(() => []);
@@ -455,31 +464,92 @@ function App() {
     }
   };
 
-  const handleRateMeal = (mealId: string, rating: 1 | 2 | 3 | 4 | 5, meal: Meal) => {
-    setMealRatings((current) => {
-      const ratings = current || [];
-      const existingIndex = ratings.findIndex(r => r.meal_id === mealId);
+  const handleLikeMeal = (mealId: string, meal: Meal) => {
+    setMealPreferences((current) => {
+      const preferences = current || [];
+      const existingIndex = preferences.findIndex(p => p.meal_id === mealId);
       
-      const newRating: MealRating = {
+      const newPreference: MealPreference = {
         meal_id: mealId,
         recipe_name: meal.recipe_name,
         meal_type: meal.meal_type,
-        rating,
+        preference: 'like',
         rated_at: new Date().toISOString(),
         ingredients: meal.ingredients.map(ing => ing.name),
       };
       
       if (existingIndex >= 0) {
-        const updated = [...ratings];
-        updated[existingIndex] = newRating;
+        const existing = preferences[existingIndex];
+        if (existing.preference === 'like') {
+          toast.info('Like removed');
+          return preferences.filter((_, i) => i !== existingIndex);
+        }
+        const updated = [...preferences];
+        updated[existingIndex] = newPreference;
+        toast.success('Meal liked! 👍');
         return updated;
       }
       
-      return [...ratings, newRating];
+      toast.success('Meal liked! 👍');
+      return [...preferences, newPreference];
     });
-    
-    toast.success(`Rated ${rating} star${rating > 1 ? 's' : ''}`, {
-      description: 'Your preferences help us suggest better meals'
+  };
+
+  const handleDislikeMeal = (mealId: string, meal: Meal) => {
+    setMealPreferences((current) => {
+      const preferences = current || [];
+      const existingIndex = preferences.findIndex(p => p.meal_id === mealId);
+      
+      const newPreference: MealPreference = {
+        meal_id: mealId,
+        recipe_name: meal.recipe_name,
+        meal_type: meal.meal_type,
+        preference: 'dislike',
+        rated_at: new Date().toISOString(),
+        ingredients: meal.ingredients.map(ing => ing.name),
+      };
+      
+      if (existingIndex >= 0) {
+        const existing = preferences[existingIndex];
+        if (existing.preference === 'dislike') {
+          toast.info('Dislike removed');
+          return preferences.filter((_, i) => i !== existingIndex);
+        }
+        const updated = [...preferences];
+        updated[existingIndex] = newPreference;
+        toast.info('Meal disliked. We\'ll avoid similar meals in future plans');
+        return updated;
+      }
+      
+      toast.info('Meal disliked. We\'ll avoid similar meals in future plans');
+      return [...preferences, newPreference];
+    });
+  };
+
+  const handlePortionAdjustment = (mealId: string, multiplier: number) => {
+    setPortionAdjustments((current) => {
+      const adjustments = current || [];
+      const existingIndex = adjustments.findIndex(a => a.meal_id === mealId);
+      
+      if (multiplier === 1) {
+        if (existingIndex >= 0) {
+          return adjustments.filter((_, i) => i !== existingIndex);
+        }
+        return adjustments;
+      }
+      
+      const newAdjustment: MealPortionAdjustment = {
+        meal_id: mealId,
+        portion_multiplier: multiplier,
+      };
+      
+      if (existingIndex >= 0) {
+        const updated = [...adjustments];
+        updated[existingIndex] = newAdjustment;
+        return updated;
+      }
+      
+      return [...adjustments, newAdjustment];
     });
   };
 
@@ -501,7 +571,7 @@ function App() {
         dayNumber,
         userProfile,
         mealPlan,
-        mealRatings || []
+        mealPreferences || []
       );
 
       setMealPlan((currentPlan) => {
@@ -1459,7 +1529,16 @@ function App() {
                       </TabsList>
                       
                       <TabsContent value="meals" className="mt-6">
-                        <MealPlanView key={mealPlan!.plan_id} mealPlan={mealPlan!} onSwapMeal={handleSwapMeal} onRateMeal={handleRateMeal} mealRatings={mealRatingsMap} />
+                        <MealPlanView 
+                          key={mealPlan!.plan_id} 
+                          mealPlan={mealPlan!} 
+                          onSwapMeal={handleSwapMeal} 
+                          onLikeMeal={handleLikeMeal} 
+                          onDislikeMeal={handleDislikeMeal}
+                          mealPreferences={mealPreferencesMap}
+                          portionAdjustments={portionAdjustmentsMap}
+                          onPortionAdjustment={handlePortionAdjustment}
+                        />
                       </TabsContent>
                       
                       <TabsContent value="prep" className="mt-6">

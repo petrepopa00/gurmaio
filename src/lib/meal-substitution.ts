@@ -1,11 +1,11 @@
-import type { Meal, UserProfile, MealPlan, MealRating } from '@/types/domain';
+import type { Meal, UserProfile, MealPlan, MealPreference } from '@/types/domain';
 
 export async function generateMealSubstitution(
   currentMeal: Meal,
   dayNumber: number,
   userProfile: UserProfile,
   mealPlan: MealPlan,
-  mealRatings?: MealRating[]
+  mealPreferences?: MealPreference[]
 ): Promise<Meal> {
   const dailyBudget = mealPlan.metadata.period_budget_eur / mealPlan.metadata.days;
   const currentDayTotalCost = mealPlan.days.find(d => d.day_number === dayNumber)?.totals.cost_eur || 0;
@@ -44,40 +44,40 @@ export async function generateMealSubstitution(
     ? `Goal: ${userProfile.objective.replace('_', ' ')}`
     : '';
 
-  const highRatedMeals = mealRatings
-    ?.filter(r => r.rating >= 4 && r.meal_type === currentMeal.meal_type)
+  const likedMeals = mealPreferences
+    ?.filter(p => p.preference === 'like' && p.meal_type === currentMeal.meal_type)
     .slice(0, 5) || [];
   
-  const lowRatedMeals = mealRatings
-    ?.filter(r => r.rating <= 2 && r.meal_type === currentMeal.meal_type)
+  const dislikedMeals = mealPreferences
+    ?.filter(p => p.preference === 'dislike' && p.meal_type === currentMeal.meal_type)
     .slice(0, 5) || [];
 
-  const highRatedIngredientsMap = new Map<string, number>();
-  highRatedMeals.forEach(meal => {
+  const likedIngredientsMap = new Map<string, number>();
+  likedMeals.forEach(meal => {
     meal.ingredients.forEach(ing => {
-      highRatedIngredientsMap.set(ing, (highRatedIngredientsMap.get(ing) || 0) + 1);
+      likedIngredientsMap.set(ing, (likedIngredientsMap.get(ing) || 0) + 1);
     });
   });
 
-  const preferredIngredients = Array.from(highRatedIngredientsMap.entries())
+  const preferredIngredients = Array.from(likedIngredientsMap.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 10)
     .map(([ing]) => ing);
 
-  const dislikedIngredients = lowRatedMeals
+  const dislikedIngredients = dislikedMeals
     .flatMap(m => m.ingredients)
     .filter((ing, idx, arr) => arr.indexOf(ing) === idx)
     .slice(0, 10);
 
-  const preferredRecipes = highRatedMeals.map(m => m.recipe_name);
-  const dislikedRecipes = lowRatedMeals.map(m => m.recipe_name);
+  const preferredRecipes = likedMeals.map(m => m.recipe_name);
+  const dislikedRecipes = dislikedMeals.map(m => m.recipe_name);
 
   let ratingGuidance = '';
   if (preferredIngredients.length > 0 || preferredRecipes.length > 0) {
     ratingGuidance = `\n\nUSER PREFERENCES (prioritize these):`;
     if (preferredRecipes.length > 0) {
       ratingGuidance += `\n- User liked these ${currentMeal.meal_type} recipes: ${preferredRecipes.join(', ')}`;
-      ratingGuidance += `\n- Generate something SIMILAR in style/flavor profile to these highly-rated meals`;
+      ratingGuidance += `\n- Generate something SIMILAR in style/flavor profile to these liked meals`;
     }
     if (preferredIngredients.length > 0) {
       ratingGuidance += `\n- User frequently enjoys: ${preferredIngredients.join(', ')}`;
@@ -89,7 +89,7 @@ export async function generateMealSubstitution(
     ratingGuidance += `\n\nUSER DISLIKES (avoid these):`;
     if (dislikedRecipes.length > 0) {
       ratingGuidance += `\n- User disliked: ${dislikedRecipes.join(', ')}`;
-      ratingGuidance += `\n- AVOID recipes similar to these low-rated meals`;
+      ratingGuidance += `\n- AVOID recipes similar to these disliked meals`;
     }
     if (dislikedIngredients.length > 0) {
       ratingGuidance += `\n- User dislikes: ${dislikedIngredients.join(', ')}`;

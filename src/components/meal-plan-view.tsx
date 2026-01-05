@@ -5,8 +5,9 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import type { MealPlan, Meal, MealRating } from '@/types/domain';
-import { Barbell, FireSimple, ChartBar, CurrencyDollar, Repeat, Star } from '@phosphor-icons/react';
+import { Input } from '@/components/ui/input';
+import type { MealPlan, Meal, MealPortionAdjustment } from '@/types/domain';
+import { Barbell, FireSimple, ChartBar, CurrencyDollar, Repeat, ThumbsUp, ThumbsDown, Minus, Plus } from '@phosphor-icons/react';
 import { useLanguage } from '@/hooks/use-language';
 import { translateMeal, translateIngredient } from '@/lib/i18n/content-translations';
 import type { Language } from '@/lib/i18n/translations';
@@ -16,13 +17,24 @@ import { DISCLAIMERS, INFO_LABELS, VIEW_MODES, getViewModeContext } from '@/lib/
 interface MealPlanViewProps {
   mealPlan: MealPlan;
   onSwapMeal?: (mealId: string, dayNumber: number) => Promise<void>;
-  onRateMeal?: (mealId: string, rating: 1 | 2 | 3 | 4 | 5, meal: Meal) => void;
-  mealRatings?: Map<string, number>;
+  onLikeMeal?: (mealId: string, meal: Meal) => void;
+  onDislikeMeal?: (mealId: string, meal: Meal) => void;
+  mealPreferences?: Map<string, 'like' | 'dislike'>;
+  portionAdjustments?: Map<string, number>;
+  onPortionAdjustment?: (mealId: string, multiplier: number) => void;
 }
 
 type ViewMode = 'total' | 'average';
 
-export function MealPlanView({ mealPlan, onSwapMeal, onRateMeal, mealRatings }: MealPlanViewProps) {
+export function MealPlanView({ 
+  mealPlan, 
+  onSwapMeal, 
+  onLikeMeal, 
+  onDislikeMeal, 
+  mealPreferences,
+  portionAdjustments,
+  onPortionAdjustment 
+}: MealPlanViewProps) {
   const { language, t } = useLanguage();
   const [selectedDay, setSelectedDay] = useState(mealPlan.days[0]?.day_number.toString() || '1');
   const [viewMode, setViewMode] = useState<ViewMode>('average');
@@ -246,8 +258,11 @@ export function MealPlanView({ mealPlan, onSwapMeal, onRateMeal, mealRatings }: 
                   language={language} 
                   t={t}
                   onSwap={onSwapMeal}
-                  onRate={onRateMeal}
-                  currentRating={mealRatings?.get(meal.meal_id)}
+                  onLike={onLikeMeal}
+                  onDislike={onDislikeMeal}
+                  currentPreference={mealPreferences?.get(meal.meal_id)}
+                  portionMultiplier={portionAdjustments?.get(meal.meal_id) || 1}
+                  onPortionAdjustment={onPortionAdjustment}
                 />
               ))}
             </div>
@@ -264,19 +279,25 @@ function MealCard({
   language, 
   t,
   onSwap,
-  onRate,
-  currentRating
+  onLike,
+  onDislike,
+  currentPreference,
+  portionMultiplier,
+  onPortionAdjustment
 }: { 
   meal: Meal; 
   dayNumber: number;
   language: Language; 
   t: any;
   onSwap?: (mealId: string, dayNumber: number) => Promise<void>;
-  onRate?: (mealId: string, rating: 1 | 2 | 3 | 4 | 5, meal: Meal) => void;
-  currentRating?: number;
+  onLike?: (mealId: string, meal: Meal) => void;
+  onDislike?: (mealId: string, meal: Meal) => void;
+  currentPreference?: 'like' | 'dislike';
+  portionMultiplier: number;
+  onPortionAdjustment?: (mealId: string, multiplier: number) => void;
 }) {
   const [isSwapping, setIsSwapping] = useState(false);
-  const [hoveredStar, setHoveredStar] = useState<number | null>(null);
+  const [localMultiplier, setLocalMultiplier] = useState(portionMultiplier);
 
   const handleSwap = async () => {
     if (!onSwap) return;
@@ -289,13 +310,49 @@ function MealCard({
     }
   };
 
-  const handleRating = (rating: 1 | 2 | 3 | 4 | 5) => {
-    if (onRate) {
-      onRate(meal.meal_id, rating, meal);
+  const handleLike = () => {
+    if (onLike) {
+      onLike(meal.meal_id, meal);
     }
   };
 
-  const displayRating = hoveredStar !== null ? hoveredStar : currentRating || 0;
+  const handleDislike = () => {
+    if (onDislike) {
+      onDislike(meal.meal_id, meal);
+    }
+  };
+
+  const handlePortionChange = (newMultiplier: number) => {
+    const validMultiplier = Math.max(0.25, Math.min(5, newMultiplier));
+    setLocalMultiplier(validMultiplier);
+    if (onPortionAdjustment) {
+      onPortionAdjustment(meal.meal_id, validMultiplier);
+    }
+  };
+
+  const adjustedMeal = {
+    ...meal,
+    nutrition: {
+      calories: Math.round(meal.nutrition.calories * localMultiplier),
+      protein_g: Math.round(meal.nutrition.protein_g * localMultiplier),
+      carbohydrates_g: Math.round(meal.nutrition.carbohydrates_g * localMultiplier),
+      fats_g: Math.round(meal.nutrition.fats_g * localMultiplier),
+    },
+    cost: {
+      meal_cost_eur: meal.cost.meal_cost_eur * localMultiplier,
+    },
+    ingredients: meal.ingredients.map(ing => ({
+      ...ing,
+      quantity_g: Math.round(ing.quantity_g * localMultiplier),
+      nutrition: {
+        calories: Math.round(ing.nutrition.calories * localMultiplier),
+        protein_g: Math.round(ing.nutrition.protein_g * localMultiplier),
+        carbohydrates_g: Math.round(ing.nutrition.carbohydrates_g * localMultiplier),
+        fats_g: Math.round(ing.nutrition.fats_g * localMultiplier),
+      },
+      cost_eur: ing.cost_eur * localMultiplier,
+    })),
+  };
 
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow">
@@ -307,28 +364,63 @@ function MealCard({
                 <Badge variant="outline" className="capitalize">
                   {t[meal.meal_type]}
                 </Badge>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <h3 className="font-heading text-lg font-semibold text-left">
                     {translateMeal(meal.recipe_name, language)}
                   </h3>
-                  {currentRating && currentRating > 0 && (
-                    <div className="flex items-center gap-0.5">
-                      <Star size={16} weight="fill" className="text-amber-500" />
-                      <span className="text-xs text-muted-foreground">{currentRating}</span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-1">
+                    <Button
+                      size="sm"
+                      variant={currentPreference === 'like' ? 'default' : 'ghost'}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleLike();
+                      }}
+                      className="h-8 w-8 p-0"
+                      title="Like this meal"
+                    >
+                      <ThumbsUp size={16} weight={currentPreference === 'like' ? 'fill' : 'regular'} />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={currentPreference === 'dislike' ? 'destructive' : 'ghost'}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDislike();
+                      }}
+                      className="h-8 w-8 p-0"
+                      title="Dislike this meal"
+                    >
+                      <ThumbsDown size={16} weight={currentPreference === 'dislike' ? 'fill' : 'regular'} />
+                    </Button>
+                    {onSwap && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSwap();
+                        }}
+                        disabled={isSwapping}
+                        className="h-8 px-3"
+                        title="Swap this meal"
+                      >
+                        <Repeat size={16} />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
 
               <div className="flex items-center gap-6">
                 <div className="text-sm text-muted-foreground hidden md:flex items-center gap-4">
-                  <span className="tabular-nums">{meal.nutrition.calories} cal</span>
-                  <span className="tabular-nums">{meal.nutrition.protein_g}g P</span>
-                  <span className="tabular-nums">{meal.nutrition.carbohydrates_g}g C</span>
-                  <span className="tabular-nums">{meal.nutrition.fats_g}g F</span>
+                  <span className="tabular-nums">{adjustedMeal.nutrition.calories} cal</span>
+                  <span className="tabular-nums">{adjustedMeal.nutrition.protein_g}g P</span>
+                  <span className="tabular-nums">{adjustedMeal.nutrition.carbohydrates_g}g C</span>
+                  <span className="tabular-nums">{adjustedMeal.nutrition.fats_g}g F</span>
                 </div>
                 <div className="font-heading font-semibold text-accent tabular-nums">
-                  €{meal.cost.meal_cost_eur.toFixed(2)}
+                  €{adjustedMeal.cost.meal_cost_eur.toFixed(2)}
                 </div>
               </div>
             </div>
@@ -338,78 +430,69 @@ function MealCard({
             <Separator className="mb-4" />
             
             <div className="md:hidden mb-4 flex gap-4 text-sm text-muted-foreground">
-              <span className="tabular-nums">{meal.nutrition.calories} cal</span>
-              <span className="tabular-nums">{meal.nutrition.protein_g}g P</span>
-              <span className="tabular-nums">{meal.nutrition.carbohydrates_g}g C</span>
-              <span className="tabular-nums">{meal.nutrition.fats_g}g F</span>
+              <span className="tabular-nums">{adjustedMeal.nutrition.calories} cal</span>
+              <span className="tabular-nums">{adjustedMeal.nutrition.protein_g}g P</span>
+              <span className="tabular-nums">{adjustedMeal.nutrition.carbohydrates_g}g C</span>
+              <span className="tabular-nums">{adjustedMeal.nutrition.fats_g}g F</span>
             </div>
 
-            <div className="mb-4 space-y-3">
-              {onRate && (
-                <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                  <div className="text-sm font-medium">Rate this meal:</div>
-                  <div 
-                    className="flex gap-1"
-                    onMouseLeave={() => setHoveredStar(null)}
-                  >
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        onClick={() => handleRating(star as 1 | 2 | 3 | 4 | 5)}
-                        onMouseEnter={() => setHoveredStar(star)}
-                        className="transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary rounded"
-                        aria-label={`Rate ${star} stars`}
-                      >
-                        <Star
-                          size={28}
-                          weight={star <= displayRating ? 'fill' : 'regular'}
-                          className={star <= displayRating ? 'text-amber-500' : 'text-muted-foreground'}
-                        />
-                      </button>
-                    ))}
+            {onPortionAdjustment && (
+              <div className="mb-6 bg-muted/50 rounded-lg p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium">Portion Size</div>
+                  <div className="text-sm text-muted-foreground">
+                    {localMultiplier === 1 
+                      ? 'Standard serving' 
+                      : `${(localMultiplier * 100).toFixed(0)}% of standard`}
                   </div>
-                  {currentRating && (
-                    <div className="text-xs text-muted-foreground">
-                      Your rating helps us suggest better meals
-                    </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handlePortionChange(localMultiplier - 0.25)}
+                    disabled={localMultiplier <= 0.25}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Minus size={16} />
+                  </Button>
+                  <Input
+                    type="number"
+                    value={localMultiplier}
+                    onChange={(e) => handlePortionChange(parseFloat(e.target.value) || 1)}
+                    min="0.25"
+                    max="5"
+                    step="0.25"
+                    className="w-20 text-center tabular-nums"
+                  />
+                  <span className="text-sm text-muted-foreground">×</span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handlePortionChange(localMultiplier + 0.25)}
+                    disabled={localMultiplier >= 5}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Plus size={16} />
+                  </Button>
+                  {localMultiplier !== 1 && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handlePortionChange(1)}
+                      className="ml-2"
+                    >
+                      Reset
+                    </Button>
                   )}
                 </div>
-              )}
-              
-              {onSwap && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSwap}
-                  disabled={isSwapping}
-                  className="w-full md:w-auto"
-                >
-                  <Repeat className="mr-2" />
-                  {isSwapping ? t.swapping : t.swapMeal}
-                </Button>
-              )}
-            </div>
+                <div className="text-xs text-muted-foreground">
+                  Adjust portion size between 0.25× and 5× of the standard serving
+                </div>
+              </div>
+            )}
 
             <div className="space-y-6">
-              {meal.cooking_instructions && meal.cooking_instructions.length > 0 && (
-                <div className="space-y-3 bg-primary/5 rounded-xl p-4 border border-primary/10">
-                  <h4 className="font-heading font-semibold text-base text-primary flex items-center gap-2">
-                    <span className="text-xl">👨‍🍳</span>
-                    {t.cookingInstructions}
-                  </h4>
-                  <ol className="space-y-3">
-                    {meal.cooking_instructions.map((instruction, index) => (
-                      <li key={index} className="flex gap-3">
-                        <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold shadow-sm">
-                          {index + 1}
-                        </span>
-                        <span className="flex-1 text-sm leading-relaxed pt-1">{instruction}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              )}
-
               <div className="space-y-2">
                 <h4 className="font-heading font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
                   {t.ingredients}
@@ -419,7 +502,7 @@ function MealCard({
                   />
                 </h4>
                 <div className="space-y-1">
-                  {meal.ingredients.map((ingredient) => (
+                  {adjustedMeal.ingredients.map((ingredient) => (
                     <div
                       key={ingredient.ingredient_id}
                       className="grid grid-cols-1 md:grid-cols-12 gap-2 py-3 px-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border"
@@ -443,6 +526,25 @@ function MealCard({
                   ))}
                 </div>
               </div>
+
+              {meal.cooking_instructions && meal.cooking_instructions.length > 0 && (
+                <div className="space-y-3 bg-primary/5 rounded-xl p-4 border border-primary/10">
+                  <h4 className="font-heading font-semibold text-base text-primary flex items-center gap-2">
+                    <span className="text-xl">👨‍🍳</span>
+                    {t.cookingInstructions}
+                  </h4>
+                  <ol className="space-y-3">
+                    {meal.cooking_instructions.map((instruction, index) => (
+                      <li key={index} className="flex gap-3">
+                        <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold shadow-sm">
+                          {index + 1}
+                        </span>
+                        <span className="flex-1 text-sm leading-relaxed pt-1">{instruction}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
             </div>
           </AccordionContent>
         </AccordionItem>
