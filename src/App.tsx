@@ -151,8 +151,6 @@ function App() {
       setScheduledDays(() => []);
       setDayProgress(() => []);
       setBadges(() => []);
-      setMealPreferences(() => []);
-      setPortionAdjustments(() => []);
       setIsDemoMode(false);
       
       resetVerification();
@@ -160,7 +158,7 @@ function App() {
       try {
         const storageKeys = await window.spark.kv.keys();
         for (const key of storageKeys) {
-          if (key.startsWith('user_') || key.startsWith('current_') || key.startsWith('shopping_') || key.startsWith('saved_') || key.startsWith('meal_') || key.startsWith('email_verification_') || key.startsWith('scheduled_') || key.startsWith('day_progress') || key.startsWith('earned_badges') || key.startsWith('portion_')) {
+          if (key.startsWith('user_') || key.startsWith('current_') || key.startsWith('shopping_') || key.startsWith('saved_') || key.startsWith('meal_') || key.startsWith('email_verification_') || key.startsWith('scheduled_') || key.startsWith('day_progress') || key.startsWith('earned_badges')) {
             await window.spark.kv.delete(key);
           }
         }
