@@ -1370,7 +1370,7 @@ function App() {
                   </div>
                   <div className="flex gap-2">
                     <Button onClick={handleGeneratePlan} disabled={isGenerating} variant="default">
-                      <Sparkle className="mr-2" />
+                      <Sparkle className={`mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
                       {isGenerating ? 'Generating...' : 'New Plan'}
                     </Button>
                     <Button
