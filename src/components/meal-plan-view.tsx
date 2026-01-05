@@ -365,7 +365,7 @@ function MealCard({
 }) {
   const [isSwapping, setIsSwapping] = useState(false);
   const [localMultiplier, setLocalMultiplier] = useState(portionMultiplier);
-  const [showIngredients, setShowIngredients] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
   const [isAccordionOpen, setIsAccordionOpen] = useState<string | undefined>(undefined);
 
   const handleSwap = async () => {
@@ -399,12 +399,12 @@ function MealCard({
     }
   };
 
-  const handleShowIngredientsClick = (e: React.MouseEvent) => {
+  const handleShowDetailsClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!showIngredients) {
+    if (!showDetails) {
       setIsAccordionOpen('meal');
     }
-    setShowIngredients(!showIngredients);
+    setShowDetails(!showDetails);
   };
 
   const adjustedMeal = {
@@ -491,13 +491,13 @@ function MealCard({
                   )}
                   <Button
                     size="sm"
-                    variant={showIngredients ? 'default' : 'outline'}
-                    onClick={handleShowIngredientsClick}
+                    variant={showDetails ? 'default' : 'outline'}
+                    onClick={handleShowDetailsClick}
                     className="h-8 px-3 gap-1.5"
-                    title="View ingredients list"
+                    title="View ingredients & cooking steps"
                   >
-                    <ListBullets size={16} weight={showIngredients ? 'fill' : 'regular'} />
-                    <span className="text-xs font-medium">View Ingredients</span>
+                    <ListBullets size={16} weight={showDetails ? 'fill' : 'regular'} />
+                    <span className="text-xs font-medium">View Details</span>
                   </Button>
                   {onPortionAdjustment && (
                     <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
@@ -568,29 +568,25 @@ function MealCard({
             <Separator className="mb-4" />
 
             <div className="space-y-4">
-              {showIngredients && (
-                <div className="border rounded-lg p-4">
-                  <h4 className="font-heading font-semibold text-sm mb-3">Ingredients</h4>
-                  <ul className="space-y-2">
-                    {adjustedMeal.ingredients.map((ingredient, index) => (
-                      <li key={index} className="flex items-center gap-2 text-sm">
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                        <span className="flex-1">
-                          {translateIngredient(ingredient.name, language)} - {ingredient.quantity_g}g
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              {showDetails && (
+                <>
+                  <div className="border rounded-lg p-4">
+                    <h4 className="font-heading font-semibold text-sm mb-3">Ingredients</h4>
+                    <ul className="space-y-2">
+                      {adjustedMeal.ingredients.map((ingredient, index) => (
+                        <li key={index} className="flex items-center gap-2 text-sm">
+                          <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                          <span className="flex-1">
+                            {translateIngredient(ingredient.name, language)} - {ingredient.quantity_g}g
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
 
-              {meal.cooking_instructions && meal.cooking_instructions.length > 0 && (
-                <Accordion type="single" collapsible className="w-full">
-                  <AccordionItem value="cooking-steps" className="border-none">
-                    <AccordionTrigger className="hover:no-underline py-3 px-4 bg-muted/30 rounded-lg">
-                      <span className="font-heading font-semibold">Cooking Steps</span>
-                    </AccordionTrigger>
-                    <AccordionContent className="px-4 pb-4">
+                  {meal.cooking_instructions && meal.cooking_instructions.length > 0 && (
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-heading font-semibold text-sm mb-3">Cooking Steps</h4>
                       <ol className="space-y-3">
                         {meal.cooking_instructions.map((instruction, index) => (
                           <li key={index} className="flex gap-3">
@@ -601,9 +597,9 @@ function MealCard({
                           </li>
                         ))}
                       </ol>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </AccordionContent>
