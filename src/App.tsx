@@ -308,6 +308,11 @@ function App() {
       dietary: profileToUse.dietary_preferences
     });
 
+    toast.info('Generating a fresh new meal plan...', { 
+      description: `Creating ${profileToUse.meal_plan_days} days with ${profileToUse.meals_per_day} meals per day`,
+      duration: 3000
+    });
+
     setMealPlan(() => null);
     setShoppingListState(() => null);
     setMealPrepPlan(() => null);
@@ -323,14 +328,19 @@ function App() {
       
       const newPlan = await generateMealPlan(profileToUse);
       
-      console.log('✅ New plan generated, setting to state:', {
+      console.log('✅ New plan generated successfully:', {
         planId: newPlan.plan_id,
-        days: newPlan.days.length
+        days: newPlan.days.length,
+        totalMeals: newPlan.days.reduce((sum, day) => sum + day.meals.length, 0),
+        firstMeal: newPlan.days[0]?.meals[0]?.recipe_name,
+        totalCost: `€${newPlan.metadata.period_cost_eur.toFixed(2)}`
       });
       
       setMealPlan(() => newPlan);
       
-      toast.success('Meal plan generated successfully!');
+      toast.success('New meal plan generated!', {
+        description: `${newPlan.days.length} days created with unique recipes`
+      });
     } catch (error) {
       console.error('Error generating meal plan:', error);
       toast.error('Failed to generate meal plan. Please try again.');

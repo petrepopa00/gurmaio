@@ -15,14 +15,6 @@ export async function generateMealPlan(userProfile: UserProfile): Promise<MealPl
   const planId = crypto.randomUUID();
   const userId = 'user_123';
   
-  console.log('🔄 Generating NEW meal plan with profile:', {
-    days: userProfile.meal_plan_days,
-    mealsPerDay: userProfile.meals_per_day,
-    budget: userProfile.budget_eur,
-    budgetPeriod: userProfile.budget_period,
-    timestamp: Date.now()
-  });
-  
   const totalBudget = userProfile.budget_period === 'daily' 
     ? userProfile.budget_eur * userProfile.meal_plan_days 
     : userProfile.budget_eur;
@@ -79,22 +71,74 @@ export async function generateMealPlan(userProfile: UserProfile): Promise<MealPl
     'Plant-forward nutrition',
     'High-protein muscle building',
     'Colorful and vibrant dishes',
-    'One-pot wonder meals'
+    'One-pot wonder meals',
+    'Street food inspired',
+    'Rustic countryside cooking',
+    'Modern bistro fare',
+    'Fresh and light summer meals',
+    'Hearty winter comfort dishes',
+    'International tapas style',
+    'Chef-inspired restaurant quality',
+    'Budget-friendly family meals',
+    'Meal prep batch cooking',
+    'Express 30-minute recipes'
   ];
   const selectedTheme = variationThemes[randomSeed % variationThemes.length];
   
+  const cookingStyles = [
+    'grilled', 'roasted', 'steamed', 'sautéed', 'baked', 'stir-fried', 
+    'braised', 'pan-seared', 'slow-cooked', 'poached', 'air-fried', 'blanched'
+  ];
+  const selectedCookingStyle = cookingStyles[randomSeed % cookingStyles.length];
+  
+  const flavorProfiles = [
+    'bold and spicy', 'mild and comforting', 'fresh and zesty', 'rich and savory',
+    'sweet and tangy', 'herbaceous and aromatic', 'smoky and robust', 'light and delicate'
+  ];
+  const selectedFlavorProfile = flavorProfiles[Math.floor(randomSeed / 100) % flavorProfiles.length];
+  
+  console.log('🔄 ========================================');
+  console.log('🔄 GENERATING BRAND NEW MEAL PLAN');
+  console.log('🔄 ========================================');
+  console.log('🔄 Profile Settings:', {
+    days: userProfile.meal_plan_days,
+    mealsPerDay: userProfile.meals_per_day,
+    budget: userProfile.budget_eur,
+    budgetPeriod: userProfile.budget_period,
+    calories: userProfile.target_calories,
+    dietary: userProfile.dietary_preferences
+  });
+  console.log('🔄 Variation Parameters:', {
+    uniqueId: uniqueIdentifier,
+    theme: selectedTheme,
+    cookingStyle: selectedCookingStyle,
+    flavorProfile: selectedFlavorProfile,
+    randomSeed: randomSeed,
+    timestamp: timestamp
+  });
+  console.log('🔄 ========================================');
+  
   const prompt = (window.spark.llmPrompt as any)`You are a professional meal planner. Generate a UNIQUE and VARIED ${userProfile.meal_plan_days}-day meal plan with the following constraints:
 
-VARIATION REQUIREMENT (CRITICAL):
+VARIATION REQUIREMENT (CRITICAL - READ THIS FIRST):
 - Generation ID: ${uniqueIdentifier}
-- This is generation timestamp: ${timestamp} - make it COMPLETELY DIFFERENT from any previous generation
-- Theme inspiration for this plan: ${selectedTheme}
-- Create a COMPLETELY NEW and DIFFERENT meal plan each time - NO REPEATS
-- Use DIVERSE recipes, ingredients, and cooking methods
-- Avoid repeating the same meals or recipes from previous plans
-- Mix different cuisines and cooking styles throughout the week
-- Be creative with ingredient combinations
-- IMPORTANT: Even with identical user parameters, you must generate completely different meals each time
+- Generation timestamp: ${timestamp}
+- Theme for THIS specific plan: ${selectedTheme}
+- Preferred cooking method: ${selectedCookingStyle}
+- Target flavor profile: ${selectedFlavorProfile}
+- Random variation seed: ${randomSeed}
+
+MANDATORY UNIQUENESS RULES:
+1. You MUST treat each generation request as completely independent
+2. DO NOT generate the same meals you may have generated before
+3. Even if the user parameters are identical, create ENTIRELY DIFFERENT recipes
+4. Use the theme "${selectedTheme}" to guide your recipe choices for THIS plan
+5. Emphasize "${selectedCookingStyle}" cooking techniques where appropriate
+6. Target "${selectedFlavorProfile}" flavor combinations
+7. Mix up cuisines, ingredients, and cooking methods to maximize variety
+8. Think of this as a brand new client with fresh tastes - be creative and original
+9. If generating breakfast, don't default to the same breakfast options - be innovative
+10. CRITICAL: This generation ID ${uniqueIdentifier} must produce recipes you haven't used in previous generations
 
 USER PROFILE:
 ${userMetrics ? `- Physical Metrics: ${userMetrics}` : ''}
