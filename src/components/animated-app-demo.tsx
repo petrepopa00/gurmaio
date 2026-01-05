@@ -195,15 +195,14 @@ const ANIMATION_SCENES = [
             transition={{ delay: 0.5 }}
             className="text-xs font-medium text-muted-foreground px-0.5"
           >
-            Day 1 - Monday
+            Ingredients List
           </motion.div>
           {[
-            { name: 'Greek Yogurt Bowl', type: 'Breakfast', cal: 420, cost: 3.2, protein: 28 },
-            { name: 'Chickpea Curry', type: 'Lunch', cal: 580, cost: 4.5, protein: 22 },
-            { name: 'Quinoa Salad', type: 'Dinner', cal: 380, cost: 3.8, protein: 16 },
-          ].map((meal, i) => (
+            { name: 'Greek Yogurt', amount: '500g', cost: 3.2 },
+            { name: 'Fresh Berries Mix', amount: '300g', cost: 4.5 },
+          ].map((ingredient, i) => (
             <motion.div
-              key={meal.name}
+              key={ingredient.name}
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.7 + i * 0.2, type: 'spring', stiffness: 100 }}
@@ -211,15 +210,11 @@ const ANIMATION_SCENES = [
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-sm truncate">{meal.name}</div>
-                  <div className="text-xs text-muted-foreground">{meal.type}</div>
-                  <div className="flex items-center gap-2.5 mt-1 text-xs">
-                    <span className="tabular-nums">{meal.cal} cal</span>
-                    <span className="tabular-nums">{meal.protein}g protein</span>
-                  </div>
+                  <div className="font-semibold text-sm truncate">{ingredient.name}</div>
+                  <div className="text-xs text-muted-foreground">{ingredient.amount}</div>
                 </div>
                 <div className="text-sm font-bold text-primary tabular-nums shrink-0">
-                  €{meal.cost.toFixed(2)}
+                  €{ingredient.cost.toFixed(2)}
                 </div>
               </div>
             </motion.div>
@@ -233,7 +228,7 @@ const ANIMATION_SCENES = [
           className="flex items-center justify-center gap-2 text-xs text-muted-foreground pt-1"
         >
           <Sparkle weight="fill" className="w-3 h-3" />
-          <span>6 more days ready to view</span>
+          <span>Complete shopping list generated</span>
         </motion.div>
       </div>
     ),
