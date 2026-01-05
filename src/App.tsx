@@ -276,27 +276,32 @@ function App() {
     }
   };
 
-  const handleSaveProfile = (profile: UserProfile) => {
+  const handleSaveProfile = (profile: UserProfile, autoRegenerate = false) => {
     setUserProfile(() => profile);
     setIsOnboarding(false);
     toast.success('Profile saved successfully');
+    
+    if (autoRegenerate && hasMealPlan) {
+      setTimeout(() => {
+        handleGeneratePlan(profile);
+      }, 200);
+    }
   };
 
-  const handleGeneratePlan = async () => {
-    const currentProfile = userProfile;
+  const handleGeneratePlan = async (profileOverride?: UserProfile) => {
+    const profileToUse = profileOverride || userProfile;
     
-    if (!currentProfile) {
+    if (!profileToUse) {
       toast.error('Please complete your profile first');
       return;
     }
 
     console.log('🎯 Starting meal plan generation with profile:', {
-      days: currentProfile.meal_plan_days,
-      mealsPerDay: currentProfile.meals_per_day,
-      budget: currentProfile.budget_eur,
-      budgetPeriod: currentProfile.budget_period,
-      dietary: currentProfile.dietary_preferences,
-      timestamp: Date.now()
+      days: profileToUse.meal_plan_days,
+      mealsPerDay: profileToUse.meals_per_day,
+      budget: profileToUse.budget_eur,
+      budgetPeriod: profileToUse.budget_period,
+      dietary: profileToUse.dietary_preferences
     });
 
     setIsGenerating(true);
@@ -310,12 +315,11 @@ function App() {
       
       await new Promise(resolve => setTimeout(resolve, 400));
       
-      const newPlan = await generateMealPlan(currentProfile);
+      const newPlan = await generateMealPlan(profileToUse);
       
       console.log('✅ New plan generated, setting to state:', {
         planId: newPlan.plan_id,
-        days: newPlan.days.length,
-        timestamp: Date.now()
+        days: newPlan.days.length
       });
       
       setMealPlan(() => newPlan);
