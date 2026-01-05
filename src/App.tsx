@@ -283,17 +283,20 @@ function App() {
   };
 
   const handleGeneratePlan = async () => {
-    if (!userProfile) {
+    const currentProfile = userProfile;
+    
+    if (!currentProfile) {
       toast.error('Please complete your profile first');
       return;
     }
 
     console.log('🎯 Starting meal plan generation with profile:', {
-      days: userProfile.meal_plan_days,
-      mealsPerDay: userProfile.meals_per_day,
-      budget: userProfile.budget_eur,
-      budgetPeriod: userProfile.budget_period,
-      dietary: userProfile.dietary_preferences
+      days: currentProfile.meal_plan_days,
+      mealsPerDay: currentProfile.meals_per_day,
+      budget: currentProfile.budget_eur,
+      budgetPeriod: currentProfile.budget_period,
+      dietary: currentProfile.dietary_preferences,
+      timestamp: Date.now()
     });
 
     setIsGenerating(true);
@@ -307,11 +310,12 @@ function App() {
       
       await new Promise(resolve => setTimeout(resolve, 400));
       
-      const newPlan = await generateMealPlan(userProfile);
+      const newPlan = await generateMealPlan(currentProfile);
       
       console.log('✅ New plan generated, setting to state:', {
         planId: newPlan.plan_id,
-        days: newPlan.days.length
+        days: newPlan.days.length,
+        timestamp: Date.now()
       });
       
       setMealPlan(() => newPlan);
@@ -1345,7 +1349,7 @@ function App() {
                 </div>
 
                 <Button
-                  onClick={handleGeneratePlan}
+                  onClick={() => handleGeneratePlan()}
                   size="lg"
                   disabled={isGenerating}
                   className="w-full max-w-sm"
@@ -1379,7 +1383,7 @@ function App() {
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <Button onClick={handleGeneratePlan} disabled={isGenerating} variant="default">
+                    <Button onClick={() => handleGeneratePlan()} disabled={isGenerating} variant="default">
                       <Sparkle className={`mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
                       {isGenerating ? 'Generating...' : 'New Plan'}
                     </Button>
