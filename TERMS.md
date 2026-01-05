@@ -1,6 +1,6 @@
 # Terms of Service for Gurmaio
 
-**Last Updated**: January 2024
+**Last Updated**: January 2026
 
 ## Agreement to Terms
 
@@ -398,4 +398,4 @@ By using Gurmaio, you acknowledge that:
 [Business Address]  
 [Registration Number - if applicable]  
 
-**Last Reviewed**: January 2024
+**Last Reviewed**: January 2026

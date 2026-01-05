@@ -27,7 +27,7 @@ export function LegalDocumentDialog({ open, onOpenChange, type }: LegalDocumentD
 function PrivacyContent() {
   return (
     <div className="prose prose-sm max-w-none space-y-4 text-sm">
-      <p className="text-muted-foreground"><strong>Last Updated:</strong> January 2025</p>
+      <p className="text-muted-foreground"><strong>Last Updated:</strong> January 2026</p>
       
       <section>
         <h2 className="text-lg font-semibold mb-2">Introduction</h2>
@@ -194,7 +194,7 @@ function PrivacyContent() {
 function TermsContent() {
   return (
     <div className="prose prose-sm max-w-none space-y-4 text-sm">
-      <p className="text-muted-foreground"><strong>Last Updated:</strong> January 2025</p>
+      <p className="text-muted-foreground"><strong>Last Updated:</strong> January 2026</p>
       
       <section>
         <h2 className="text-lg font-semibold mb-2">Agreement to Terms</h2>

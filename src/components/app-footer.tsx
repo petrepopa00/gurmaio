@@ -73,7 +73,7 @@ export function AppFooter({ onDeleteAccount }: AppFooterProps) {
         <Separator className="my-6" />
 
         <div className="text-center text-xs text-muted-foreground">
-          <p>© 2024 Gurmaio. All values are estimates for informational purposes only.</p>
+          <p>© 2026 Gurmaio. All values are estimates for informational purposes only.</p>
           <p className="mt-1">Not affiliated with any grocery stores or nutrition databases.</p>
         </div>
       </div>

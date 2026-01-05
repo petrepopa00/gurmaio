@@ -1,6 +1,6 @@
 # Privacy Policy for Gurmaio
 
-**Last Updated**: January 2024
+**Last Updated**: January 2026
 
 ## Introduction
 
