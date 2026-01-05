@@ -1412,6 +1412,14 @@ function App() {
                   </div>
                 </div>
                 <div className="flex gap-2 flex-wrap">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsOnboarding(true)}
+                    title="Edit your meal preferences and budget"
+                  >
+                    <UserCircleGear className="mr-2" />
+                    Profile
+                  </Button>
                   {isDemoMode ? (
                     <Button
                       variant="outline"
@@ -1766,7 +1774,7 @@ function App() {
           currentUser={currentUser}
           savedPlansCount={savedMealPlans?.length ?? 0}
           preferencesCount={mealPreferences?.length ?? 0}
-          onHistoryClick={() => setSavedPlansOpen(true)}
+          onEditMealProfile={() => setIsOnboarding(true)}
           onHistoryClick={() => setSavedPlansOpen(true)}
           onPreferencesClick={() => setShowMealPreferences(true)}
           onAccountSettingsClick={() => setShowAccountSettings(true)}
