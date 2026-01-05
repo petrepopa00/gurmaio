@@ -25,6 +25,7 @@ import { MealCalendar } from '@/components/meal-calendar';
 import { ProgressDialog } from '@/components/progress-dialog';
 import { StreakCounter } from '@/components/streak-counter';
 import { AgeGateDialog, AgeRejectionDialog } from '@/components/age-gate-dialog';
+import { MealPreferencesDialog } from '@/components/meal-preferences-dialog';
 import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Toaster } from '@/components/ui/sonner';
@@ -76,6 +77,7 @@ function App() {
   const [showEmailVerificationDialog, setShowEmailVerificationDialog] = useState(false);
   const [showAgeGate, setShowAgeGate] = useState(!ageVerified);
   const [showAgeRejection, setShowAgeRejection] = useState(false);
+  const [showMealPreferences, setShowMealPreferences] = useState(false);
   
   const hasProfile = userProfile !== null;
   const hasMealPlan = mealPlan !== null;
@@ -945,6 +947,29 @@ function App() {
     setShowAgeRejection(true);
   };
 
+  const handleRemovePreference = (mealId: string) => {
+    setMealPreferences((current) => {
+      const preferences = current || [];
+      return preferences.filter(p => p.meal_id !== mealId);
+    });
+    toast.info('Preference removed');
+  };
+
+  const handleClearAllPreferences = (type: 'like' | 'dislike' | 'all') => {
+    setMealPreferences((current) => {
+      const preferences = current || [];
+      
+      if (type === 'all') {
+        toast.success('All preferences cleared');
+        return [];
+      }
+      
+      const filtered = preferences.filter(p => p.preference !== type);
+      toast.success(`All ${type}d meals cleared`);
+      return filtered;
+    });
+  };
+
   if (showAgeGate) {
     return (
       <>
@@ -1297,8 +1322,10 @@ function App() {
                 <ProfileDropdown
                   currentUser={currentUser}
                   savedPlansCount={savedMealPlans?.length ?? 0}
+                  preferencesCount={mealPreferences?.length ?? 0}
                   onProfileClick={() => setIsOnboarding(true)}
                   onHistoryClick={() => setSavedPlansOpen(true)}
+                  onPreferencesClick={() => setShowMealPreferences(true)}
                   onAccountSettingsClick={() => setShowAccountSettings(true)}
                   onLogoutClick={handleLogout}
                   onDeleteAccountClick={() => setShowDeleteAccountDialog(true)}
@@ -1720,6 +1747,14 @@ function App() {
         badges={badges || []}
         onBadgeGenerated={handleBadgeGenerated}
         locale={language}
+      />
+
+      <MealPreferencesDialog
+        open={showMealPreferences}
+        onOpenChange={setShowMealPreferences}
+        preferences={mealPreferences || []}
+        onRemovePreference={handleRemovePreference}
+        onClearAll={handleClearAllPreferences}
       />
 
       <AppFooter onDeleteAccount={currentUser ? () => setShowDeleteAccountDialog(true) : undefined} />

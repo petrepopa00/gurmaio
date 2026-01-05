@@ -1,4 +1,4 @@
-import { UserCircleGear, SignOut, ClockClockwise, Trash, Gear } from '@phosphor-icons/react';
+import { UserCircleGear, SignOut, ClockClockwise, Trash, Gear, Heart } from '@phosphor-icons/react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,8 +21,10 @@ interface UserInfo {
 interface ProfileDropdownProps {
   currentUser: UserInfo | null;
   savedPlansCount: number;
+  preferencesCount: number;
   onProfileClick: () => void;
   onHistoryClick: () => void;
+  onPreferencesClick: () => void;
   onAccountSettingsClick: () => void;
   onLogoutClick: () => void;
   onDeleteAccountClick: () => void;
@@ -35,8 +37,10 @@ interface ProfileDropdownProps {
 export function ProfileDropdown({
   currentUser,
   savedPlansCount,
+  preferencesCount,
   onProfileClick,
   onHistoryClick,
+  onPreferencesClick,
   onAccountSettingsClick,
   onLogoutClick,
   onDeleteAccountClick,
@@ -88,6 +92,10 @@ export function ProfileDropdown({
             <span>{historyLabel} ({savedPlansCount}/5)</span>
           </DropdownMenuItem>
         )}
+        <DropdownMenuItem onClick={onPreferencesClick}>
+          <Heart className="mr-2 h-4 w-4" weight={preferencesCount > 0 ? 'fill' : 'regular'} />
+          <span>Meal Preferences {preferencesCount > 0 && `(${preferencesCount})`}</span>
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={onAccountSettingsClick}>
           <Gear className="mr-2 h-4 w-4" />
           <span>Account Settings</span>
