@@ -4,9 +4,11 @@ import { Shield, FileText, Trash, Envelope } from '@phosphor-icons/react';
 
 interface AppFooterProps {
   onDeleteAccount?: () => void;
+  onPrivacyClick?: () => void;
+  onTermsClick?: () => void;
 }
 
-export function AppFooter({ onDeleteAccount }: AppFooterProps) {
+export function AppFooter({ onDeleteAccount, onPrivacyClick, onTermsClick }: AppFooterProps) {
   return (
     <footer className="border-t bg-muted/30 mt-12">
       <div className="container mx-auto px-6 py-8">
@@ -16,38 +18,38 @@ export function AppFooter({ onDeleteAccount }: AppFooterProps) {
               Legal & Privacy
             </h3>
             <div className="flex flex-col gap-2">
-              <a
-                href="/PRIVACY.md"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
+              <button
+                onClick={onPrivacyClick}
+                className="flex items-center gap-2 text-sm hover:text-primary transition-colors text-left"
+                aria-label="View Privacy Policy"
               >
-                <Shield size={16} />
+                <Shield size={16} aria-hidden="true" />
                 Privacy Policy
-              </a>
-              <a
-                href="/TERMS.md"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
+              </button>
+              <button
+                onClick={onTermsClick}
+                className="flex items-center gap-2 text-sm hover:text-primary transition-colors text-left"
+                aria-label="View Terms of Service"
               >
-                <FileText size={16} />
+                <FileText size={16} aria-hidden="true" />
                 Terms of Service
-              </a>
+              </button>
               {onDeleteAccount && (
                 <button
                   onClick={onDeleteAccount}
                   className="flex items-center gap-2 text-sm hover:text-destructive transition-colors text-left"
+                  aria-label="Delete my account and all data"
                 >
-                  <Trash size={16} />
+                  <Trash size={16} aria-hidden="true" />
                   Delete My Data
                 </button>
               )}
               <a
                 href="mailto:support@gurmaio.app"
                 className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
+                aria-label="Contact support via email"
               >
-                <Envelope size={16} />
+                <Envelope size={16} aria-hidden="true" />
                 Contact Support
               </a>
             </div>

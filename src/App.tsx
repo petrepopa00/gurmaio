@@ -24,6 +24,8 @@ import { EmailVerificationBanner } from '@/components/email-verification-banner'
 import { MealCalendar } from '@/components/meal-calendar';
 import { ProgressDialog } from '@/components/progress-dialog';
 import { StreakCounter } from '@/components/streak-counter';
+import { AgeGateDialog, AgeRejectionDialog } from '@/components/age-gate-dialog';
+import { LegalDocumentDialog } from '@/components/legal-document-dialog';
 import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Toaster } from '@/components/ui/sonner';
@@ -54,6 +56,7 @@ function App() {
   const [scheduledDays, setScheduledDays] = useKV<ScheduledDay[]>('scheduled_days', []);
   const [dayProgress, setDayProgress] = useKV<DayProgress[]>('day_progress', []);
   const [badges, setBadges] = useKV<Badge[]>('earned_badges', []);
+  const [ageVerified, setAgeVerified] = useKV<boolean>('age_verified', false);
   const [isOnboarding, setIsOnboarding] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGeneratingPrep, setIsGeneratingPrep] = useState(false);
@@ -71,6 +74,9 @@ function App() {
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [showCreateAccountDialog, setShowCreateAccountDialog] = useState(false);
   const [showEmailVerificationDialog, setShowEmailVerificationDialog] = useState(false);
+  const [showAgeGate, setShowAgeGate] = useState(!ageVerified);
+  const [showAgeRejection, setShowAgeRejection] = useState(false);
+  const [legalDocType, setLegalDocType] = useState<'privacy' | 'terms' | null>(null);
   
   const hasProfile = userProfile !== null;
   const hasMealPlan = mealPlan !== null;
@@ -863,6 +869,38 @@ function App() {
     });
   };
 
+  const handleAgeVerified = () => {
+    setAgeVerified(() => true);
+    setShowAgeGate(false);
+  };
+
+  const handleAgeRejected = () => {
+    setShowAgeGate(false);
+    setShowAgeRejection(true);
+  };
+
+  if (showAgeGate) {
+    return (
+      <>
+        <AgeGateDialog 
+          open={showAgeGate} 
+          onAgeVerified={handleAgeVerified}
+          onReject={handleAgeRejected}
+        />
+        <Toaster />
+      </>
+    );
+  }
+
+  if (showAgeRejection) {
+    return (
+      <>
+        <AgeRejectionDialog open={showAgeRejection} />
+        <Toaster />
+      </>
+    );
+  }
+
   if (!hasProfile) {
     return (
       <div className="min-h-screen bg-background">
@@ -1082,7 +1120,11 @@ function App() {
           onOpenChange={setShowCreateAccountDialog}
         />
 
-        <AppFooter onDeleteAccount={currentUser ? () => setShowDeleteAccountDialog(true) : undefined} />
+        <AppFooter 
+          onDeleteAccount={currentUser ? () => setShowDeleteAccountDialog(true) : undefined}
+          onPrivacyClick={() => setLegalDocType('privacy')}
+          onTermsClick={() => setLegalDocType('terms')}
+        />
 
         <AlertDialog open={showDeleteAccountDialog} onOpenChange={setShowDeleteAccountDialog}>
           <AlertDialogContent>
@@ -1640,6 +1682,12 @@ function App() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <LegalDocumentDialog
+        open={legalDocType !== null}
+        onOpenChange={(open) => !open && setLegalDocType(null)}
+        type={legalDocType || 'privacy'}
+      />
 
       <Toaster />
     </div>

@@ -6,7 +6,7 @@ A production-ready, cloud-native meal planning application that generates budget
 1. **Transparent** - Every cost and nutritional value is calculated deterministically and displayed clearly to build user trust, with explicit disclaimers about estimates
 2. **Precise** - Budget calculations account for real-world shopping constraints (minimum quantities, unit conversions, rounding)
 3. **Efficient** - Edge-first architecture delivers sub-200ms response times globally with stateless, horizontally scalable design
-4. **Store-Ready** - Compliant with App Store and Google Play requirements including privacy policies, data deletion, and clear AI usage disclosure
+4. **Store-Ready** - Fully compliant with App Store and Google Play requirements including COPPA age verification, in-app legal documents, privacy policies, data deletion, and clear AI usage disclosure
 
 **Complexity Level**: Complex Application (advanced functionality, likely with multiple views)
 This is a commercial-grade product requiring multiple sophisticated engines (nutrition aggregation, cost calculation, shopping list generation), external service integrations (AI for meal composition, Supabase for persistence), strict separation of concerns (thin client, deterministic backend), and compliance with app store requirements and GDPR regulations.
@@ -111,6 +111,20 @@ This is a commercial-grade product requiring multiple sophisticated engines (nut
 - **Progression**: Landing page loads → Animated demo auto-plays showing 4 key steps (budget entry → preference selection → AI generation → meal plan results) → User can pause, navigate steps manually, or switch between animated demo and feature overview
 - **Success criteria**: Demo cycles through all 4 scenes with smooth transitions, animations are performant and non-janky, users can control playback, visual polish matches production app quality, demo loads quickly without blocking main content
 
+### Age Verification (COPPA Compliance)
+- **Functionality**: Age gate requiring users to verify they are at least 13 years old before accessing the application
+- **Purpose**: Comply with COPPA (Children's Online Privacy Protection Act), iOS App Store Guidelines, and Google Play Store policies regarding children's privacy
+- **Trigger**: Automatically shown on first app launch before any other content is accessible
+- **Progression**: App loads → Age verification dialog appears → User enters birth year → Age calculated → If 13+, access granted and verified status saved → If under 13, rejection dialog shown with explanation → User cannot proceed
+- **Success criteria**: Age gate blocks all app functionality until verified, verification status persists across sessions using useKV, rejection dialog clearly explains age requirements and compliance reasons, no way to bypass age gate, accessibility features work properly (screen readers, keyboard navigation)
+
+### In-App Legal Documents
+- **Functionality**: View full Privacy Policy and Terms of Service within the application via modal dialogs with scroll areas
+- **Purpose**: Make legal documents easily accessible to users and app store reviewers without requiring external navigation, improve compliance transparency
+- **Trigger**: User clicks "Privacy Policy" or "Terms of Service" links in footer
+- **Progression**: Click footer link → Modal dialog opens with full document content → User can read and scroll through document → Close dialog to return to app
+- **Success criteria**: Documents display correctly in scrollable modal, all content is readable and properly formatted, closing dialog returns user to previous state, documents match official PRIVACY.md and TERMS.md files, accessible via keyboard and screen readers
+
 ## Edge Case Handling
 
 - **Budget Impossible** - Show clear message if budget is too low for minimum viable nutrition, suggest minimum budget based on region
@@ -143,6 +157,9 @@ This is a commercial-grade product requiring multiple sophisticated engines (nut
 - **Missing Email from Social Provider** - Prompt user to manually enter email address before sending verification code
 - **Verification Skip** - Allow users to dismiss verification temporarily, show persistent banner until verified
 - **Multiple Verification Attempts** - Rate limit to prevent abuse (max 5 codes per hour per user)
+- **Age Verification Bypass Attempt** - Age gate cannot be closed or bypassed without valid age entry, verification status persists across sessions
+- **Invalid Birth Year Entry** - Validate year is between 1900 and current year, show clear error messages for invalid inputs
+- **Under 13 User Access** - Show clear rejection dialog explaining COPPA compliance, prevent all app access, provide support contact
 
 ## Calorie Calculation Algorithm
 
@@ -328,14 +345,24 @@ Animations should reinforce the sense of precision and calculation. Use purposef
 - Info tooltips for contextual help
 - Total/Average toggle for clarity
 - Per-ingredient transparency
+- **COPPA age verification (13+ requirement)**
+- **In-app Privacy Policy viewer**
+- **In-app Terms of Service viewer**
+- **Accessibility improvements (aria-labels, keyboard navigation)**
 
 ⚠️ **Required for Launch** (not implemented in code):
-- Privacy Policy document (linked but not created)
-- Terms of Service document (linked but not created)
-- Actual backend data deletion API (currently frontend-only)
+- Privacy Policy document URL (for app store submission)
+- Terms of Service document URL (for app store submission)
+- App icons (iOS & Android)
+- Screenshots (multiple device sizes)
+- Store listings (descriptions, keywords, categories)
+- Privacy manifest file (iOS 17+)
+- Data safety section (Google Play)
 
 💡 **Nice to Have** (post-launch):
 - Data export functionality (GDPR)
 - Regional pricing switches (€ / $ / £)
 - User feedback mechanism
 - Tutorial for first-time users
+- Push notifications (opt-in)
+- Apple Health / Google Fit integration
