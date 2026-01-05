@@ -308,16 +308,18 @@ function App() {
       dietary: profileToUse.dietary_preferences
     });
 
+    setMealPlan(() => null);
+    setShoppingListState(() => null);
+    setMealPrepPlan(() => null);
+    setScheduledDays(() => []);
+    setActiveTab('meals');
+    
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     setIsGenerating(true);
     
     try {
-      setMealPlan(() => null);
-      setShoppingListState(() => null);
-      setMealPrepPlan(() => null);
-      setScheduledDays(() => []);
-      setActiveTab('meals');
-      
-      await new Promise(resolve => setTimeout(resolve, 400));
+      await new Promise(resolve => setTimeout(resolve, 300));
       
       const newPlan = await generateMealPlan(profileToUse);
       
