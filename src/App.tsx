@@ -31,7 +31,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Toaster } from '@/components/ui/sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, List, SignOut, FloppyDisk, Check, ShareNetwork, FilePdf, ChefHat, GoogleLogo, AppleLogo, FacebookLogo, TwitterLogo, Trophy, CalendarCheck, UserCircleGear } from '@phosphor-icons/react';
+import { Plus, List, SignOut, FloppyDisk, Check, ShareNetwork, FilePdf, ChefHat, GoogleLogo, AppleLogo, FacebookLogo, TwitterLogo, Trophy, CalendarCheck, UserCircleGear, ShoppingCart } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import { useLanguage } from '@/hooks/use-language';
 import { useEmailVerification } from '@/hooks/use-email-verification';
@@ -1377,7 +1377,7 @@ function App() {
                       variant="default"
                       onClick={() => setShoppingListOpen(true)}
                     >
-                      <List className="mr-2" />
+                      <ShoppingCart className="mr-2" />
                       Shopping List
                     </Button>
                   </div>
