@@ -412,43 +412,61 @@ function MealCard({
                     </Button>
                   )}
                   {onPortionAdjustment && (
-                    <div className="flex items-center gap-1 bg-muted/50 rounded-md px-2 py-1" onClick={(e) => e.stopPropagation()}>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handlePortionChange(localMultiplier - 0.25);
-                        }}
-                        className="h-6 w-6 p-0"
-                      >
-                        <Minus size={12} />
-                      </Button>
-                      <Input
-                        type="number"
-                        value={localMultiplier.toFixed(2)}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          handlePortionChange(parseFloat(e.target.value) || 1);
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        min="0.25"
-                        max="5"
-                        step="0.25"
-                        className="w-14 h-6 text-center tabular-nums text-xs px-1"
-                      />
-                      <span className="text-xs text-muted-foreground">×</span>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handlePortionChange(localMultiplier + 0.25);
-                        }}
-                        className="h-6 w-6 p-0"
-                      >
-                        <Plus size={12} />
-                      </Button>
+                    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center gap-0.5 bg-muted/50 rounded-md px-1 py-0.5">
+                        {[0.5, 1, 1.5, 2].map((preset) => (
+                          <Button
+                            key={preset}
+                            size="sm"
+                            variant={localMultiplier === preset ? 'default' : 'ghost'}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handlePortionChange(preset);
+                            }}
+                            className="h-6 px-2 text-xs font-medium"
+                          >
+                            {preset}×
+                          </Button>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-1 bg-muted/50 rounded-md px-1.5 py-0.5">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePortionChange(localMultiplier - 0.25);
+                          }}
+                          className="h-6 w-6 p-0"
+                        >
+                          <Minus size={12} />
+                        </Button>
+                        <Input
+                          type="number"
+                          value={localMultiplier.toFixed(2)}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            handlePortionChange(parseFloat(e.target.value) || 1);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          min="0.25"
+                          max="5"
+                          step="0.25"
+                          className="w-14 h-6 text-center tabular-nums text-xs px-1"
+                        />
+                        <span className="text-xs text-muted-foreground">×</span>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePortionChange(localMultiplier + 0.25);
+                          }}
+                          className="h-6 w-6 p-0"
+                        >
+                          <Plus size={12} />
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </div>
