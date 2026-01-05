@@ -21,6 +21,7 @@ export function StreakCounter({ completedDays, compact = false }: StreakCounterP
           className={streakInfo.streakActive ? 'text-orange-500' : 'text-muted-foreground'}
         />
         <div className="flex items-center gap-2 whitespace-nowrap">
+          <span className="text-sm text-muted-foreground">Streak:</span>
           <span className="text-sm font-medium tabular-nums">
             {streakInfo.currentStreak} {streakInfo.currentStreak === 1 ? 'day' : 'days'}
           </span>
