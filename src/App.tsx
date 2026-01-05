@@ -288,6 +288,14 @@ function App() {
       return;
     }
 
+    console.log('🎯 Starting meal plan generation with profile:', {
+      days: userProfile.meal_plan_days,
+      mealsPerDay: userProfile.meals_per_day,
+      budget: userProfile.budget_eur,
+      budgetPeriod: userProfile.budget_period,
+      dietary: userProfile.dietary_preferences
+    });
+
     setIsGenerating(true);
     
     try {
@@ -300,6 +308,12 @@ function App() {
       await new Promise(resolve => setTimeout(resolve, 400));
       
       const newPlan = await generateMealPlan(userProfile);
+      
+      console.log('✅ New plan generated, setting to state:', {
+        planId: newPlan.plan_id,
+        days: newPlan.days.length
+      });
+      
       setMealPlan(() => newPlan);
       
       toast.success('Meal plan generated successfully!');

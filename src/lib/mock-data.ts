@@ -15,6 +15,14 @@ export async function generateMealPlan(userProfile: UserProfile): Promise<MealPl
   const planId = crypto.randomUUID();
   const userId = 'user_123';
   
+  console.log('🔄 Generating NEW meal plan with profile:', {
+    days: userProfile.meal_plan_days,
+    mealsPerDay: userProfile.meals_per_day,
+    budget: userProfile.budget_eur,
+    budgetPeriod: userProfile.budget_period,
+    timestamp: Date.now()
+  });
+  
   const totalBudget = userProfile.budget_period === 'daily' 
     ? userProfile.budget_eur * userProfile.meal_plan_days 
     : userProfile.budget_eur;
@@ -61,15 +69,32 @@ export async function generateMealPlan(userProfile: UserProfile): Promise<MealPl
   const timestamp = Date.now();
   const uniqueIdentifier = `${randomSeed}-${timestamp}-${crypto.randomUUID().slice(0, 8)}`;
   
+  const variationThemes = [
+    'Mediterranean-inspired dishes',
+    'Asian fusion recipes',
+    'Comfort food classics with a healthy twist',
+    'Farm-to-table seasonal ingredients',
+    'Quick and easy weeknight meals',
+    'Gourmet home cooking',
+    'Plant-forward nutrition',
+    'High-protein muscle building',
+    'Colorful and vibrant dishes',
+    'One-pot wonder meals'
+  ];
+  const selectedTheme = variationThemes[randomSeed % variationThemes.length];
+  
   const prompt = (window.spark.llmPrompt as any)`You are a professional meal planner. Generate a UNIQUE and VARIED ${userProfile.meal_plan_days}-day meal plan with the following constraints:
 
 VARIATION REQUIREMENT (CRITICAL):
-- Generation ID: ${randomSeed}-${timestamp}
-- Create a COMPLETELY NEW and DIFFERENT meal plan each time
+- Generation ID: ${uniqueIdentifier}
+- This is generation timestamp: ${timestamp} - make it COMPLETELY DIFFERENT from any previous generation
+- Theme inspiration for this plan: ${selectedTheme}
+- Create a COMPLETELY NEW and DIFFERENT meal plan each time - NO REPEATS
 - Use DIVERSE recipes, ingredients, and cooking methods
 - Avoid repeating the same meals or recipes from previous plans
 - Mix different cuisines and cooking styles throughout the week
 - Be creative with ingredient combinations
+- IMPORTANT: Even with identical user parameters, you must generate completely different meals each time
 
 USER PROFILE:
 ${userMetrics ? `- Physical Metrics: ${userMetrics}` : ''}
@@ -108,6 +133,9 @@ IMPORTANT INSTRUCTIONS:
 8. NEVER use any ingredient from the excluded ingredients list - this is a strict requirement
 9. CREATE VARIETY - use different recipes, ingredients, and cooking techniques for each new generation
 10. ENSURE UNIQUENESS - even with the same parameters, generate completely different meals each time (generation ID: ${uniqueIdentifier})
+11. CRITICAL: Do not cache or reuse previous responses - each generation must be fresh and unique
+12. VARIATION REQUIREMENT: Make every single meal different from what you might have suggested before
+13. Use the theme "${selectedTheme}" as inspiration to guide recipe selection
 
 Return the result as a valid JSON object with a single property called "days" that contains an array of day objects. Each day must have:
 - day_number: number (1 to ${userProfile.meal_plan_days})
@@ -152,6 +180,12 @@ Format:
   try {
     const response = await window.spark.llm(prompt, 'gpt-4o', true);
     const parsed = JSON.parse(response);
+    
+    console.log('✅ AI Generated meal plan structure:', {
+      daysCount: parsed.days?.length,
+      firstDayMealsCount: parsed.days?.[0]?.meals?.length,
+      firstMealName: parsed.days?.[0]?.meals?.[0]?.recipe_name
+    });
     
     const days = parsed.days.map((day: any) => {
       const meals = day.meals.map((meal: any) => {
@@ -223,7 +257,7 @@ Format:
     const isOverBudget = planTotals.total_cost_eur > totalBudget;
     const budgetRemaining = totalBudget - planTotals.total_cost_eur;
 
-    return {
+    const finalPlan = {
       plan_id: planId,
       generated_at: new Date().toISOString(),
       user_id: userId,
@@ -241,6 +275,16 @@ Format:
         total_cost_eur: Number(planTotals.total_cost_eur.toFixed(2)),
       },
     };
+
+    console.log('✅ Final meal plan created:', {
+      planId: finalPlan.plan_id,
+      daysGenerated: finalPlan.days.length,
+      totalCost: finalPlan.plan_totals.total_cost_eur,
+      budget: finalPlan.metadata.period_budget_eur,
+      mealsInDay1: finalPlan.days[0].meals.length
+    });
+
+    return finalPlan;
   } catch (error) {
     console.error('Failed to generate meal plan with AI, using fallback', error);
     return generateFallbackMealPlan(userProfile);
