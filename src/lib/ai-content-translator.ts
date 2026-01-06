@@ -1,19 +1,19 @@
 import type { Language } from './i18n/translations';
 
-export async function translateContent(
+const translationCache = new Map<string, Record<Language, string>>();
 
 export async function translateContent(
   content: string,
   targetLanguage: Language
 ): Promise<string> {
-  const cached = translationCache.get(conten
-    return cached[t
+  if (targetLanguage === 'en' || !content) {
+    return content;
+  }
 
-
-      de: 'German',
-      es: 'Spanish',
-      pt: 'Portuguese',
-   
+  const cached = translationCache.get(content);
+  if (cached && cached[targetLanguage]) {
+    return cached[targetLanguage];
+  }
 
   try {
     const languageNames: Record<Language, string> = {
@@ -33,41 +33,41 @@ export async function translateContent(
 
 ${content}`;
 
-
-  it
-  targetLanguage: Language
-  const resultMap = new Map<string, string>();
-  if 
-    return resultMap;
-
-  it
-    if (cached && cache
-    } else {
-    }
-
-   
-
-
-      de: 'German',
-      es: 'Spanish
-      pt: 'Portuguese',
-      pl: 'Polish',
-      cs: 'Czech',
-
-  
-      cooking_instruction: `Translate cooking ins
-
+    const response = await window.spark.llm(prompt, 'gpt-4o-mini', false);
     
+    if (!translationCache.has(content)) {
+      translationCache.set(content, {} as Record<Language, string>);
+    }
+    const cacheEntry = translationCache.get(content)!;
+    cacheEntry[targetLanguage] = response;
+    
+    return response;
+  } catch (error) {
+    console.error('Translation error:', error);
+    return content;
+  }
+}
 
+export async function batchTranslateContent(
+  items: string[],
+  targetLanguage: Language,
+  contentType: 'meal_name' | 'ingredient' | 'cooking_instruction'
+): Promise<Map<string, string>> {
+  const resultMap = new Map<string, string>();
+  
+  if (targetLanguage === 'en' || items.length === 0) {
+    items.forEach(item => resultMap.set(item, item));
+    return resultMap;
+  }
 
-Return the translations as a JSON obj
-    const response = awai
-    const translations: string[] = parsed.tran
-    uncachedItems.forEach((item, index) => 
-      resultMap.set(item, translation);
-      if (!t
-      }
-     
+  const uncachedItems: string[] = [];
+  items.forEach(item => {
+    const cached = translationCache.get(item);
+    if (cached && cached[targetLanguage]) {
+      resultMap.set(item, cached[targetLanguage]);
+    } else {
+      uncachedItems.push(item);
+    }
   });
 
   if (uncachedItems.length === 0) {
@@ -138,21 +138,21 @@ export async function translateMealPlanContent(
 }> {
   if (targetLanguage === 'en') {
     return {
+      mealNames: new Map(mealNames.map(name => [name, name])),
+      ingredients: new Map(ingredients.map(ing => [ing, ing])),
+      cookingInstructions: new Map(cookingInstructions.map(inst => [inst, inst])),
+    };
+  }
 
+  const [mealNamesMap, ingredientsMap, cookingInstructionsMap] = await Promise.all([
+    batchTranslateContent(mealNames, targetLanguage, 'meal_name'),
+    batchTranslateContent(ingredients, targetLanguage, 'ingredient'),
+    batchTranslateContent(cookingInstructions, targetLanguage, 'cooking_instruction'),
+  ]);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  return {
+    mealNames: mealNamesMap,
+    ingredients: ingredientsMap,
+    cookingInstructions: cookingInstructionsMap,
+  };
+}
