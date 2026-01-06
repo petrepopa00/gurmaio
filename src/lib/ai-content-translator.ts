@@ -2,68 +2,63 @@ import type { Language } from './i18n/translations';
 
 export async function translateContentBatch(
   items: string[],
-  const resultMap = new Ma
+  targetLanguage: Language
 ): Promise<Map<string, string>> {
   const resultMap = new Map<string, string>();
   
+  if (targetLanguage === 'en' || items.length === 0) {
+    items.forEach(item => resultMap.set(item, item));
     return resultMap;
+  }
 
-    const itemsJson =
-   
+  const uniqueItems = Array.from(new Set(items));
 
+  try {
+    const itemsJson = JSON.stringify(uniqueItems);
+    
+    const languageNames: Record<string, string> = {
+      en: 'English',
+      de: 'German',
+      fr: 'French',
       es: 'Spanish',
-  
+      it: 'Italian',
+      pt: 'Portuguese',
+      nl: 'Dutch',
       pl: 'Polish',
+      ro: 'Romanian',
       cs: 'Czech'
+    };
 
+    const targetLangName = languageNames[targetLanguage] || targetLanguage;
+    
+    const prompt = (spark.llmPrompt as any)`You are a professional translator specializing in food and nutrition content.
 
-${items
-Return a JSON object with a "translations" propert
-Exam
-  "translations": ["translated item 1", "translated i
+Translate the following items to ${targetLangName}:
+${itemsJson}
 
-    const parsed = 
-    if (parsed.tran
-        const transl
-          resultMap.
-          resultMap.set
-      });
+Return a JSON object with a "translations" property containing an array of translated strings in the same order.
+Example format:
+{
+  "translations": ["translated item 1", "translated item 2"]
+}`;
 
-      if (!resultMap.
+    const response = await spark.llm(prompt, 'gpt-4o-mini', true);
+    const parsed = JSON.parse(response);
+    
+    if (parsed.translations && Array.isArray(parsed.translations)) {
+      if (parsed.translations.length === uniqueItems.length) {
+        uniqueItems.forEach((item, index) => {
+          const translation = parsed.translations[index];
+          resultMap.set(item, translation || item);
+        });
+      } else {
+        uniqueItems.forEach(item => resultMap.set(item, item));
       }
-  } ca
 
-
-
-export async func
-  mealNames:
-
-  ingredients: Map<string, string>;
-
-  const [transl
- 
-  ]);
-  r
-
-  };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      if (!resultMap.size) {
+        uniqueItems.forEach(item => resultMap.set(item, item));
       }
-    });
+    }
   } catch (error) {
     console.error('Translation error:', error);
     uniqueItems.forEach(item => resultMap.set(item, item));
