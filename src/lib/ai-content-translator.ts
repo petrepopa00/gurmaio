@@ -1,7 +1,7 @@
 import type { Language } from './i18n/translations';
 
-  targetLanguage: Language
-  const resultMap 
+export async function translateContentBatch(
+  items: string[],
   targetLanguage: Language
 ): Promise<Map<string, string>> {
   const resultMap = new Map<string, string>();
@@ -31,57 +31,48 @@ import type { Language } from './i18n/translations';
 
 Translate the following items to ${languageNames[targetLanguage]}.
 
-${uniqueItems.map((item, i) => `${i + 1}. ${item}`).join('\n
+${uniqueItems.map((item, i) => `${i + 1}. ${item}`).join('\n')}
 
+Return your response as a valid JSON object with this structure:
+{
   "original text 1": "translated text 1",
+  "original text 2": "translated text 2"
+}`;
 
-    const response 
+    const response = await spark.llm(prompt, 'gpt-4o', true);
+    const translations = JSON.parse(response);
 
-
-        resultM
- 
+    uniqueItems.forEach(item => {
+      resultMap.set(item, translations[item] || item);
     });
-    console.error('Translation error:', 
+
+    return resultMap;
+  } catch (error) {
+    console.error('Translation error:', error);
+    uniqueItems.forEach(item => resultMap.set(item, item));
+    return resultMap;
   }
-
-
-  ingredients: string[],
-
-): Promise<{
-  mealNames: Map<string, string>;
-}> {
-    translateContentBatch(ingredients, t
-    translateC
-
-    ing
-    coo
 }
 
+export async function translateMealPlanContent(
+  mealNames: string[],
+  ingredients: string[],
+  cookingInstructions: string[],
+  targetLanguage: Language
+): Promise<{
+  mealNames: Map<string, string>;
+  ingredients: Map<string, string>;
+  cookingInstructions: Map<string, string>;
+}> {
+  const [mealNamesMap, ingredientsMap, cookingInstructionsMap] = await Promise.all([
+    translateContentBatch(mealNames, targetLanguage),
+    translateContentBatch(ingredients, targetLanguage),
+    translateContentBatch(cookingInstructions, targetLanguage)
+  ]);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  return {
+    mealNames: mealNamesMap,
+    ingredients: ingredientsMap,
+    cookingInstructions: cookingInstructionsMap
+  };
+}
