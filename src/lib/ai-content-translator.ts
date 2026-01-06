@@ -1,39 +1,34 @@
 import type { Language } from './i18n/translations';
 
-  contentType: 'ingredient' | 'meal_n
-): Promise<Map<str
-
-    items.forEach(item => 
-  }
-  items.forEach(item => {
+export async function translateContentBatch(
+  items: string[],
+  targetLanguage: Language,
+  contentType: 'ingredient' | 'meal_name' | 'cooking_instruction'
+): Promise<Map<string, string>> {
+  const resultMap = new Map<string, string>();
 
   if (targetLanguage === 'en') {
     items.forEach(item => resultMap.set(item, item));
     return resultMap;
   }
 
-  items.forEach(item => {
-    if (!item || item.trim() === '') {
-      return;
-    }
-    c
-
-      fr: 'French',
+  const uniqueItems = Array.from(new Set(items)).filter(item => item && item.trim() !== '');
   
+  if (uniqueItems.length === 0) {
+    return resultMap;
+  }
+
+  try {
+    const itemsJson = JSON.stringify(uniqueItems);
+    
+    const languageNames: Record<Language, string> = {
+      en: 'English',
+      de: 'German',
+      fr: 'French',
+      es: 'Spanish',
+      it: 'Italian',
+      pt: 'Portuguese',
       nl: 'Dutch',
-      ro: 'Romanian',
-   
-
-      m
-    };
-    const prompt = (window.spark.llmPrompt as any)`Yo
-Input items (as JSON
-
-- Maintain culinary
-- For cooking instru
-
-{
-  "original item 2
       pl: 'Polish',
       ro: 'Romanian',
       cs: 'Czech'
@@ -45,7 +40,7 @@ Input items (as JSON
       cooking_instruction: 'cooking instructions'
     };
 
-    const prompt = window.spark.llmPrompt`You are a culinary translation expert. Translate the following ${contentTypeLabels[contentType]} from English to ${languageNames[targetLanguage]}.
+    const prompt = (window.spark.llmPrompt as any)`You are a culinary translation expert. Translate the following ${contentTypeLabels[contentType]} from English to ${languageNames[targetLanguage]}.
 
 Input items (as JSON array):
 ${itemsJson}
@@ -70,38 +65,35 @@ Return ONLY the JSON object, no additional text.`;
     for (const [original, translated] of Object.entries(translations)) {
       if (typeof translated === 'string' && translated.trim() !== '') {
         resultMap.set(original, translated);
+      }
+    }
+  } catch (error) {
+    console.error('Translation error:', error);
+    uniqueItems.forEach(item => resultMap.set(item, item));
+  }
+
+  return resultMap;
+}
+
+export async function translateMealPlanContent(
+  ingredients: string[],
+  mealNames: string[],
+  cookingInstructions: string[],
+  targetLanguage: Language
+): Promise<{
+  ingredients: Map<string, string>;
+  mealNames: Map<string, string>;
+  cookingInstructions: Map<string, string>;
+}> {
+  const [ingredientsMap, mealNamesMap, cookingInstructionsMap] = await Promise.all([
+    translateContentBatch(ingredients, targetLanguage, 'ingredient'),
+    translateContentBatch(mealNames, targetLanguage, 'meal_name'),
+    translateContentBatch(cookingInstructions, targetLanguage, 'cooking_instruction'),
   ]);
+
   return {
-    mea
+    ingredients: ingredientsMap,
+    mealNames: mealNamesMap,
+    cookingInstructions: cookingInstructionsMap,
   };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+}
