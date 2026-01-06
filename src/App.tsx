@@ -1070,23 +1070,23 @@ function App() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
               <div className="bg-card rounded-xl p-6 border shadow-sm space-y-3">
                 <div className="text-4xl">💰</div>
-                <h3 className="font-heading text-lg font-semibold">Budget-First</h3>
+                <h3 className="font-heading text-lg font-semibold">{t.budgetFirst}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Transparent cost breakdowns for every meal
+                  {t.budgetFirstDescription}
                 </p>
               </div>
               <div className="bg-card rounded-xl p-6 border shadow-sm space-y-3">
                 <div className="text-4xl">🎯</div>
-                <h3 className="font-heading text-lg font-semibold">Precise Nutrition</h3>
+                <h3 className="font-heading text-lg font-semibold">{t.preciseNutrition}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Accurate calories, protein, carbs, and fats
+                  {t.preciseNutritionDescription}
                 </p>
               </div>
               <div className="bg-card rounded-xl p-6 border shadow-sm space-y-3">
                 <div className="text-4xl">🛒</div>
-                <h3 className="font-heading text-lg font-semibold">Smart Shopping</h3>
+                <h3 className="font-heading text-lg font-semibold">{t.smartShopping}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Aggregated lists with realistic grocery costs
+                  {t.smartShoppingDescription}
                 </p>
               </div>
             </div>
@@ -1095,10 +1095,10 @@ function App() {
               {isDemoMode && (
                 <div className="bg-accent/10 border border-accent/30 rounded-lg p-4">
                   <p className="text-sm font-medium text-accent-foreground">
-                    🎭 Demo Mode Active
+                    🎭 {t.demoModeActive}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    You can generate meal plans, but they won't be saved. Your data will be lost on refresh.
+                    {t.demoModeDescription}
                   </p>
                 </div>
               )}
@@ -1106,10 +1106,10 @@ function App() {
               {!currentUser && !isDemoMode && (
                 <div className="bg-muted/50 border rounded-lg p-4">
                   <p className="text-sm font-medium">
-                    ✨ Try {t.appName} without creating an account
+                    ✨ {t.tryWithoutAccount}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Demo mode lets you explore all features, but your data won't be saved
+                    {t.demoModeExplainer}
                   </p>
                 </div>
               )}
@@ -1117,7 +1117,7 @@ function App() {
               <div className="space-y-3">
                 <h3 className="font-heading text-2xl font-semibold text-center">{t.welcome}</h3>
                 <p className="text-muted-foreground text-center text-sm">
-                  Answer a few quick questions to get your personalized meal plan
+                  {t.answerQuestions}
                 </p>
               </div>
 
@@ -1129,7 +1129,7 @@ function App() {
                       size="lg"
                       className="w-full"
                     >
-                      Create Account
+                      {t.createAccount}
                     </Button>
                     <Button
                       onClick={() => window.location.href = '/.spark/login'}
@@ -1145,7 +1145,7 @@ function App() {
                         <span className="w-full border-t" />
                       </div>
                       <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-card px-2 text-muted-foreground">Or sign in with</span>
+                        <span className="bg-card px-2 text-muted-foreground">{t.orSignInWith}</span>
                       </div>
                     </div>
 
@@ -1185,7 +1185,7 @@ function App() {
                         <span className="w-full border-t" />
                       </div>
                       <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-card px-2 text-muted-foreground">Or</span>
+                        <span className="bg-card px-2 text-muted-foreground">{t.or}</span>
                       </div>
                     </div>
                     <Button
@@ -1194,7 +1194,7 @@ function App() {
                       className="w-full"
                       variant="secondary"
                     >
-                      Try Demo Mode
+                      {t.tryDemoMode}
                     </Button>
                   </>
                 ) : (
@@ -1334,10 +1334,10 @@ function App() {
               <div className="flex-1">
                 <p className="text-sm font-semibold text-accent-foreground flex items-center gap-2">
                   <span>🎭</span>
-                  <span>Demo Mode: Your data is not saved</span>
+                  <span>{t.demoModeWarning}</span>
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Create an account to save meal plans and preferences. Data will be lost on page refresh.
+                  {t.demoModeWarningDescription}
                 </p>
               </div>
               <Button
@@ -1345,7 +1345,7 @@ function App() {
                 variant="default"
                 onClick={() => setShowCreateAccountDialog(true)}
               >
-                Create Account
+                {t.createAccount}
               </Button>
             </div>
           </div>
@@ -1364,11 +1364,11 @@ function App() {
               <div className="bg-card rounded-2xl p-8 border shadow-sm space-y-6 text-center">
                 <div className="space-y-2">
                   <h2 className="font-heading text-3xl font-semibold">
-                    Ready to generate your meal plan?
+                    {t.readyToGenerate}
                   </h2>
                   <p className="text-muted-foreground">
-                    We'll create a {userProfile!.meal_plan_days}-{t.day} meal plan with {userProfile!.meals_per_day} meals per day for €{userProfile!.budget_eur}
-                    {userProfile!.budget_period === 'daily' ? '/day' : '/week'} based on your preferences.
+                    {t.willCreate} {userProfile!.meal_plan_days} {t.daysWithMeals} {userProfile!.meals_per_day} {t.mealsPerDay} €{userProfile!.budget_eur}
+                    {userProfile!.budget_period === 'daily' ? '/day' : '/week'} {t.basedOnPreferences}
                   </p>
                 </div>
 
@@ -1421,14 +1421,14 @@ function App() {
                   <div className="flex gap-2">
                     <Button onClick={() => handleGeneratePlan()} disabled={isGenerating} variant="default">
                       <Sparkle className={`mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
-                      {isGenerating ? 'Generating...' : 'New Plan'}
+                      {isGenerating ? t.generating : t.newPlan}
                     </Button>
                     <Button
                       variant="default"
                       onClick={() => setShoppingListOpen(true)}
                     >
                       <ShoppingCart className="mr-2" />
-                      Shopping List
+                      {t.shoppingList}
                     </Button>
                   </div>
                 </div>
@@ -1451,27 +1451,27 @@ function App() {
                       variant="outline"
                       size="sm"
                       onClick={() => setIsOnboarding(true)}
-                      title="Edit your meal preferences and budget"
+                      title={t.editMealPreferences}
                     >
                       <UserCircleGear className="mr-2" />
-                      Edit Profile
+                      {t.editProfile}
                     </Button>
                     {isDemoMode ? (
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                          toast.info('Demo mode: Create an account to save plans', {
+                          toast.info(t.createAccountToSave, {
                             action: {
-                              label: 'Create Account',
+                              label: t.createAccount,
                               onClick: () => setShowCreateAccountDialog(true)
                             }
                           });
                         }}
-                        title="Create an account to save meal plans"
+                        title={t.createAccountToSave}
                       >
                         <FloppyDisk className="mr-2" />
-                        Save
+                        {t.save}
                       </Button>
                     ) : currentUser && (
                       <Button
@@ -1479,17 +1479,17 @@ function App() {
                         size="sm"
                         onClick={handleSaveMealPlan}
                         disabled={isSaving || (!canSaveMorePlans && !isCurrentPlanAlreadySaved)}
-                        title={!canSaveMorePlans && !isCurrentPlanAlreadySaved ? "Maximum 5 saved plans reached" : ""}
+                        title={!canSaveMorePlans && !isCurrentPlanAlreadySaved ? t.maximumPlansReached : ""}
                       >
                         {justSaved ? (
                           <>
                             <Check className="mr-2" />
-                            Saved
+                            {t.saved}
                           </>
                         ) : (
                           <>
                             <FloppyDisk className="mr-2" />
-                            {isSaving ? 'Saving...' : 'Save'}
+                            {isSaving ? t.saving : t.save}
                           </>
                         )}
                       </Button>
@@ -1500,7 +1500,7 @@ function App() {
                       size="sm"
                     >
                       <FilePdf className="mr-2" />
-                      PDF
+                      {t.pdf}
                     </Button>
                     <Button
                       onClick={() => setShareMealPlanOpen(true)}
@@ -1508,7 +1508,7 @@ function App() {
                       size="sm"
                     >
                       <ShareNetwork className="mr-2" />
-                      Share
+                      {t.share}
                     </Button>
                   </div>
                 </div>
@@ -1544,10 +1544,10 @@ function App() {
                       className="text-center space-y-2"
                     >
                       <h3 className="font-heading text-2xl font-semibold text-foreground">
-                        Generating your meal plan...
+                        {t.generatingMealPlan}
                       </h3>
                       <p className="text-muted-foreground">
-                        Calculating nutrition, costs, and balancing your budget
+                        {t.calculatingNutrition}
                       </p>
                     </motion.div>
                     <motion.div
@@ -1579,7 +1579,7 @@ function App() {
                           >
                             🌐
                           </motion.div>
-                          <span>Translating meal plan to your language...</span>
+                          <span>{t.translatingMealPlan}</span>
                         </div>
                       </motion.div>
                     )}
@@ -1592,13 +1592,13 @@ function App() {
                   >
                     <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'meals' | 'prep' | 'calendar')}>
                       <TabsList className="grid w-full max-w-2xl grid-cols-3">
-                        <TabsTrigger value="meals">Meal Plan</TabsTrigger>
+                        <TabsTrigger value="meals">{t.mealPlanTab}</TabsTrigger>
                         <TabsTrigger value="prep">
-                          Meal Prep {mealPrepPlan && '✓'}
+                          {t.mealPrepTab} {mealPrepPlan && '✓'}
                         </TabsTrigger>
                         <TabsTrigger value="calendar">
                           <CalendarCheck className="mr-2" size={16} />
-                          Track Progress
+                          {t.trackProgressTab}
                         </TabsTrigger>
                       </TabsList>
                       
@@ -1646,10 +1646,10 @@ function App() {
                                 className="text-center space-y-2"
                               >
                                 <h3 className="font-heading text-2xl font-semibold text-foreground">
-                                  Generating your meal prep plan...
+                                  {t.generatingMealPrep}
                                 </h3>
                                 <p className="text-muted-foreground">
-                                  Organizing batch cooking sessions and prep schedules
+                                  {t.organizingBatchCooking}
                                 </p>
                               </motion.div>
                               <motion.div
@@ -1679,10 +1679,10 @@ function App() {
                               <ChefHat size={48} className="mx-auto opacity-50 text-muted-foreground" />
                               <div className="text-center space-y-2">
                                 <h3 className="font-heading text-xl font-semibold text-foreground">
-                                  Generate Meal Prep Plan
+                                  {t.generateMealPrepPlan}
                                 </h3>
                                 <p className="text-muted-foreground max-w-md mx-auto">
-                                  Get batch cooking recommendations and save time during the week
+                                  {t.batchCookingRecommendations}
                                 </p>
                               </div>
                               <Button
@@ -1692,7 +1692,7 @@ function App() {
                                 className="mt-4"
                               >
                                 <ChefHat className="mr-2" />
-                                Generate Meal Prep
+                                {t.generateMealPrep}
                               </Button>
                             </motion.div>
                           )}
@@ -1703,9 +1703,9 @@ function App() {
                         <div className="space-y-6">
                           <div className="flex items-center justify-between">
                             <div>
-                              <h3 className="text-lg font-semibold">Schedule & Track Your Meals</h3>
+                              <h3 className="text-lg font-semibold">{t.scheduleTrackMeals}</h3>
                               <p className="text-sm text-muted-foreground">
-                                Assign days to your calendar and optionally mark them as complete
+                                {t.assignDaysDescription}
                               </p>
                             </div>
                             <Button
@@ -1713,7 +1713,7 @@ function App() {
                               onClick={() => setProgressDialogOpen(true)}
                             >
                               <Trophy className="mr-2" size={16} />
-                              View Progress & Badges
+                              {t.viewProgressBadges}
                             </Button>
                           </div>
                           

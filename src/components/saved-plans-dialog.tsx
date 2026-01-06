@@ -31,7 +31,7 @@ export function SavedPlansDialog({
   onDeletePlan,
   onSharePlan 
 }: SavedPlansDialogProps) {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const [planToDelete, setPlanToDelete] = useState<string | null>(null);
 
   const handleDeleteClick = (planId: string, e: React.MouseEvent) => {
@@ -73,16 +73,16 @@ export function SavedPlansDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-4xl max-h-[85vh]">
           <DialogHeader>
-            <DialogTitle className="font-heading text-2xl">Saved Meal Plans</DialogTitle>
+            <DialogTitle className="font-heading text-2xl">{t.savedMealPlans}</DialogTitle>
             <DialogDescription>
-              View and manage your previously saved meal plans ({sortedPlans.length}/5)
+              {t.viewManagePlans} ({sortedPlans.length}/5)
             </DialogDescription>
           </DialogHeader>
 
           {sortedPlans.length >= 5 && (
             <Alert className="border-accent/50 bg-accent/10">
               <AlertDescription className="text-sm">
-                <strong>Storage limit reached:</strong> You can save up to 5 meal plans. Delete an old plan to save a new one.
+                <strong>{t.storageLimitReached}:</strong> {t.storageLimitMessage}
               </AlertDescription>
             </Alert>
           )}
@@ -90,7 +90,7 @@ export function SavedPlansDialog({
           {sortedPlans.length >= 4 && sortedPlans.length < 5 && (
             <Alert className="border-muted-foreground/30 bg-muted/50">
               <AlertDescription className="text-sm">
-                You have {5 - sortedPlans.length} slot{5 - sortedPlans.length !== 1 ? 's' : ''} remaining.
+                {t.youHave} {5 - sortedPlans.length} {5 - sortedPlans.length !== 1 ? t.slotsRemainingPlural : t.slotsRemaining} {t.remaining2}
               </AlertDescription>
             </Alert>
           )}
@@ -98,9 +98,9 @@ export function SavedPlansDialog({
           {sortedPlans.length === 0 ? (
             <div className="py-12 text-center">
               <div className="text-6xl mb-4">🍽️</div>
-              <h3 className="font-heading text-xl font-semibold mb-2">No saved plans yet</h3>
+              <h3 className="font-heading text-xl font-semibold mb-2">{t.noSavedPlans}</h3>
               <p className="text-muted-foreground max-w-md mx-auto">
-                {EMPTY_STATES.noSavedPlans}
+                {t.createFirstPlan}
               </p>
             </div>
           ) : (
@@ -128,15 +128,15 @@ export function SavedPlansDialog({
       <AlertDialog open={planToDelete !== null} onOpenChange={(open) => !open && setPlanToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete meal plan?</AlertDialogTitle>
+            <AlertDialogTitle>{t.deletePlan}?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete this meal plan from your saved history.
+              {t.deleteWarning}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
+              {t.delete}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -154,6 +154,7 @@ interface SavedPlanCardProps {
 }
 
 function SavedPlanCard({ plan, onLoad, onDelete, onShare, onExportPDF }: SavedPlanCardProps) {
+  const { t } = useLanguage();
   const generatedDate = new Date(plan.generated_at);
   const isOverBudget = plan.metadata.is_over_budget;
 
@@ -174,10 +175,10 @@ function SavedPlanCard({ plan, onLoad, onDelete, onShare, onExportPDF }: SavedPl
                 </span>
               </div>
               <Badge variant={isOverBudget ? "destructive" : "default"}>
-                {plan.metadata.days}-day plan
+                {plan.metadata.days}-{t.day} {t.plan}
               </Badge>
               {isOverBudget && (
-                <Badge variant="destructive">Over Budget</Badge>
+                <Badge variant="destructive">{t.overBudget}</Badge>
               )}
             </div>
 
@@ -185,36 +186,36 @@ function SavedPlanCard({ plan, onLoad, onDelete, onShare, onExportPDF }: SavedPl
               <div className="space-y-1">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <CurrencyDollar size={14} />
-                  <span>Total Cost</span>
+                  <span>{t.totalCost}</span>
                 </div>
                 <div className="font-heading font-semibold text-lg tabular-nums text-accent">
                   €{plan.plan_totals.total_cost_eur.toFixed(2)}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  Budget: €{plan.metadata.period_budget_eur.toFixed(2)}
+                  {t.budget}: €{plan.metadata.period_budget_eur.toFixed(2)}
                 </div>
               </div>
 
               <div className="space-y-1">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <FireSimple size={14} />
-                  <span>Calories</span>
+                  <span>{t.calories}</span>
                 </div>
                 <div className="font-heading font-semibold text-lg tabular-nums">
                   {plan.plan_totals.calories.toLocaleString()}
                 </div>
-                <div className="text-xs text-muted-foreground">total</div>
+                <div className="text-xs text-muted-foreground">{t.total}</div>
               </div>
 
               <div className="space-y-1">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Barbell size={14} />
-                  <span>Protein</span>
+                  <span>{t.protein}</span>
                 </div>
                 <div className="font-heading font-semibold text-lg tabular-nums">
                   {plan.plan_totals.protein_g}g
                 </div>
-                <div className="text-xs text-muted-foreground">total</div>
+                <div className="text-xs text-muted-foreground">{t.total}</div>
               </div>
 
               <div className="space-y-1">
@@ -240,14 +241,14 @@ function SavedPlanCard({ plan, onLoad, onDelete, onShare, onExportPDF }: SavedPl
               className="opacity-0 group-hover:opacity-100 transition-opacity"
             >
               <Eye className="mr-2" />
-              Load
+              {t.loadPlan}
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={onExportPDF}
               className="opacity-0 group-hover:opacity-100 transition-opacity"
-              title="Export to PDF"
+              title={t.exportPDF}
             >
               <FilePdf />
             </Button>
