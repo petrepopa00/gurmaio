@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { MealPlan } from '@/types/domain';
 import type { Language } from '@/lib/i18n/translations';
-import { translateMealBatch } from '@/lib/ai-content-translator';
+import { translateMealPlanContent } from '@/lib/ai-content-translator';
 
 interface TranslatedMealPlan extends MealPlan {
   _isTranslating?: boolean;
@@ -43,25 +43,22 @@ export function useTranslatedMealPlan(
             cooking_instructions: meal.cooking_instructions || [],
           }))
         );
-        const translationsMap = await translateMealBatch(allMeals, targetLanguage);
+        const translationsMap = await translateMealPlanContent(allMeals, targetLanguage);
 
         const translatedDays = mealPlan.days.map(day => ({
           ...day,
           meals: day.meals.map(meal => {
-            const mealNameKey = `meal:${meal.recipe_name}`;
-            const translatedMealName = translationsMap.get(mealNameKey) || meal.recipe_name;
+            const translatedMealName = translationsMap.get(meal.recipe_name) || meal.recipe_name;
 
             const translatedIngredients = meal.ingredients.map(ing => {
-              const ingKey = `ingredient:${ing.name}`;
               return {
                 ...ing,
-                name: translationsMap.get(ingKey) || ing.name,
+                name: translationsMap.get(ing.name) || ing.name,
               };
             });
 
             const translatedInstructions = (meal.cooking_instructions || []).map(inst => {
-              const instKey = `instruction:${inst}`;
-              return translationsMap.get(instKey) || inst;
+              return translationsMap.get(inst) || inst;
             });
 
             return {
