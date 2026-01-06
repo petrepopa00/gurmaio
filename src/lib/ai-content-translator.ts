@@ -1,40 +1,40 @@
 import type { Language } from './i18n/translations';
 
-const translationCache = new Map<string, Record<string, string>>();
-
 export async function translateContent(
-  content: string,
-  targetLanguage: Language
-): Promise<string> {
+
+  if (targetLanguage === 'en' || !conte
+  }
+  const cached = translati
+    return cached[ta
   if (targetLanguage === 'en' || !content || content.trim() === '') {
     return content;
-  }
+   
 
   const cached = translationCache.get(content);
   if (cached && cached[targetLanguage]) {
     return cached[targetLanguage];
   }
 
-  try {
-    const languageNames: Record<Language, string> = {
-      en: 'English',
-      de: 'German',
-      fr: 'French',
-      es: 'Spanish',
-      it: 'Italian',
-      pt: 'Portuguese',
-      nl: 'Dutch',
-      pl: 'Polish',
-      ro: 'Romanian',
-      cs: 'Czech'
-    };
 
-    const prompt = window.spark.llmPrompt`Translate the following text to ${languageNames[targetLanguage]}. Return ONLY the translated text, no explanations:
+    
+    existing[targetL
 
-${content}`;
+  } catch (error) {
+    return content;
+}
+export async function b
+  contentType: 'in
+): Promise<Map<stri
+  
+    items.forEach
+  }
+
+    const cached = translationCache.get(item);
+
+      uncach
 
     const translated = await window.spark.llm(prompt);
-    
+  }
     const existing = translationCache.get(content) || {};
     existing[targetLanguage] = translated;
     translationCache.set(content, existing);
@@ -68,76 +68,76 @@ export async function batchTranslateContent(
     }
   });
 
-  if (uncachedItems.length === 0) {
-    return resultMap;
-  }
+    batchTranslateContent(mealNames
+    batchTranslateCon
 
-  try {
-    const languageNames: Record<Language, string> = {
-      en: 'English',
-      de: 'German',
-      fr: 'French',
-      es: 'Spanish',
-      it: 'Italian',
-      pt: 'Portuguese',
-      nl: 'Dutch',
-      pl: 'Polish',
-      ro: 'Romanian',
-      cs: 'Czech'
-    };
 
-    const contentTypeInstructions: Record<string, string> = {
-      ingredient: `These are food ingredient names. Translate each to ${languageNames[targetLanguage]}. Keep culinary context.`,
-      cooking_instruction: `These are cooking instructions. Translate each to ${languageNames[targetLanguage]}. Keep clarity and precision.`,
-      meal_name: `These are meal/recipe names. Translate each to ${languageNames[targetLanguage]}. Keep culinary appeal.`
-    };
-
-    const prompt = window.spark.llmPrompt`${contentTypeInstructions[contentType]}
-
-${uncachedItems.map((item, i) => `${i + 1}. ${item}`).join('\n')}
-
-Return format: ["translation1", "translation2", ...]`;
-
-    const response = await window.spark.llm(prompt, 'gpt-4o', true);
-    const parsed = JSON.parse(response);
-    const translations = Array.isArray(parsed) ? parsed : (parsed.translations || []);
-
-    uncachedItems.forEach((item, index) => {
-      const translation = translations[index] || item;
-      resultMap.set(item, translation);
-      
-      const existing = translationCache.get(item) || {};
-      existing[targetLanguage] = translation;
-      translationCache.set(item, existing);
-    });
-
-    return resultMap;
-  } catch (error) {
-    console.error('Batch translation error:', error);
-    uncachedItems.forEach(item => resultMap.set(item, item));
-    return resultMap;
-  }
+    coo
 }
 
-export async function translateMealPlanContent(
-  mealNames: string[],
-  ingredients: string[],
-  cookingInstructions: string[],
-  targetLanguage: Language
-): Promise<{
-  mealNames: Map<string, string>;
-  ingredients: Map<string, string>;
-  cookingInstructions: Map<string, string>;
-}> {
-  if (targetLanguage === 'en') {
-    return {
-      mealNames: new Map(mealNames.map(name => [name, name])),
-      ingredients: new Map(ingredients.map(ing => [ing, ing])),
-      cookingInstructions: new Map(cookingInstructions.map(inst => [inst, inst]))
-    };
-  }
 
-  const [mealNamesMap, ingredientsMap, cookingInstructionsMap] = await Promise.all([
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     batchTranslateContent(mealNames, 'meal_name', targetLanguage),
     batchTranslateContent(ingredients, 'ingredient', targetLanguage),
     batchTranslateContent(cookingInstructions, 'cooking_instruction', targetLanguage)
