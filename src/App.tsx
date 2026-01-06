@@ -33,6 +33,7 @@ import { Plus, SignOut, FloppyDisk, Check, ShareNetwork, FilePdf, ChefHat, Googl
 import { toast } from 'sonner';
 import { useLanguage } from '@/hooks/use-language';
 import { useEmailVerification } from '@/hooks/use-email-verification';
+import { useTranslatedMealPlan } from '@/hooks/use-translated-meal-plan';
 import { exportMealPlanToPDF } from '@/lib/export-meal-plan-pdf';
 import { DISCLAIMERS } from '@/lib/disclaimers';
 
@@ -77,6 +78,18 @@ function App() {
   
   const hasProfile = userProfile !== null;
   const hasMealPlan = mealPlan !== null;
+  
+  const { translatedPlan, isTranslating } = useTranslatedMealPlan(mealPlan || null, language, {
+    onTranslationComplete: () => {
+      if (language !== 'en') {
+        toast.success('Meal plan translated successfully! 🌐');
+      }
+    },
+    onTranslationError: () => {
+      toast.error('Translation failed. Showing original content.');
+    }
+  });
+  const displayPlan = translatedPlan || mealPlan;
   
   const {
     needsVerification,
@@ -1393,7 +1406,8 @@ function App() {
                   <div>
                     <h2 className="font-heading text-3xl font-bold">{t.yourMealPlan}</h2>
                     <p className="text-muted-foreground">
-                      {mealPlan!.metadata.days}-{t.day} plan • Generated {new Date(mealPlan!.generated_at).toLocaleDateString()}
+                      {displayPlan!.metadata.days}-{t.day} plan • Generated {new Date(displayPlan!.generated_at).toLocaleDateString()}
+                      {isTranslating && <span className="ml-2 text-xs text-muted-foreground">(Translating...)</span>}
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -1414,9 +1428,9 @@ function App() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4 flex-wrap">
                     <BudgetGauge
-                      budget={mealPlan!.metadata.period_budget_eur}
-                      spent={mealPlan!.metadata.period_cost_eur}
-                      isOverBudget={mealPlan!.metadata.is_over_budget}
+                      budget={displayPlan!.metadata.period_budget_eur}
+                      spent={displayPlan!.metadata.period_cost_eur}
+                      isOverBudget={displayPlan!.metadata.is_over_budget}
                       compact
                     />
                     {(dayProgress?.length ?? 0) > 0 && (
@@ -1542,8 +1556,27 @@ function App() {
                     </motion.div>
                   </motion.div>
                 ) : (
+                  <>
+                    {isTranslating && language !== 'en' && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="bg-primary/10 border border-primary/30 rounded-lg p-3 mb-4"
+                      >
+                        <div className="flex items-center justify-center gap-2 text-sm text-primary">
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                          >
+                            🌐
+                          </motion.div>
+                          <span>Translating meal plan to your language...</span>
+                        </div>
+                      </motion.div>
+                    )}
                   <motion.div
-                    key={mealPlan!.plan_id}
+                    key={displayPlan!.plan_id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
@@ -1563,8 +1596,8 @@ function App() {
                       
                       <TabsContent value="meals" className="mt-6">
                         <MealPlanView 
-                          key={mealPlan!.plan_id} 
-                          mealPlan={mealPlan!} 
+                          key={displayPlan!.plan_id} 
+                          mealPlan={displayPlan!} 
                           onSwapMeal={handleSwapMeal} 
                           onLikeMeal={handleLikeMeal} 
                           onDislikeMeal={handleDislikeMeal}
@@ -1679,7 +1712,7 @@ function App() {
                           <StreakCounter completedDays={dayProgress || []} />
                           
                           <MealCalendar
-                            mealPlan={mealPlan!}
+                            mealPlan={displayPlan!}
                             scheduledDays={scheduledDays || []}
                             onScheduleDay={handleScheduleDay}
                             onUnscheduleDay={handleUnscheduleDay}
@@ -1691,6 +1724,7 @@ function App() {
                       </TabsContent>
                     </Tabs>
                   </motion.div>
+                  </>
                 )}
               </AnimatePresence>
             </motion.div>
@@ -1705,14 +1739,14 @@ function App() {
         existingProfile={userProfile}
       />
 
-      {mealPlan && currentShoppingList && (
+      {displayPlan && currentShoppingList && (
         <ShoppingListSheet
           open={shoppingListOpen}
           onOpenChange={setShoppingListOpen}
           shoppingList={currentShoppingList}
           onToggleOwned={handleToggleOwned}
           onDeleteItem={handleDeleteItem}
-          planDays={mealPlan.metadata.days}
+          planDays={displayPlan.metadata.days}
         />
       )}
 
@@ -1725,11 +1759,11 @@ function App() {
         onSharePlan={handleShareSavedPlan}
       />
 
-      {mealPlan && (
+      {displayPlan && (
         <ShareMealPlanDialog
           open={shareMealPlanOpen}
           onOpenChange={setShareMealPlanOpen}
-          mealPlan={mealPlan}
+          mealPlan={displayPlan}
           language={language}
           t={t}
         />
