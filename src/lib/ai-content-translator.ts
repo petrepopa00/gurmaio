@@ -1,6 +1,6 @@
 import type { Language } from './i18n/translations';
 
-export async function translateContentBatch(
+export async function translateBatchContent(
   items: string[],
   targetLanguage: Language
 ): Promise<Map<string, string>> {
@@ -27,11 +27,11 @@ export async function translateContentBatch(
       cs: 'Czech'
     };
 
-    const prompt = spark.llmPrompt`You are a professional translator specializing in food and nutrition content.
+    const itemsList = uniqueItems.map((item, i) => `${i + 1}. ${item}`).join('\n');
+    const prompt = (window.spark.llmPrompt as any)`Translate the following meal-related text items to ${languageNames[targetLanguage]}. Keep the translations natural and appropriate for food/cooking context.
 
-Translate the following items to ${languageNames[targetLanguage]}.
-
-${uniqueItems.map((item, i) => `${i + 1}. ${item}`).join('\n')}
+Items to translate:
+${itemsList}
 
 Return your response as a valid JSON object with this structure:
 {
@@ -39,7 +39,7 @@ Return your response as a valid JSON object with this structure:
   "original text 2": "translated text 2"
 }`;
 
-    const response = await spark.llm(prompt, 'gpt-4o', true);
+    const response = await window.spark.llm(prompt, 'gpt-4o', true);
     const translations = JSON.parse(response);
 
     uniqueItems.forEach(item => {
@@ -65,9 +65,9 @@ export async function translateMealPlanContent(
   cookingInstructions: Map<string, string>;
 }> {
   const [mealNamesMap, ingredientsMap, cookingInstructionsMap] = await Promise.all([
-    translateContentBatch(mealNames, targetLanguage),
-    translateContentBatch(ingredients, targetLanguage),
-    translateContentBatch(cookingInstructions, targetLanguage)
+    translateBatchContent(mealNames, targetLanguage),
+    translateBatchContent(ingredients, targetLanguage),
+    translateBatchContent(cookingInstructions, targetLanguage)
   ]);
 
   return {
