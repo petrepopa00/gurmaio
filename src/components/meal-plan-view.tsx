@@ -98,7 +98,7 @@ export function MealPlanView({
       <Card className="p-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
           <div className="flex items-center gap-3 flex-wrap">
-            <h3 className="font-heading text-lg font-semibold">Nutrition Summary</h3>
+            <h3 className="font-heading text-lg font-semibold">{t.nutritionSummary}</h3>
             <InfoTooltip 
               content={DISCLAIMERS.nutrition.full} 
               ariaLabel={INFO_LABELS.nutritionInfo}
@@ -114,7 +114,7 @@ export function MealPlanView({
           </div>
           
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">View:</span>
+            <span className="text-sm text-muted-foreground">{t.view}:</span>
             <div className="flex border rounded-lg overflow-hidden">
               <Button
                 variant={viewMode === 'total' ? 'default' : 'ghost'}
@@ -148,7 +148,7 @@ export function MealPlanView({
               {displayValues.calories.toLocaleString()}
             </div>
             <div className="text-xs text-muted-foreground">
-              {viewMode === 'total' ? `${days} ${t.days}` : 'per day'}
+              {viewMode === 'total' ? `${days} ${t.days}` : t.perDay}
             </div>
           </div>
 
@@ -160,7 +160,7 @@ export function MealPlanView({
             <div className="font-heading text-2xl font-bold tabular-nums">
               {displayValues.protein}g
             </div>
-            <div className="text-xs text-muted-foreground">{proteinPercentage}% of calories</div>
+            <div className="text-xs text-muted-foreground">{proteinPercentage}% {t.ofCalories}</div>
           </div>
 
           <div className="space-y-1">
@@ -171,7 +171,7 @@ export function MealPlanView({
             <div className="font-heading text-2xl font-bold tabular-nums">
               {displayValues.carbs}g
             </div>
-            <div className="text-xs text-muted-foreground">{carbsPercentage}% of calories</div>
+            <div className="text-xs text-muted-foreground">{carbsPercentage}% {t.ofCalories}</div>
           </div>
 
           <div className="space-y-1">
@@ -182,7 +182,7 @@ export function MealPlanView({
             <div className="font-heading text-2xl font-bold tabular-nums">
               {displayValues.fats}g
             </div>
-            <div className="text-xs text-muted-foreground">{fatsPercentage}% of calories</div>
+            <div className="text-xs text-muted-foreground">{fatsPercentage}% {t.ofCalories}</div>
           </div>
 
           <div className="space-y-1">
@@ -198,7 +198,7 @@ export function MealPlanView({
               €{displayValues.cost.toFixed(2)}
             </div>
             <div className="text-xs text-muted-foreground">
-              {viewMode === 'total' ? `${days} ${t.days}` : 'per day'}
+              {viewMode === 'total' ? `${days} ${t.days}` : t.perDay}
             </div>
           </div>
         </div>
@@ -206,36 +206,36 @@ export function MealPlanView({
         <Separator className="my-4" />
         
         <div className="space-y-2">
-          <div className="text-sm text-muted-foreground">Macro Distribution</div>
+          <div className="text-sm text-muted-foreground">{t.macroDistribution}</div>
           <div className="flex gap-1 h-4 rounded-full overflow-hidden">
             <div 
               className="bg-blue-500" 
               style={{ width: `${proteinPercentage}%` }}
-              title={`Protein: ${proteinPercentage}%`}
+              title={`${t.protein}: ${proteinPercentage}%`}
             />
             <div 
               className="bg-green-500" 
               style={{ width: `${carbsPercentage}%` }}
-              title={`Carbs: ${carbsPercentage}%`}
+              title={`${t.carbs}: ${carbsPercentage}%`}
             />
             <div 
               className="bg-amber-500" 
               style={{ width: `${fatsPercentage}%` }}
-              title={`Fats: ${fatsPercentage}%`}
+              title={`${t.fats}: ${fatsPercentage}%`}
             />
           </div>
           <div className="flex gap-4 text-xs">
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 rounded-full bg-blue-500" />
-              <span>Protein {proteinPercentage}%</span>
+              <span>{t.protein} {proteinPercentage}%</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 rounded-full bg-green-500" />
-              <span>Carbs {carbsPercentage}%</span>
+              <span>{t.carbs} {carbsPercentage}%</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 rounded-full bg-amber-500" />
-              <span>Fats {fatsPercentage}%</span>
+              <span>{t.fats} {fatsPercentage}%</span>
             </div>
           </div>
         </div>
@@ -283,10 +283,10 @@ export function MealPlanView({
             <Card className="p-4 bg-muted/30">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-xs">Selected Day</Badge>
+                  <Badge variant="outline" className="text-xs">{t.selectedDay}</Badge>
                   <InfoTooltip 
-                    content="Some days cost more than others depending on meals. Your weekly average stays within budget." 
-                    ariaLabel="Day cost information"
+                    content={t.dayCostInfo} 
+                    ariaLabel={t.dayCostInfoLabel}
                   />
                 </div>
               </div>
@@ -446,7 +446,7 @@ function MealCard({
                 variant={currentPreference === 'like' ? 'default' : 'outline'}
                 onClick={handleLike}
                 className="h-8 w-8 p-0"
-                title="Like this meal"
+                title={t.likeMeal}
               >
                 <ThumbsUp size={16} weight={currentPreference === 'like' ? 'fill' : 'regular'} />
               </Button>
@@ -455,7 +455,7 @@ function MealCard({
                 variant={currentPreference === 'dislike' ? 'destructive' : 'outline'}
                 onClick={handleDislike}
                 className="h-8 w-8 p-0"
-                title="Dislike this meal"
+                title={t.dislikeMeal}
               >
                 <ThumbsDown size={16} weight={currentPreference === 'dislike' ? 'fill' : 'regular'} />
               </Button>
@@ -466,10 +466,10 @@ function MealCard({
                   onClick={handleSwap}
                   disabled={isSwapping}
                   className="h-8 px-3 gap-1.5"
-                  title="Swap meal"
+                  title={t.swapMealTooltip}
                 >
                   <Repeat size={16} />
-                  <span className="text-xs font-medium">{isSwapping ? 'Swapping...' : 'Swap'}</span>
+                  <span className="text-xs font-medium">{isSwapping ? t.swapping : t.swap}</span>
                 </Button>
               )}
               <Button
@@ -477,10 +477,10 @@ function MealCard({
                 variant={showDetails ? 'default' : 'outline'}
                 onClick={handleShowDetailsClick}
                 className="h-8 px-3 gap-1.5"
-                title="View ingredients & cooking steps"
+                title={t.viewDetailsTooltip}
               >
                 <ListBullets size={16} weight={showDetails ? 'fill' : 'regular'} />
-                <span className="text-xs font-medium">View Details</span>
+                <span className="text-xs font-medium">{t.viewDetails}</span>
               </Button>
               {onPortionAdjustment && (
                 <div className="flex items-center gap-1">
@@ -490,7 +490,7 @@ function MealCard({
                       variant="ghost"
                       onClick={() => handlePortionChange(localMultiplier - 0.25)}
                       className="h-6 w-6 p-0"
-                      title="Adjust portions to fit your appetite"
+                      title={t.adjustPortions}
                     >
                       <Minus size={12} />
                     </Button>
@@ -502,7 +502,7 @@ function MealCard({
                       max="5"
                       step="0.25"
                       className="w-14 h-6 text-center tabular-nums text-xs px-1"
-                      title="Adjust portions to fit your appetite"
+                      title={t.adjustPortions}
                     />
                     <span className="text-xs text-muted-foreground">×</span>
                     <Button
@@ -510,14 +510,14 @@ function MealCard({
                       variant="ghost"
                       onClick={() => handlePortionChange(localMultiplier + 0.25)}
                       className="h-6 w-6 p-0"
-                      title="Adjust portions to fit your appetite"
+                      title={t.adjustPortions}
                     >
                       <Plus size={12} />
                     </Button>
                   </div>
                   <InfoTooltip 
-                    content="Adjust portions to fit your appetite. Changes update nutrition and costs automatically." 
-                    ariaLabel="Portion adjustment help"
+                    content={t.adjustPortionsInfo} 
+                    ariaLabel={t.adjustPortionsLabel}
                   />
                 </div>
               )}
@@ -541,7 +541,7 @@ function MealCard({
             <Separator className="my-4" />
             <div className="space-y-4">
               <div className="border rounded-lg p-4">
-                <h4 className="font-heading font-semibold text-sm mb-3">Ingredients</h4>
+                <h4 className="font-heading font-semibold text-sm mb-3">{t.ingredients}</h4>
                 <ul className="space-y-2">
                   {adjustedMeal.ingredients.map((ingredient, index) => (
                     <li key={index} className="flex items-center gap-2 text-sm">
@@ -556,7 +556,7 @@ function MealCard({
 
               {meal.cooking_instructions && meal.cooking_instructions.length > 0 && (
                 <div className="border rounded-lg p-4">
-                  <h4 className="font-heading font-semibold text-sm mb-3">Cooking Steps</h4>
+                  <h4 className="font-heading font-semibold text-sm mb-3">{t.cookingSteps}</h4>
                   <ol className="space-y-3">
                     {meal.cooking_instructions.map((instruction, index) => (
                       <li key={index} className="flex gap-3">
