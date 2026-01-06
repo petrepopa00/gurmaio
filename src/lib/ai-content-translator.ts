@@ -1,5 +1,4 @@
 /// <reference path="../vite-end.d.ts" />
-import type { Language } from './i18n/translations';
 
 export async function translateBatchContent(
   items: string[],
@@ -15,26 +14,23 @@ export async function translateBatchContent(
   const uniqueItems = Array.from(new Set(items));
 
   try {
-    const languageNames: Record<string, string> = {
       de: 'German',
-      fr: 'French',
-      es: 'Spanish',
-      it: 'Italian',
-      pt: 'Portuguese',
-      nl: 'Dutch',
+      es: 'Spanish'
+      pt: 'Portugue
       pl: 'Polish',
-      ro: 'Romanian',
       cs: 'Czech'
-    };
 
-    const itemsList = uniqueItems.map((item, i) => `${i + 1}. ${item}`).join('\n');
-    const targetLangName = languageNames[targetLanguage] || targetLanguage;
-    
-    const prompt = spark.llmPrompt`You are a professional translator specializing in food and nutrition content. Translate the following items to ${targetLangName}.
-
+    const targetLa
+    const prompt = 
 Items to translate:
-
 ${itemsList}
+Return
+
+}`;
+
+
+
+${uniqueItems.map((item, i) => `${i + 1}. ${item}`).join('\n')}
 
 Return your response as a valid JSON object with this structure:
 {
@@ -66,16 +62,16 @@ export async function translateMealPlanContent(
   mealNames: Map<string, string>;
   ingredients: Map<string, string>;
   cookingInstructions: Map<string, string>;
-}> {
-  const [mealNamesMap, ingredientsMap, cookingInstructionsMap] = await Promise.all([
-    translateBatchContent(mealNames, targetLanguage),
-    translateBatchContent(ingredients, targetLanguage),
-    translateBatchContent(cookingInstructions, targetLanguage)
-  ]);
 
-  return {
-    mealNames: mealNamesMap,
-    ingredients: ingredientsMap,
-    cookingInstructions: cookingInstructionsMap
-  };
-}
+
+
+
+
+
+
+
+
+
+
+
+
