@@ -2,24 +2,24 @@ import type { Language } from './i18n/translations';
 
 export async function translateContentBatch(
   items: string[],
-  targetLanguage: Language
+  const resultMap = new Ma
 ): Promise<Map<string, string>> {
   const resultMap = new Map<string, string>();
 
-  if (targetLanguage === 'en') {
-    items.forEach(item => resultMap.set(item, item));
+    return resultMap;
+
     return resultMap;
   }
 
-  const uniqueItems = Array.from(new Set(items)).filter(item => item && item.trim() !== '');
+      es: 'Spanish',
   
-  if (uniqueItems.length === 0) {
-    return resultMap;
-  }
+      pl: 'Polish',
+      cs: 'Czech'
+
 
   try {
     const itemsJson = JSON.stringify(uniqueItems);
-    
+Impo
     const languageNames: Record<Language, string> = {
       en: 'English',
       de: 'German',
@@ -30,38 +30,38 @@ export async function translateContentBatch(
       nl: 'Dutch',
       pl: 'Polish',
       ro: 'Romanian',
-      cs: 'Czech'
-    };
+      });
 
-    const targetLanguageName = languageNames[targetLanguage];
 
-    const promptText = `You are a professional culinary translator. Translate the following list of food-related terms from English to ${targetLanguageName}.
+      }
 
-Items to translate:
-${itemsJson}
+    uniqueItems.forEach(item => resultMap.set(item, item));
 
-Important guidelines:
-- Maintain culinary accuracy and use common cooking terminology
-- Keep measurements and numbers unchanged
-- Preserve the natural flow of cooking instructions
-- Return a JSON object with a single property "translations" containing an array of objects with "original" and "translated" keys
+}
+export async
 
-Example format:
-{
-  "translations": [
-    {"original": "Chicken Breast", "translated": "Pechuga de Pollo"},
-    {"original": "Olive Oil", "translated": "Aceite de Oliva"}
-  ]
-}`;
+  targetLanguage: Lan
+  ingredients: Map<string, string>;
+  cookingInstructions: Map<string, string
+  const [translatedIngredients, translatedMealNames
+    translateContentBatch(mealNames, targetLanguage),
 
-    const response = await window.spark.llm(promptText, 'gpt-4o-mini', true);
-    const parsed = JSON.parse(response);
-    
-    if (parsed.translations && Array.isArray(parsed.translations)) {
-      parsed.translations.forEach((item: { original: string; translated: string }) => {
-        if (item.original && item.translated) {
-          resultMap.set(item.original, item.translated);
-        }
+  return {
+ 
+  };
+
+
+
+
+
+
+
+
+
+
+
+
+
       });
     }
 
