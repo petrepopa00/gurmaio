@@ -433,8 +433,26 @@ function App() {
   };
 
   const handleLanguageChange = async (newLanguage: string) => {
+    if (newLanguage === language) return;
+    
+    const languageNames: Record<string, string> = {
+      'en': 'English',
+      'de': 'Deutsch',
+      'fr': 'Français',
+      'es': 'Español',
+      'it': 'Italiano',
+      'pt': 'Português',
+      'nl': 'Nederlands',
+      'pl': 'Polski',
+      'ro': 'Română',
+      'cs': 'Čeština',
+    };
+    
+    toast.loading(`Schimbare limbă în ${languageNames[newLanguage] || newLanguage}...`, { id: 'language-change' });
+    
     setLanguage(() => newLanguage as any);
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
     window.location.reload();
   };
 
