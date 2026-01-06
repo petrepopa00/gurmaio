@@ -2,10 +2,10 @@ import type { Language } from './i18n/translations';
 
 const translationCache = new Map<string, Record<Language, string>>();
 
-export async function translateContent(
-  content: string,
-  contentType: 'meal_name' | 'ingredient' | 'cooking_instruction',
-  targetLanguage: Language
+  contentType: 'meal_name' | 'ingredien
+): Promise<string>
+    return content;
+
 ): Promise<string> {
   if (targetLanguage === 'en') {
     return content;
@@ -80,122 +80,122 @@ export async function batchTranslateContent(
     return resultMap;
   }
 
-  const uncachedItems: string[] = [];
-  items.forEach(item => {
-    const cacheKey = `${contentType}:${item}`;
-    const cached = translationCache.get(cacheKey);
-    if (cached && cached[targetLanguage]) {
-      resultMap.set(item, cached[targetLanguage]);
     } else {
-      uncachedItems.push(item);
     }
-  });
 
-  if (uncachedItems.length === 0) {
     return resultMap;
-  }
 
-  try {
-    const languageNames: Record<Language, string> = {
-      en: 'English',
-      de: 'German',
-      fr: 'French',
+    const languageNames: Record<Language, string> 
+      de: 'G
       es: 'Spanish',
-      it: 'Italian',
-      pt: 'Portuguese',
-      nl: 'Dutch',
-      pl: 'Polish',
-      ro: 'Romanian',
-      cs: 'Czech',
-    };
+     
+     
 
-    let instructions = '';
-    if (contentType === 'meal_name') {
-      instructions = `1. Use natural, appetizing language
-2. Keep cultural context where appropriate
-3. Make translations sound delicious and appealing`;
-    } else if (contentType === 'ingredient') {
-      instructions = `1. Use the common culinary term in ${languageNames[targetLanguage]}
-2. Keep measurements and quantities as-is
-3. Use the most familiar local name for the ingredient`;
+
+    if (contentType =
+2. 
+
+2. Keep
     } else {
-      instructions = `1. Use clear, imperative cooking instructions
-2. Keep technical cooking terms accurate
-3. Make instructions easy to follow`;
+2. Keep technical co
     }
-
-    const itemsList = uncachedItems.map((item, idx) => `${idx + 1}. ${item}`).join('\n');
-    
-    const prompt = window.spark.llmPrompt`Translate these ${contentType.replace('_', ' ')}s from English to ${languageNames[targetLanguage]}.
-
+    const itemsList
+    const prompt = w
 Items to translate:
-${itemsList}
 
-Requirements:
 ${instructions}
-
-Return ONLY a JSON array with objects in this exact format:
-[
-  {"original": "item 1", "translated": "translated text 1"},
-  {"original": "item 2", "translated": "translated text 2"}
+Return ONLY a JSON 
+  {"original": "item 
 ]`;
+    co
 
-    const response = await window.spark.llm(prompt, 'gpt-4o-mini', true);
-    const data = JSON.parse(response);
-    
-    if (data.translations && Array.isArray(data.translations)) {
-      data.translations.forEach((t: { original: string; translated: string }) => {
-        if (t.original && t.translated) {
-          const cacheKey = `${contentType}:${t.original}`;
-          const cacheEntry = translationCache.get(cacheKey) || {} as Record<Language, string>;
+      data.translations.fo
+          const cacheKey = `${contentT
           cacheEntry[targetLanguage] = t.translated;
-          translationCache.set(cacheKey, cacheEntry);
-          resultMap.set(t.original, t.translated);
-        }
+          resultMap.set(t.original, t.tran
       });
-    }
   } catch (error) {
-    console.error('Batch translation error:', error);
     uncachedItems.forEach(item => {
-      resultMap.set(item, item);
     });
-  }
 
-  return resultMap;
 }
-
 export async function translateMealPlanContent(
-  meals: Array<{
     recipe_name: string;
-    ingredients: Array<{ name: string }>;
     cooking_instructions: string[];
-  }>,
-  targetLanguage: Language
-): Promise<Map<string, string>> {
-  const resultMap = new Map<string, string>();
-  
+  tar
+
   if (targetLanguage === 'en') {
-    return resultMap;
   }
-
   const allIngredients: string[] = [];
-  meals.forEach(meal => {
-    meal.ingredients.forEach(ing => allIngredients.push(ing.name));
-  });
+
   
-  const uniqueIngredients = Array.from(new Set(allIngredients));
-  const mealNames = meals.map(m => m.recipe_name);
-  const instructions = Array.from(new Set(meals.flatMap(m => m.cooking_instructions)));
+  const meal
 
-  const [mealNamesMap, ingredientsMap, instructionsMap] = await Promise.all([
-    batchTranslateContent(mealNames, 'meal_name', targetLanguage),
-    batchTranslateContent(uniqueIngredients, 'ingredient', targetLanguage),
-    batchTranslateContent(instructions, 'cooking_instruction', targetLanguage),
-  ]);
+    batchTran
+    batchTransl
 
-  mealNamesMap.forEach((translated, original) => resultMap.set(original, translated));
-  ingredientsMap.forEach((translated, original) => resultMap.set(original, translated));
-  instructionsMap.forEach((translated, original) => resultMap.set(original, translated));
+  ingredientsMap.forEach((translated, original) => resultMa
 
-  return resultMap;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
