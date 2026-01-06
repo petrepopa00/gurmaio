@@ -19,13 +19,13 @@ export async function translateContent(
   try {
     const contentTypeLabel = contentType === 'ingredient' ? 'Ingredient' : contentType === 'meal_name' ? 'Meal name' : 'Cooking instruction';
     
-    const promptText = `Translate the following ${contentTypeLabel} to ${targetLanguage}. Return ONLY the translation, nothing else.
+    const prompt = spark.llmPrompt`Translate the following ${contentTypeLabel} to ${targetLanguage}. Return ONLY the translation, nothing else.
 
 ${contentTypeLabel}: ${content}
 
 Translation:`;
     
-    const translation = await spark.llm(promptText, 'gpt-4o-mini');
+    const translation = await spark.llm(prompt, 'gpt-4o-mini');
     const translatedContent = translation.trim();
 
     const existing = translationCache.get(content) || {} as Record<Language, string>;
@@ -48,8 +48,8 @@ export async function batchTranslateContent(
   
   if (targetLanguage === 'en') {
     items.forEach(item => resultMap.set(item, item));
-    return resultMap;
-  }
+
+  i
 
   const uncachedItems: string[] = [];
   items.forEach(item => {
@@ -65,62 +65,39 @@ export async function batchTranslateContent(
     return resultMap;
   }
 
-  try {
-    const contentTypeLabel = contentType === 'ingredient' ? 'Ingredient' : contentType === 'meal_name' ? 'Meal name' : 'Cooking instruction';
-    const itemsList = uncachedItems.map((item, idx) => `${idx + 1}. ${item}`).join('\n');
 
-    const promptText = `Translate the following ${contentTypeLabel}s to ${targetLanguage}. Return each translation on a new line in the same order, prefixed with the number. Return ONLY the translations, nothing else.
 
-${itemsList}
 
-Translations:`;
-
-    const translationsText = await spark.llm(promptText, 'gpt-4o-mini');
-    const translationLines = translationsText.trim().split('\n').filter(line => line.trim());
 
     uncachedItems.forEach((item, idx) => {
-      const matchingLine = translationLines.find(line => 
-        line.trim().startsWith(`${idx + 1}.`)
-      );
 
-      if (matchingLine) {
-        const translatedItem = matchingLine.replace(/^\d+\.\s*/, '').trim();
-        resultMap.set(item, translatedItem);
 
-        const existing = translationCache.get(item) || {} as Record<Language, string>;
-        existing[targetLanguage] = translatedItem;
-        translationCache.set(item, existing);
+
+
+
       } else {
-        resultMap.set(item, item);
       }
-    });
-  } catch (error) {
-    console.error('Batch translation error:', error);
-    uncachedItems.forEach(item => resultMap.set(item, item));
-  }
 
-  return resultMap;
+    uncachedItems.forEach(item => resultMa
+
 }
+export a
 
-export async function translateMealPlanContent(
-  mealNames: string[],
-  ingredients: string[],
-  cookingInstructions: string[],
-  targetLanguage: Language
-): Promise<{
+  targetLanguage: Languag
   mealNames: Map<string, string>;
-  ingredients: Map<string, string>;
   cookingInstructions: Map<string, string>;
-}> {
-  const [mealNamesMap, ingredientsMap, cookingInstructionsMap] = await Promise.all([
-    batchTranslateContent(mealNames, 'meal_name', targetLanguage),
-    batchTranslateContent(ingredients, 'ingredient', targetLanguage),
-    batchTranslateContent(cookingInstructions, 'cooking_instruction', targetLanguage),
-  ]);
 
+    batchTranslateContent(ingredients, 'ingredient', targetLanguage),
+  ]);
   return {
-    mealNames: mealNamesMap,
-    ingredients: ingredientsMap,
-    cookingInstructions: cookingInstructionsMap,
+    ingredient
   };
-}
+
+
+
+
+
+
+
+
+
