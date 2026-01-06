@@ -2,73 +2,37 @@ import type { Language } from './i18n/translations';
 
 const translationCache = new Map<string, Record<Language, string>>();
 
-  contentType: 'ingredient' | 'cooking_
-  content: string,
+async function batchTranslateContent(
+  items: string[],
   contentType: 'ingredient' | 'cooking_instruction' | 'meal_name',
   targetLanguage: Language
-  }
-  try {
-    
-   
-
-    
-    translationCache.set(content, {
-      [targetLanguage]: translated
-   
-
-    ret
-}
-expo
-  contentType: 'ingredient' | 'cooking_instruction' | 'meal_name',
-): P
+): Promise<Map<string, string>> {
+  const resultMap = new Map<string, string>();
   
-    
-  }
-  co
-  items.forEach(item => {
-    if (cached && cached[targetLang
-    } else {
-    }
-
-    
-
-    const contentTy
-    const prompt = (window.spark.llmPrompt as any)`Translate the fo
-${contentTypeLabel}
-
- 
-
-    uncachedItems.forEach(item => {
-      if (translat
-        const existing = translationCache.get(item) || {} as Recor
-          ...existing,
-        });
-        resultMap.set(item, item);
-  
-    console.error('Batch transla
-  }
+  if (targetLanguage === 'en') {
+    items.forEach(item => resultMap.set(item, item));
     return resultMap;
   }
 
-  cookingInstructions: string[],
-):
-  mealNames: Map<string, 
-}> {
-    batchTranslateContent(ingredients, 'ing
-    batchTranslateContent(cookingInstructions, 'co
+  const uncachedItems: string[] = [];
+  
+  items.forEach(item => {
+    const cached = translationCache.get(item);
+    if (cached && cached[targetLanguage]) {
+      resultMap.set(item, cached[targetLanguage]);
+    } else {
+      uncachedItems.push(item);
+    }
+  });
 
-    ingredients: ingredientsMap
-    c
-}
-
-
-
-
+  if (uncachedItems.length === 0) {
+    return resultMap;
+  }
 
   try {
     const contentTypeLabel = contentType === 'ingredient' ? 'Ingredient' : contentType === 'meal_name' ? 'Meal name' : 'Cooking instruction';
     
-    const prompt = spark.llmPrompt`Translate the following ${contentTypeLabel}s to ${targetLanguage}. Return a valid JSON object where each key is the original text and the value is the translation.
+    const prompt = (spark.llmPrompt as any)`Translate the following ${contentTypeLabel}s to ${targetLanguage}. Return a valid JSON object where each key is the original text and the value is the translation.
 
 ${contentTypeLabel}s to translate:
 ${uncachedItems.map((item, idx) => `${idx + 1}. ${item}`).join('\n')}
