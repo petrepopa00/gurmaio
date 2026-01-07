@@ -36,6 +36,8 @@ interface ProfileDropdownProps {
   onDeleteAccountClick: () => void;
   profileLabel: string;
   historyLabel: string;
+  mealPreferencesLabel: string;
+  accountSettingsLabel: string;
   logoutLabel: string;
   deleteAccountLabel: string;
 }
@@ -54,6 +56,8 @@ export function ProfileDropdown({
   onDeleteAccountClick,
   profileLabel,
   historyLabel,
+  mealPreferencesLabel,
+  accountSettingsLabel,
   logoutLabel,
   deleteAccountLabel,
 }: ProfileDropdownProps) {
@@ -107,11 +111,11 @@ export function ProfileDropdown({
         )}
         <DropdownMenuItem onClick={onPreferencesClick}>
           <Heart className="mr-2 h-4 w-4" weight={preferencesCount > 0 ? 'fill' : 'regular'} />
-          <span>Meal Preferences {preferencesCount > 0 && `(${preferencesCount})`}</span>
+          <span>{mealPreferencesLabel} {preferencesCount > 0 && `(${preferencesCount})`}</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onAccountSettingsClick}>
           <Gear className="mr-2 h-4 w-4" />
-          <span>Account Settings</span>
+          <span>{accountSettingsLabel}</span>
         </DropdownMenuItem>
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>

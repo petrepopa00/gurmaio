@@ -1284,10 +1284,12 @@ function App() {
                     onLanguageChange={handleLanguageChange}
                     onLogoutClick={handleLogout}
                     onDeleteAccountClick={() => setShowDeleteAccountDialog(true)}
-                    profileLabel="Profile"
-                    historyLabel="Saved Plans"
+                    profileLabel={t.profile}
+                    historyLabel={t.savedMealPlans}
+                    mealPreferencesLabel={t.mealPreferences}
+                    accountSettingsLabel={t.accountSettings}
                     logoutLabel={t.logout}
-                    deleteAccountLabel="Delete Account"
+                    deleteAccountLabel={t.deleteAccount}
                   />
                 </div>
               ) : isDemoMode ? (

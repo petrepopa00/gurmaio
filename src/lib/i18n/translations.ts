@@ -153,6 +153,9 @@ export const translations = {
     smartShoppingDescription: 'Aggregated lists with realistic grocery costs',
     demoModeWarning: 'Demo Mode: Your data is not saved',
     demoModeWarningDescription: 'Create an account to save meal plans and preferences. Data will be lost on page refresh.',
+    mealPreferences: 'Meal Preferences',
+    accountSettings: 'Account Settings',
+    deleteAccount: 'Delete Account',
     onboarding: {
       createProfile: 'Create Your Profile',
       updateProfile: 'Update Your Profile',
@@ -387,6 +390,9 @@ export const translations = {
     smartShoppingDescription: 'Aggregierte Listen mit realistischen Lebensmittelkosten',
     demoModeWarning: 'Demo-Modus: Ihre Daten werden nicht gespeichert',
     demoModeWarningDescription: 'Erstellen Sie ein Konto, um Essenspläne und Präferenzen zu speichern. Daten gehen beim Aktualisieren der Seite verloren.',
+    mealPreferences: 'Mahlzeitenpräferenzen',
+    accountSettings: 'Kontoeinstellungen',
+    deleteAccount: 'Konto löschen',
     onboarding: {
       createProfile: 'Profil erstellen',
       updateProfile: 'Profil aktualisieren',
@@ -621,6 +627,9 @@ export const translations = {
     smartShoppingDescription: 'Listes agrégées avec coûts d\'épicerie réalistes',
     demoModeWarning: 'Mode Démo : Vos données ne sont pas enregistrées',
     demoModeWarningDescription: 'Créez un compte pour enregistrer les plans de repas et les préférences. Les données seront perdues lors du rafraîchissement de la page.',
+    mealPreferences: 'Préférences de repas',
+    accountSettings: 'Paramètres du compte',
+    deleteAccount: 'Supprimer le compte',
     onboarding: {
       createProfile: 'Créer votre profil',
       updateProfile: 'Mettre à jour votre profil',
@@ -855,6 +864,9 @@ export const translations = {
     smartShoppingDescription: 'Listas agregadas con costos de comestibles realistas',
     demoModeWarning: 'Modo demostración: Tus datos no se guardan',
     demoModeWarningDescription: 'Crea una cuenta para guardar planes de comidas y preferencias. Los datos se perderán al actualizar la página.',
+    mealPreferences: 'Preferencias de comidas',
+    accountSettings: 'Configuración de cuenta',
+    deleteAccount: 'Eliminar cuenta',
     onboarding: {
       createProfile: 'Crear tu perfil',
       updateProfile: 'Actualizar tu perfil',
@@ -1089,6 +1101,9 @@ export const translations = {
     smartShoppingDescription: 'Liste aggregate con costi della spesa realistici',
     demoModeWarning: 'Modalità demo: I tuoi dati non vengono salvati',
     demoModeWarningDescription: 'Crea un account per salvare i piani pasti e le preferenze. I dati andranno persi all\'aggiornamento della pagina.',
+    mealPreferences: 'Preferenze pasti',
+    accountSettings: 'Impostazioni account',
+    deleteAccount: 'Elimina account',
     onboarding: {
       createProfile: 'Crea il tuo profilo',
       updateProfile: 'Aggiorna il tuo profilo',
@@ -1323,6 +1338,9 @@ export const translations = {
     smartShoppingDescription: 'Listas agregadas com custos de compras realistas',
     demoModeWarning: 'Modo de demonstração: Os seus dados não são guardados',
     demoModeWarningDescription: 'Crie uma conta para guardar planos de refeições e preferências. Os dados serão perdidos ao atualizar a página.',
+    mealPreferences: 'Preferências de refeições',
+    accountSettings: 'Configurações da conta',
+    deleteAccount: 'Eliminar conta',
     onboarding: {
       createProfile: 'Criar o seu perfil',
       updateProfile: 'Atualizar o seu perfil',
@@ -1557,6 +1575,9 @@ export const translations = {
     smartShoppingDescription: 'Geaggregeerde lijsten met realistische boodschappenkosten',
     demoModeWarning: 'Demo-modus: Je gegevens worden niet opgeslagen',
     demoModeWarningDescription: 'Maak een account aan om maaltijdplannen en voorkeuren op te slaan. Gegevens gaan verloren bij het vernieuwen van de pagina.',
+    mealPreferences: 'Maaltijdvoorkeuren',
+    accountSettings: 'Accountinstellingen',
+    deleteAccount: 'Account verwijderen',
     onboarding: {
       createProfile: 'Maak je profiel aan',
       updateProfile: 'Update je profiel',
@@ -1791,6 +1812,9 @@ export const translations = {
     smartShoppingDescription: 'Zagregowane listy z realistycznymi kosztami zakupów spożywczych',
     demoModeWarning: 'Tryb demonstracyjny: Twoje dane nie są zapisywane',
     demoModeWarningDescription: 'Utwórz konto, aby zapisać plany posiłków i preferencje. Dane zostaną utracone po odświeżeniu strony.',
+    mealPreferences: 'Preferencje posiłków',
+    accountSettings: 'Ustawienia konta',
+    deleteAccount: 'Usuń konto',
     onboarding: {
       createProfile: 'Utwórz swój profil',
       updateProfile: 'Zaktualizuj swój profil',
@@ -2025,6 +2049,9 @@ export const translations = {
     smartShoppingDescription: 'Liste agregate cu costuri realiste de cumpărături',
     demoModeWarning: 'Mod demonstrativ: Datele tale nu sunt salvate',
     demoModeWarningDescription: 'Creează un cont pentru a salva planuri de mese și preferințe. Datele vor fi pierdute la reîmprospătarea paginii.',
+    mealPreferences: 'Preferințe mese',
+    accountSettings: 'Setări cont',
+    deleteAccount: 'Șterge contul',
     onboarding: {
       createProfile: 'Creează-ți profilul',
       updateProfile: 'Actualizează-ți profilul',
@@ -2259,6 +2286,9 @@ export const translations = {
     smartShoppingDescription: 'Agregované seznamy s realistickými náklady na nákupy',
     demoModeWarning: 'Demo režim: Vaše data nejsou uložena',
     demoModeWarningDescription: 'Vytvořte si účet pro uložení jídelníčků a preferencí. Data budou ztracena při obnovení stránky.',
+    mealPreferences: 'Preference jídel',
+    accountSettings: 'Nastavení účtu',
+    deleteAccount: 'Smazat účet',
     onboarding: {
       createProfile: 'Vytvořte svůj profil',
       updateProfile: 'Aktualizujte svůj profil',
