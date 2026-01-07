@@ -31,6 +31,7 @@ const DIETARY_OPTIONS = [
 ];
 
 const ALLERGEN_OPTIONS = [
+  'None',
   'Gluten',
   'Dairy',
   'Nuts',
@@ -75,6 +76,7 @@ function getDietaryTranslationKey(option: string): keyof typeof import('@/lib/i1
 
 function getAllergenTranslationKey(option: string): keyof typeof import('@/lib/i18n/translations').translations.en.allergens {
   const mapping: Record<string, keyof typeof import('@/lib/i18n/translations').translations.en.allergens> = {
+    'None': 'none',
     'Gluten': 'gluten',
     'Dairy': 'dairy',
     'Nuts': 'nuts',
@@ -86,7 +88,7 @@ function getAllergenTranslationKey(option: string): keyof typeof import('@/lib/i
     'Sesame': 'sesame',
     'Sulfites': 'sulfites',
   };
-  return mapping[option] || 'gluten';
+  return mapping[option] || 'none';
 }
 
 function getCuisineTranslationKey(option: string): keyof typeof import('@/lib/i18n/translations').translations.en.cuisines {
@@ -116,7 +118,7 @@ export function OnboardingDialog({ open, onOpenChange, onSave, existingProfile }
   const [days, setDays] = useState(existingProfile?.meal_plan_days?.toString() || '5');
   const [mealsPerDay, setMealsPerDay] = useState(existingProfile?.meals_per_day?.toString() || '3');
   const [dietaryPrefs, setDietaryPrefs] = useState<string[]>(existingProfile?.dietary_preferences || ['Balanced']);
-  const [allergens, setAllergens] = useState<string[]>(existingProfile?.allergens || []);
+  const [allergens, setAllergens] = useState<string[]>(existingProfile?.allergens || ['None']);
   const [cuisines, setCuisines] = useState<string[]>(existingProfile?.cuisine_preferences || ['Any']);
   const [otherCuisines, setOtherCuisines] = useState(existingProfile?.other_cuisines || '');
   const [excludedIngredients, setExcludedIngredients] = useState<string[]>(existingProfile?.excluded_ingredients || []);

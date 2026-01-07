@@ -199,6 +199,7 @@ export const translations = {
       paleo: 'Paleo',
     },
     allergens: {
+      none: 'None',
       gluten: 'Gluten',
       dairy: 'Dairy',
       nuts: 'Nuts',
@@ -437,6 +438,7 @@ export const translations = {
       paleo: 'Paleo',
     },
     allergens: {
+      none: 'Keine',
       gluten: 'Gluten',
       dairy: 'Milchprodukte',
       nuts: 'Nüsse',
@@ -675,6 +677,7 @@ export const translations = {
       paleo: 'Paléo',
     },
     allergens: {
+      none: 'Aucun',
       gluten: 'Gluten',
       dairy: 'Produits laitiers',
       nuts: 'Noix',
@@ -913,6 +916,7 @@ export const translations = {
       paleo: 'Paleo',
     },
     allergens: {
+      none: 'Ninguno',
       gluten: 'Gluten',
       dairy: 'Lácteos',
       nuts: 'Frutos secos',
@@ -1151,6 +1155,7 @@ export const translations = {
       paleo: 'Paleo',
     },
     allergens: {
+      none: 'Nessuno',
       gluten: 'Glutine',
       dairy: 'Latticini',
       nuts: 'Frutta secca',
@@ -1389,6 +1394,7 @@ export const translations = {
       paleo: 'Paleo',
     },
     allergens: {
+      none: 'Nenhum',
       gluten: 'Glúten',
       dairy: 'Laticínios',
       nuts: 'Frutos secos',
@@ -1627,6 +1633,7 @@ export const translations = {
       paleo: 'Paleo',
     },
     allergens: {
+      none: 'Geen',
       gluten: 'Gluten',
       dairy: 'Zuivel',
       nuts: 'Noten',
@@ -1865,6 +1872,7 @@ export const translations = {
       paleo: 'Paleo',
     },
     allergens: {
+      none: 'Brak',
       gluten: 'Gluten',
       dairy: 'Nabiał',
       nuts: 'Orzechy',
@@ -2103,6 +2111,7 @@ export const translations = {
       paleo: 'Paleo',
     },
     allergens: {
+      none: 'Niciunul',
       gluten: 'Gluten',
       dairy: 'Lactate',
       nuts: 'Nuci',
@@ -2341,6 +2350,7 @@ export const translations = {
       paleo: 'Paleo',
     },
     allergens: {
+      none: 'Žádné',
       gluten: 'Lepek',
       dairy: 'Mléčné výrobky',
       nuts: 'Ořechy',
