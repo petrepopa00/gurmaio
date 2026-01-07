@@ -44,6 +44,7 @@ const ALLERGEN_OPTIONS = [
 ];
 
 const CUISINE_OPTIONS = [
+  'Any',
   'Italian',
   'Asian',
   'Mediterranean',
@@ -90,6 +91,7 @@ function getAllergenTranslationKey(option: string): keyof typeof import('@/lib/i
 
 function getCuisineTranslationKey(option: string): keyof typeof import('@/lib/i18n/translations').translations.en.cuisines {
   const mapping: Record<string, keyof typeof import('@/lib/i18n/translations').translations.en.cuisines> = {
+    'Any': 'any',
     'Italian': 'italian',
     'Asian': 'asian',
     'Mediterranean': 'mediterranean',
@@ -115,7 +117,7 @@ export function OnboardingDialog({ open, onOpenChange, onSave, existingProfile }
   const [mealsPerDay, setMealsPerDay] = useState(existingProfile?.meals_per_day?.toString() || '3');
   const [dietaryPrefs, setDietaryPrefs] = useState<string[]>(existingProfile?.dietary_preferences || ['Balanced']);
   const [allergens, setAllergens] = useState<string[]>(existingProfile?.allergens || []);
-  const [cuisines, setCuisines] = useState<string[]>(existingProfile?.cuisine_preferences || ['Italian', 'Mediterranean']);
+  const [cuisines, setCuisines] = useState<string[]>(existingProfile?.cuisine_preferences || ['Any']);
   const [otherCuisines, setOtherCuisines] = useState(existingProfile?.other_cuisines || '');
   const [excludedIngredients, setExcludedIngredients] = useState<string[]>(existingProfile?.excluded_ingredients || []);
   const [newIngredient, setNewIngredient] = useState('');

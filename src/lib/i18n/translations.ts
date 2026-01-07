@@ -211,6 +211,7 @@ export const translations = {
       sulfites: 'Sulfites',
     },
     cuisines: {
+      any: 'Any',
       italian: 'Italian',
       asian: 'Asian',
       mediterranean: 'Mediterranean',
@@ -448,6 +449,7 @@ export const translations = {
       sulfites: 'Sulfite',
     },
     cuisines: {
+      any: 'Alle',
       italian: 'Italienisch',
       asian: 'Asiatisch',
       mediterranean: 'Mediterran',
@@ -685,6 +687,7 @@ export const translations = {
       sulfites: 'Sulfites',
     },
     cuisines: {
+      any: 'Tout',
       italian: 'Italien',
       asian: 'Asiatique',
       mediterranean: 'Méditerranéen',
@@ -922,6 +925,7 @@ export const translations = {
       sulfites: 'Sulfitos',
     },
     cuisines: {
+      any: 'Cualquiera',
       italian: 'Italiana',
       asian: 'Asiática',
       mediterranean: 'Mediterránea',
@@ -1159,6 +1163,7 @@ export const translations = {
       sulfites: 'Solfiti',
     },
     cuisines: {
+      any: 'Qualsiasi',
       italian: 'Italiana',
       asian: 'Asiatica',
       mediterranean: 'Mediterranea',
@@ -1396,6 +1401,7 @@ export const translations = {
       sulfites: 'Sulfitos',
     },
     cuisines: {
+      any: 'Qualquer',
       italian: 'Italiana',
       asian: 'Asiática',
       mediterranean: 'Mediterrânea',
@@ -1633,6 +1639,7 @@ export const translations = {
       sulfites: 'Sulfieten',
     },
     cuisines: {
+      any: 'Alles',
       italian: 'Italiaans',
       asian: 'Aziatisch',
       mediterranean: 'Mediterraans',
@@ -1870,6 +1877,7 @@ export const translations = {
       sulfites: 'Siarczyny',
     },
     cuisines: {
+      any: 'Dowolna',
       italian: 'Włoska',
       asian: 'Azjatycka',
       mediterranean: 'Śródziemnomorska',
@@ -2107,6 +2115,7 @@ export const translations = {
       sulfites: 'Sulfiți',
     },
     cuisines: {
+      any: 'Orice',
       italian: 'Italiană',
       asian: 'Asiatică',
       mediterranean: 'Mediteraneană',
@@ -2344,6 +2353,7 @@ export const translations = {
       sulfites: 'Siřičitany',
     },
     cuisines: {
+      any: 'Jakákoliv',
       italian: 'Italská',
       asian: 'Asijská',
       mediterranean: 'Středomořská',
