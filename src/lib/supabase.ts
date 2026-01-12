@@ -1,27 +1,33 @@
 import { createClient } from '@supabase/supabase-js';
 
+function getEnvVar(key: string): string {
+  try {
     return import.meta.env[key] || '';
-  return '';
-    return import.meta.env[key] || '';
+  } catch {
+    return '';
   }
-  return '';
 }
+
+const supabaseUrl = getEnvVar('VITE_SUPABASE_URL');
+const supabaseAnonKey = getEnvVar('VITE_SUPABASE_ANON_KEY');
+
+const hasConfig = Boolean(supabaseUrl && supabaseAnonKey);
 
 export const supabase = hasConfig
+  ? createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
-
+        persistSession: true,
+        autoRefreshToken: true,
+      },
+    })
   : null;
 
-export function getSupabaseStatus
+export function getSupabaseStatus() {
+  return {
     configured: hasConfig,
-    hasKey: B
+    hasUrl: Boolean(supabaseUrl),
+    hasKey: Boolean(supabaseAnonKey),
+  };
 }
 
-
-
-
 export { hasConfig };
-
-
-
-

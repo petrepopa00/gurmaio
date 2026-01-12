@@ -21,7 +21,7 @@ export function SupabaseConfigCheck() {
         <ul className="list-disc list-inside space-y-1 text-sm">
           <li>
             <code className="bg-muted px-1 py-0.5 rounded">VITE_SUPABASE_URL</code>
-            {status.url !== 'Not configured' ? ' ✓' : ' ✗'}
+            {status.hasUrl ? ' ✓' : ' ✗'}
           </li>
           <li>
             <code className="bg-muted px-1 py-0.5 rounded">VITE_SUPABASE_ANON_KEY</code>
