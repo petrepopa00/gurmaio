@@ -1,10 +1,18 @@
--- Gurmaio Database Schema for Supabase
--- Run this in your Supabase SQL Editor to set up the database
+-- ==================================================
+-- GURMAIO - SUPABASE DATABASE SETUP
+-- ==================================================
+-- Run this entire script in your Supabase SQL Editor
+-- to set up all tables, indexes, RLS policies, and triggers
+-- ==================================================
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Profiles table
+-- ==================================================
+-- TABLES
+-- ==================================================
+
+-- Profiles table - User meal planning preferences
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
@@ -19,7 +27,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   UNIQUE(user_id)
 );
 
--- Meal plans table
+-- Meal plans table - Generated and saved meal plans  
 CREATE TABLE IF NOT EXISTS meal_plans (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
@@ -34,7 +42,7 @@ CREATE TABLE IF NOT EXISTS meal_plans (
   UNIQUE(user_id, plan_id)
 );
 
--- Meal preferences table
+-- Meal preferences table - User likes/dislikes for meals
 CREATE TABLE IF NOT EXISTS meal_preferences (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
@@ -48,7 +56,7 @@ CREATE TABLE IF NOT EXISTS meal_preferences (
   UNIQUE(user_id, meal_id)
 );
 
--- Portion adjustments table
+-- Portion adjustments table - Custom portion sizes
 CREATE TABLE IF NOT EXISTS portion_adjustments (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
@@ -59,7 +67,7 @@ CREATE TABLE IF NOT EXISTS portion_adjustments (
   UNIQUE(user_id, meal_id)
 );
 
--- Scheduled days table
+-- Scheduled days table - Calendar scheduling for meal plans
 CREATE TABLE IF NOT EXISTS scheduled_days (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
@@ -77,7 +85,7 @@ CREATE TABLE IF NOT EXISTS scheduled_days (
   UNIQUE(user_id, date)
 );
 
--- Day progress table
+-- Day progress table - Completed meals tracking
 CREATE TABLE IF NOT EXISTS day_progress (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
@@ -90,7 +98,7 @@ CREATE TABLE IF NOT EXISTS day_progress (
   UNIQUE(user_id, date)
 );
 
--- Badges table
+-- Badges table - Achievement badges earned by users
 CREATE TABLE IF NOT EXISTS badges (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
@@ -106,7 +114,7 @@ CREATE TABLE IF NOT EXISTS badges (
   UNIQUE(user_id, badge_id)
 );
 
--- Shopping lists table
+-- Shopping lists table - Shopping lists per meal plan
 CREATE TABLE IF NOT EXISTS shopping_lists (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
@@ -117,7 +125,7 @@ CREATE TABLE IF NOT EXISTS shopping_lists (
   UNIQUE(user_id, plan_id)
 );
 
--- Meal prep plans table
+-- Meal prep plans table - Meal prep schedules and batch cooking
 CREATE TABLE IF NOT EXISTS meal_prep_plans (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
@@ -129,7 +137,7 @@ CREATE TABLE IF NOT EXISTS meal_prep_plans (
   UNIQUE(user_id, plan_id)
 );
 
--- User settings table
+-- User settings table - User app settings (language, preferences, etc.)
 CREATE TABLE IF NOT EXISTS user_settings (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
@@ -139,7 +147,10 @@ CREATE TABLE IF NOT EXISTS user_settings (
   UNIQUE(user_id)
 );
 
--- Create indexes for better query performance
+-- ==================================================
+-- INDEXES
+-- ==================================================
+
 CREATE INDEX IF NOT EXISTS idx_profiles_user_id ON profiles(user_id);
 CREATE INDEX IF NOT EXISTS idx_meal_plans_user_id ON meal_plans(user_id);
 CREATE INDEX IF NOT EXISTS idx_meal_plans_is_saved ON meal_plans(user_id, is_saved);
@@ -152,8 +163,12 @@ CREATE INDEX IF NOT EXISTS idx_day_progress_date ON day_progress(user_id, date);
 CREATE INDEX IF NOT EXISTS idx_badges_user_id ON badges(user_id);
 CREATE INDEX IF NOT EXISTS idx_shopping_lists_user_id ON shopping_lists(user_id);
 CREATE INDEX IF NOT EXISTS idx_meal_prep_plans_user_id ON meal_prep_plans(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_settings_user_id ON user_settings(user_id);
 
--- Enable Row Level Security (RLS)
+-- ==================================================
+-- ENABLE ROW LEVEL SECURITY
+-- ==================================================
+
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE meal_plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE meal_preferences ENABLE ROW LEVEL SECURITY;
@@ -165,137 +180,115 @@ ALTER TABLE shopping_lists ENABLE ROW LEVEL SECURITY;
 ALTER TABLE meal_prep_plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_settings ENABLE ROW LEVEL SECURITY;
 
--- RLS Policies for profiles
+-- ==================================================
+-- RLS POLICIES
+-- ==================================================
+
+-- Profiles policies
 CREATE POLICY "Users can view own profile" ON profiles
   FOR SELECT USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can insert own profile" ON profiles
   FOR INSERT WITH CHECK (auth.uid() = user_id);
-
 CREATE POLICY "Users can update own profile" ON profiles
   FOR UPDATE USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can delete own profile" ON profiles
   FOR DELETE USING (auth.uid() = user_id);
 
--- RLS Policies for meal_plans
+-- Meal plans policies
 CREATE POLICY "Users can view own meal plans" ON meal_plans
   FOR SELECT USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can insert own meal plans" ON meal_plans
   FOR INSERT WITH CHECK (auth.uid() = user_id);
-
 CREATE POLICY "Users can update own meal plans" ON meal_plans
   FOR UPDATE USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can delete own meal plans" ON meal_plans
   FOR DELETE USING (auth.uid() = user_id);
 
--- RLS Policies for meal_preferences
+-- Meal preferences policies
 CREATE POLICY "Users can view own meal preferences" ON meal_preferences
   FOR SELECT USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can insert own meal preferences" ON meal_preferences
   FOR INSERT WITH CHECK (auth.uid() = user_id);
-
 CREATE POLICY "Users can update own meal preferences" ON meal_preferences
   FOR UPDATE USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can delete own meal preferences" ON meal_preferences
   FOR DELETE USING (auth.uid() = user_id);
 
--- RLS Policies for portion_adjustments
+-- Portion adjustments policies
 CREATE POLICY "Users can view own portion adjustments" ON portion_adjustments
   FOR SELECT USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can insert own portion adjustments" ON portion_adjustments
   FOR INSERT WITH CHECK (auth.uid() = user_id);
-
 CREATE POLICY "Users can update own portion adjustments" ON portion_adjustments
   FOR UPDATE USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can delete own portion adjustments" ON portion_adjustments
   FOR DELETE USING (auth.uid() = user_id);
 
--- RLS Policies for scheduled_days
+-- Scheduled days policies
 CREATE POLICY "Users can view own scheduled days" ON scheduled_days
   FOR SELECT USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can insert own scheduled days" ON scheduled_days
   FOR INSERT WITH CHECK (auth.uid() = user_id);
-
 CREATE POLICY "Users can update own scheduled days" ON scheduled_days
   FOR UPDATE USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can delete own scheduled days" ON scheduled_days
   FOR DELETE USING (auth.uid() = user_id);
 
--- RLS Policies for day_progress
+-- Day progress policies
 CREATE POLICY "Users can view own day progress" ON day_progress
   FOR SELECT USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can insert own day progress" ON day_progress
   FOR INSERT WITH CHECK (auth.uid() = user_id);
-
 CREATE POLICY "Users can update own day progress" ON day_progress
   FOR UPDATE USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can delete own day progress" ON day_progress
   FOR DELETE USING (auth.uid() = user_id);
 
--- RLS Policies for badges
+-- Badges policies
 CREATE POLICY "Users can view own badges" ON badges
   FOR SELECT USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can insert own badges" ON badges
   FOR INSERT WITH CHECK (auth.uid() = user_id);
-
 CREATE POLICY "Users can update own badges" ON badges
   FOR UPDATE USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can delete own badges" ON badges
   FOR DELETE USING (auth.uid() = user_id);
 
--- RLS Policies for shopping_lists
+-- Shopping lists policies
 CREATE POLICY "Users can view own shopping lists" ON shopping_lists
   FOR SELECT USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can insert own shopping lists" ON shopping_lists
   FOR INSERT WITH CHECK (auth.uid() = user_id);
-
 CREATE POLICY "Users can update own shopping lists" ON shopping_lists
   FOR UPDATE USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can delete own shopping lists" ON shopping_lists
   FOR DELETE USING (auth.uid() = user_id);
 
--- RLS Policies for meal_prep_plans
+-- Meal prep plans policies
 CREATE POLICY "Users can view own meal prep plans" ON meal_prep_plans
   FOR SELECT USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can insert own meal prep plans" ON meal_prep_plans
   FOR INSERT WITH CHECK (auth.uid() = user_id);
-
 CREATE POLICY "Users can update own meal prep plans" ON meal_prep_plans
   FOR UPDATE USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can delete own meal prep plans" ON meal_prep_plans
   FOR DELETE USING (auth.uid() = user_id);
 
--- RLS Policies for user_settings
+-- User settings policies
 CREATE POLICY "Users can view own settings" ON user_settings
   FOR SELECT USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can insert own settings" ON user_settings
   FOR INSERT WITH CHECK (auth.uid() = user_id);
-
 CREATE POLICY "Users can update own settings" ON user_settings
   FOR UPDATE USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can delete own settings" ON user_settings
   FOR DELETE USING (auth.uid() = user_id);
 
--- Function to update updated_at timestamp
+-- ==================================================
+-- FUNCTIONS & TRIGGERS
+-- ==================================================
+
+-- Function to automatically update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -304,7 +297,7 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- Triggers to automatically update updated_at
+-- Triggers for all tables with updated_at column
 CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON profiles
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
@@ -325,3 +318,10 @@ CREATE TRIGGER update_meal_prep_plans_updated_at BEFORE UPDATE ON meal_prep_plan
 
 CREATE TRIGGER update_user_settings_updated_at BEFORE UPDATE ON user_settings
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ==================================================
+-- DONE!
+-- ==================================================
+-- All tables, indexes, RLS policies, and triggers have been created.
+-- You can now use the Gurmaio application with Supabase as the backend.
+-- ==================================================
