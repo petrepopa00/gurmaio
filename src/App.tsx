@@ -25,6 +25,8 @@ import { MealCalendar } from '@/components/meal-calendar';
 import { ProgressDialog } from '@/components/progress-dialog';
 import { StreakCounter } from '@/components/streak-counter';
 import { MealPreferencesDialog } from '@/components/meal-preferences-dialog';
+import { TodayCard } from '@/components/today-card';
+import { FirstSuccessDialog } from '@/components/first-success-dialog';
 import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Toaster } from '@/components/ui/sonner';
@@ -75,9 +77,14 @@ function App() {
   const [showCreateAccountDialog, setShowCreateAccountDialog] = useState(false);
   const [showEmailVerificationDialog, setShowEmailVerificationDialog] = useState(false);
   const [showMealPreferences, setShowMealPreferences] = useState(false);
+  const [showFirstSuccessDialog, setShowFirstSuccessDialog] = useState(false);
+  const [hasShownFirstSuccess, setHasShownFirstSuccess] = useKV<boolean>('has_shown_first_success', false);
   
   const hasProfile = userProfile !== null;
   const hasMealPlan = mealPlan !== null;
+  
+  const todayDate = new Date().toISOString().split('T')[0];
+  const todayScheduled = (scheduledDays || []).find(s => s.date === todayDate) || null;
   
   const { translatedPlan, isTranslating } = useTranslatedMealPlan(mealPlan || null, language, {
     onTranslationComplete: () => {
@@ -139,6 +146,12 @@ function App() {
     }
   }, [currentUser, needsVerification, isDemoMode]);
 
+  useEffect(() => {
+    if (!hasShownFirstSuccess && (dayProgress?.length ?? 0) > 0) {
+      setShowFirstSuccessDialog(true);
+      setHasShownFirstSuccess(() => true);
+    }
+  }, [dayProgress, hasShownFirstSuccess, setHasShownFirstSuccess]);
 
 
   const loadUser = async () => {
@@ -1370,6 +1383,16 @@ function App() {
             </div>
           </div>
         )}
+
+        {hasMealPlan && (
+          <div className="mb-6">
+            <TodayCard
+              todayScheduled={todayScheduled}
+              currentDate={todayDate}
+              t={t}
+            />
+          </div>
+        )}
         
         <AnimatePresence mode="wait">
           {!hasMealPlan ? (
@@ -1842,6 +1865,12 @@ function App() {
         preferences={mealPreferences || []}
         onRemovePreference={handleRemovePreference}
         onClearAll={handleClearAllPreferences}
+      />
+
+      <FirstSuccessDialog
+        open={showFirstSuccessDialog}
+        onOpenChange={setShowFirstSuccessDialog}
+        t={t}
       />
 
       {currentUser && (

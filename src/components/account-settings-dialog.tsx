@@ -13,6 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Eye, EyeSlash, Lock, Envelope, User, Link as LinkIcon } from '@phosphor-icons/react';
+import { ReminderSettingsCard } from '@/components/reminder-settings-card';
+import { useLanguage } from '@/hooks/use-language';
 import { toast } from 'sonner';
 
 interface UserInfo {
@@ -53,6 +55,7 @@ export function AccountSettingsDialog({
   const [isUpdatingUsername, setIsUpdatingUsername] = useState(false);
   
   const [mealPlanningEmails, setMealPlanningEmails] = useState(false);
+  const { t } = useLanguage();
 
   const handlePasswordChange = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
@@ -374,6 +377,13 @@ export function AccountSettingsDialog({
 
           <TabsContent value="preferences" className="space-y-4 pt-4">
             <div className="space-y-4">
+              <ReminderSettingsCard
+                userEmail={currentUser.email}
+                t={t}
+              />
+
+              <Separator />
+
               <div>
                 <h4 className="text-sm font-medium mb-3">Email Preferences</h4>
                 <div className="flex items-start space-x-3 rounded-lg border p-4">
