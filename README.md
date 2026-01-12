@@ -90,7 +90,7 @@ The app uses **Supabase** as the backend for persistent data storage.
 
 #### Quick Start
 1. **Setup Guide**: [supabase/SETUP.md](./supabase/SETUP.md) - Complete setup instructions (5 minutes)
-2. **Apply Migration**: [supabase/migrations/20240101000000_initial_schema.sql](./supabase/migrations/20240101000000_initial_schema.sql)
+2. **Apply Schema**: Run [supabase-complete-setup.sql](./supabase-complete-setup.sql) (recommended) or push migrations via Supabase CLI
 3. **Verify**: [supabase/VERIFICATION_CHECKLIST.md](./supabase/VERIFICATION_CHECKLIST.md)
 
 #### Documentation
@@ -99,12 +99,17 @@ The app uses **Supabase** as the backend for persistent data storage.
 - 🔍 **Query Reference**: [supabase/QUERY_REFERENCE.md](./supabase/QUERY_REFERENCE.md)
 - 📋 **Full Index**: [supabase/INDEX.md](./supabase/INDEX.md)
 
-#### Core Tables (5)
-1. **profiles** - User settings and meal preferences
-2. **meal_plans** - Meal plans with budget and duration
-3. **meals** - Individual meals with nutritional data
-4. **shopping_items** - Shopping list items per meal plan
-5. **user_progress** - Daily progress tracking
+#### Core Tables (10)
+1. **profiles** - User profile (budget, days, preferences)
+2. **meal_plans** - Generated/saved plans (JSONB days + totals)
+3. **meal_preferences** - Like/dislike history per meal
+4. **portion_adjustments** - Portion multipliers per meal
+5. **scheduled_days** - Calendar schedule per date
+6. **day_progress** - Completed meals tracking per day
+7. **badges** - Monthly achievement badges
+8. **shopping_lists** - Aggregated shopping list per plan
+9. **meal_prep_plans** - Prep sessions & batch cooking
+10. **user_settings** - App settings blob (e.g. language)
 
 #### Features
 - ✅ Row Level Security (RLS) on all tables

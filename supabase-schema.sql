@@ -1,12 +1,12 @@
 -- Gurmaio Database Schema for Supabase
 -- Run this in your Supabase SQL Editor to set up the database
 
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- Enable UUID generation (Supabase default)
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Profiles table
 CREATE TABLE IF NOT EXISTS profiles (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   meal_plan_days INTEGER NOT NULL,
   meals_per_day INTEGER NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS profiles (
 
 -- Meal plans table
 CREATE TABLE IF NOT EXISTS meal_plans (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   plan_id TEXT NOT NULL,
   generated_at TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS meal_plans (
 
 -- Meal preferences table
 CREATE TABLE IF NOT EXISTS meal_preferences (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   meal_id TEXT NOT NULL,
   recipe_name TEXT NOT NULL,
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS meal_preferences (
 
 -- Portion adjustments table
 CREATE TABLE IF NOT EXISTS portion_adjustments (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   meal_id TEXT NOT NULL,
   portion_multiplier DECIMAL(3,2) NOT NULL,
@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS portion_adjustments (
 
 -- Scheduled days table
 CREATE TABLE IF NOT EXISTS scheduled_days (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   date DATE NOT NULL,
   day_number INTEGER NOT NULL,
@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS scheduled_days (
 
 -- Day progress table
 CREATE TABLE IF NOT EXISTS day_progress (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   date DATE NOT NULL,
   completed_meals JSONB NOT NULL,
@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS day_progress (
 
 -- Badges table
 CREATE TABLE IF NOT EXISTS badges (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   badge_id TEXT NOT NULL,
   month TEXT NOT NULL,
@@ -108,7 +108,7 @@ CREATE TABLE IF NOT EXISTS badges (
 
 -- Shopping lists table
 CREATE TABLE IF NOT EXISTS shopping_lists (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   plan_id TEXT NOT NULL,
   items JSONB NOT NULL,
@@ -119,7 +119,7 @@ CREATE TABLE IF NOT EXISTS shopping_lists (
 
 -- Meal prep plans table
 CREATE TABLE IF NOT EXISTS meal_prep_plans (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   plan_id TEXT NOT NULL,
   prep_sessions JSONB NOT NULL,
@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS meal_prep_plans (
 
 -- User settings table
 CREATE TABLE IF NOT EXISTS user_settings (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   settings JSONB NOT NULL DEFAULT '{}',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

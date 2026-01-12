@@ -47,7 +47,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-public-key-here
 
 1. In your Supabase project, click **SQL Editor** in the left sidebar
 2. Click **"New query"** button
-3. Open the file `/supabase/migrations/20240101000000_initial_schema.sql` from this repository
+3. Open the file `supabase-complete-setup.sql` from the repository root
 4. Copy the **entire contents** of the file
 5. Paste it into the SQL Editor
 6. Click **"Run"** (or press `Ctrl/Cmd + Enter`)
@@ -74,12 +74,17 @@ supabase db push
 ## Step 5: Verify the Setup
 
 1. In your Supabase dashboard, click **Table Editor** in the left sidebar
-2. You should see 5 new tables:
+2. You should see these tables:
    - ✅ `profiles`
    - ✅ `meal_plans`
-   - ✅ `meals`
-   - ✅ `shopping_items`
-   - ✅ `user_progress`
+   - ✅ `meal_preferences`
+   - ✅ `portion_adjustments`
+   - ✅ `scheduled_days`
+   - ✅ `day_progress`
+   - ✅ `badges`
+   - ✅ `shopping_lists`
+   - ✅ `meal_prep_plans`
+   - ✅ `user_settings`
 
 3. Click on any table to see its structure
 4. Verify that RLS (Row Level Security) is enabled:

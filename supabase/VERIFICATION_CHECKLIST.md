@@ -18,7 +18,7 @@ Before applying the migration:
 
 - [ ] Navigate to SQL Editor
 - [ ] Create new query
-- [ ] Copy entire contents of `migrations/20240101000000_initial_schema.sql`
+- [ ] Copy entire contents of `supabase-complete-setup.sql`
 - [ ] Paste into SQL Editor
 - [ ] Click "Run" or press Ctrl/Cmd + Enter
 - [ ] See "Success. No rows returned" message
@@ -39,11 +39,16 @@ Navigate to **Table Editor** in Supabase dashboard:
 
 - [ ] `profiles` table exists
 - [ ] `meal_plans` table exists
-- [ ] `meals` table exists
-- [ ] `shopping_items` table exists
-- [ ] `user_progress` table exists
+- [ ] `meal_preferences` table exists
+- [ ] `portion_adjustments` table exists
+- [ ] `scheduled_days` table exists
+- [ ] `day_progress` table exists
+- [ ] `badges` table exists
+- [ ] `shopping_lists` table exists
+- [ ] `meal_prep_plans` table exists
+- [ ] `user_settings` table exists
 
-**Total: 5 tables should be visible**
+**Total: 10 tables should be visible**
 
 ### 2. Verify Table Structure
 
