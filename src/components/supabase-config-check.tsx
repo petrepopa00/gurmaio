@@ -25,7 +25,7 @@ export function SupabaseConfigCheck() {
           </li>
           <li>
             <code className="bg-muted px-1 py-0.5 rounded">VITE_SUPABASE_ANON_KEY</code>
-            {status.hasKey ? ' ✓' : ' ✗'}
+            {status.hasAnonKey ? ' ✓' : ' ✗'}
           </li>
         </ul>
         <div className="flex gap-2 mt-4">

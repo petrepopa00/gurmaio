@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
-    return import.meta.env[key] || '';
-    ret
+function getEnvVar(key: string): string {
+  try {
     return import.meta.env[key] || '';
   } catch {
     return '';
@@ -14,11 +14,15 @@ const supabaseAnonKey = getEnvVar('VITE_SUPABASE_ANON_KEY');
 const hasConfig = Boolean(supabaseUrl && supabaseAnonKey);
 
 export const supabase = hasConfig
-      }
+  ? createClient(supabaseUrl, supabaseAnonKey)
   : null;
-export function getSupabaseSt
-    hasUrl: Boolean(supabaseUrl
-    con
+
+export function getSupabaseStatus() {
+  return {
+    hasUrl: Boolean(supabaseUrl),
+    hasAnonKey: Boolean(supabaseAnonKey),
+    configured: hasConfig
+  };
 }
 
 
