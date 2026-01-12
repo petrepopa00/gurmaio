@@ -6,16 +6,16 @@ function getEnvVar(key: string): string {
   } catch {
     return '';
   }
-}
+c
 
-const supabaseUrl = getEnvVar('VITE_SUPABASE_URL');
-const supabaseAnonKey = getEnvVar('VITE_SUPABASE_ANON_KEY');
 
-const hasConfig = Boolean(supabaseUrl && supabaseAnonKey);
-
-export const supabase = hasConfig
   ? createClient(supabaseUrl, supabaseAnonKey)
-  : null;
+
+  return {
+
+  };
+
+
 
 export function getSupabaseStatus() {
   return {
@@ -24,11 +24,3 @@ export function getSupabaseStatus() {
     configured: hasConfig
   };
 }
-
-
-
-
-
-
-
-
