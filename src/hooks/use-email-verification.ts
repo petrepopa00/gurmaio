@@ -9,7 +9,12 @@ interface EmailVerificationState {
   legacyAccount?: boolean;
 }
 
-export function useEmailVerification(userId?: string, hasExistingProfile?: boolean) {
+export function useEmailVerification(
+  userId?: string,
+  hasExistingProfile?: boolean,
+  authEmail?: string,
+  isAuthEmailConfirmed?: boolean
+) {
   const [verificationState, setVerificationState] = useKV<EmailVerificationState | null>(
     userId ? `email_verification_${userId}` : 'email_verification_guest',
     null
@@ -17,6 +22,21 @@ export function useEmailVerification(userId?: string, hasExistingProfile?: boole
   const [needsVerification, setNeedsVerification] = useState(false);
 
   useEffect(() => {
+    // If Supabase already confirms the email, treat the user as verified.
+    if (userId && isAuthEmailConfirmed) {
+      const shouldPersist = !verificationState?.isVerified || (authEmail && verificationState.email !== authEmail);
+      if (shouldPersist) {
+        setVerificationState(() => ({
+          isVerified: true,
+          email: authEmail,
+          verifiedAt: new Date().toISOString(),
+          provider: 'supabase',
+        }));
+      }
+      setNeedsVerification(false);
+      return;
+    }
+
     if (userId && verificationState === null && hasExistingProfile) {
       setVerificationState(() => ({
         isVerified: true,
@@ -31,7 +51,7 @@ export function useEmailVerification(userId?: string, hasExistingProfile?: boole
     } else {
       setNeedsVerification(false);
     }
-  }, [userId, verificationState, hasExistingProfile]);
+  }, [userId, verificationState, hasExistingProfile, authEmail, isAuthEmailConfirmed, setVerificationState]);
 
   const markAsVerified = (email: string, provider?: string) => {
     setVerificationState(() => ({

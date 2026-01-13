@@ -110,7 +110,12 @@ function App() {
     markAsVerified,
     markAsSkipped,
     resetVerification,
-  } = useEmailVerification(currentUser?.id, hasProfile);
+  } = useEmailVerification(
+    currentUser?.id,
+    hasProfile,
+    authUser?.email ?? undefined,
+    Boolean((authUser as any)?.email_confirmed_at || (authUser as any)?.confirmed_at)
+  );
   const canSaveMorePlans = (savedMealPlans?.length ?? 0) < 5;
   const isCurrentPlanAlreadySaved = mealPlan ? (savedMealPlans || []).some(p => p.plan_id === mealPlan.plan_id) : false;
 
