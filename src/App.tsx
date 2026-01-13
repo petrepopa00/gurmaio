@@ -19,6 +19,7 @@ import { ProfileDropdown } from '@/components/profile-dropdown';
 import { ProfileDialog } from '@/components/profile-dialog';
 import { AccountSettingsDialog } from '@/components/account-settings-dialog';
 import { CreateAccountDialog } from '@/components/create-account-dialog';
+import { LoginDialog } from '@/components/login-dialog';
 import { EmailVerificationDialog } from '@/components/email-verification-dialog';
 import { EmailVerificationBanner } from '@/components/email-verification-banner';
 import { MealCalendar } from '@/components/meal-calendar';
@@ -38,6 +39,8 @@ import { useEmailVerification } from '@/hooks/use-email-verification';
 import { useTranslatedMealPlan } from '@/hooks/use-translated-meal-plan';
 import { exportMealPlanToPDF } from '@/lib/export-meal-plan-pdf';
 import { DISCLAIMERS } from '@/lib/disclaimers';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 
 interface UserInfo {
   avatarUrl: string;
@@ -48,6 +51,7 @@ interface UserInfo {
 }
 
 function App() {
+  const { user: authUser, signOut } = useAuth();
   const { language, setLanguage, t } = useLanguage();
   const [userProfile, setUserProfile] = useKV<UserProfile | null>('user_profile', null);
   const [mealPlan, setMealPlan] = useKV<MealPlan | null>('current_meal_plan', null);
@@ -75,6 +79,7 @@ function App() {
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [showCreateAccountDialog, setShowCreateAccountDialog] = useState(false);
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [showEmailVerificationDialog, setShowEmailVerificationDialog] = useState(false);
   const [showMealPreferences, setShowMealPreferences] = useState(false);
   const [showFirstSuccessDialog, setShowFirstSuccessDialog] = useState(false);
@@ -131,10 +136,25 @@ function App() {
         toast.success('You have been logged out successfully', { duration: 3000 });
       }
       window.history.replaceState({}, '', window.location.pathname);
-    } else {
-      loadUser();
     }
   }, []);
+
+  useEffect(() => {
+    if (!authUser) {
+      setCurrentUser(null);
+      return;
+    }
+
+    const email = authUser.email ?? '';
+    const login = email ? email.split('@')[0] : 'user';
+    setCurrentUser({
+      id: authUser.id,
+      email,
+      login,
+      avatarUrl: '',
+      isOwner: true,
+    });
+  }, [authUser]);
 
   useEffect(() => {
     if (currentUser && needsVerification && !isDemoMode) {
@@ -153,13 +173,21 @@ function App() {
     }
   }, [dayProgress, hasShownFirstSuccess, setHasShownFirstSuccess]);
 
+  const handleOAuthSignIn = async (provider: 'google' | 'apple' | 'facebook' | 'twitter') => {
+    if (!supabase) {
+      toast.error('Supabase not configured');
+      return;
+    }
 
-  const loadUser = async () => {
-    try {
-      const user = await window.spark.user();
-      setCurrentUser(user as unknown as UserInfo);
-    } catch (error) {
-      setCurrentUser(null);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+
+    if (error) {
+      toast.error(error.message || 'Failed to sign in');
     }
   };
 
@@ -203,10 +231,9 @@ function App() {
       toast.success('Logged out successfully', { id: 'logout', duration: 1000 });
       
       await new Promise(resolve => setTimeout(resolve, 300));
-      
-      const logoutUrl = new URL('/.spark/logout', window.location.origin);
-      logoutUrl.searchParams.set('redirect_uri', window.location.origin + '/?logged_out=true');
-      window.location.href = logoutUrl.toString();
+
+      await signOut();
+      window.location.href = '/?logged_out=true';
     } catch (error) {
       console.error('Logout error:', error);
       
@@ -219,10 +246,13 @@ function App() {
       } catch (e) {
         console.warn('Storage cleanup failed:', e);
       }
-      
-      const logoutUrl = new URL('/.spark/logout', window.location.origin);
-      logoutUrl.searchParams.set('redirect_uri', window.location.origin + '/?logged_out=true');
-      window.location.href = logoutUrl.toString();
+
+      try {
+        await signOut();
+      } catch {
+        // ignore
+      }
+      window.location.href = '/?logged_out=true';
     }
   };
 
@@ -1150,7 +1180,7 @@ function App() {
                       {t.createAccount}
                     </Button>
                     <Button
-                      onClick={() => window.location.href = '/.spark/login'}
+                      onClick={() => setShowLoginDialog(true)}
                       size="lg"
                       className="w-full"
                       variant="outline"
@@ -1169,28 +1199,28 @@ function App() {
 
                     <div className="grid grid-cols-2 gap-3">
                       <Button
-                        onClick={() => window.location.href = '/.spark/login?provider=google'}
+                        onClick={() => void handleOAuthSignIn('google')}
                         size="lg"
                         className="w-full bg-[#EA4335] hover:bg-[#D33426] text-white"
                       >
                         <GoogleLogo size={20} weight="bold" />
                       </Button>
                       <Button
-                        onClick={() => window.location.href = '/.spark/login?provider=apple'}
+                        onClick={() => void handleOAuthSignIn('apple')}
                         size="lg"
                         className="w-full bg-black hover:bg-gray-900 text-white"
                       >
                         <AppleLogo size={20} weight="fill" />
                       </Button>
                       <Button
-                        onClick={() => window.location.href = '/.spark/login?provider=facebook'}
+                        onClick={() => void handleOAuthSignIn('facebook')}
                         size="lg"
                         className="w-full bg-[#1877F2] hover:bg-[#166FE5] text-white"
                       >
                         <FacebookLogo size={20} weight="fill" />
                       </Button>
                       <Button
-                        onClick={() => window.location.href = '/.spark/login?provider=twitter'}
+                        onClick={() => void handleOAuthSignIn('twitter')}
                         size="lg"
                         className="w-full bg-[#1DA1F2] hover:bg-[#1A91DA] text-white"
                       >
@@ -1239,6 +1269,11 @@ function App() {
         <CreateAccountDialog
           open={showCreateAccountDialog}
           onOpenChange={setShowCreateAccountDialog}
+        />
+
+        <LoginDialog
+          open={showLoginDialog}
+          onOpenChange={setShowLoginDialog}
         />
 
         <AppFooter 
@@ -1340,7 +1375,7 @@ function App() {
                   <Button
                     variant="default"
                     size="sm"
-                    onClick={() => window.location.href = '/.spark/login'}
+                    onClick={() => setShowLoginDialog(true)}
                   >
                     {t.login}
                   </Button>
@@ -1825,15 +1860,18 @@ function App() {
           open={showAccountSettings}
           onOpenChange={setShowAccountSettings}
           currentUser={currentUser}
-          onUpdateSuccess={() => {
-            loadUser();
-          }}
+          onUpdateSuccess={() => {}}
         />
       )}
 
       <CreateAccountDialog
         open={showCreateAccountDialog}
         onOpenChange={setShowCreateAccountDialog}
+      />
+
+      <LoginDialog
+        open={showLoginDialog}
+        onOpenChange={setShowLoginDialog}
       />
 
       {currentUser && (
