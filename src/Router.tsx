@@ -16,6 +16,13 @@ export function Router() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  // If someone opens Spark auth URLs (e.g. '/.spark/login') on a normal SPA deploy
+  // we redirect back to the app root to avoid a platform-level 404 deep-link.
+  if (currentPath.startsWith('/.spark/')) {
+    window.history.replaceState({}, '', '/');
+    return <App />;
+  }
+
   if (currentPath === '/privacy') {
     return <PrivacyPage />;
   }

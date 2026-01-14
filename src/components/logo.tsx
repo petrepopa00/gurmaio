@@ -6,7 +6,8 @@ interface LogoProps {
   showText?: boolean;
 }
 
-export function Logo({ className, size = "md", showText = true }: LogoProps) {
+export function Logo(props: LogoProps) {
+  const { className, size = "md", showText = true } = props;
   const sizes = {
     sm: { icon: 24, text: "text-base" },
     md: { icon: 32, text: "text-xl" },
