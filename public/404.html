@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirecting…</title>
+    <meta name="robots" content="noindex" />
+  </head>
+  <body>
+    <script>
+      // SPA deep-link fallback for hosts without rewrite support.
+      // Redirect to / with the original path encoded.
+      (function () {
+        var original = window.location.pathname + window.location.search + window.location.hash;
+        var target = '/?__redirect=' + encodeURIComponent(original);
+        window.location.replace(target);
+      })();
+    </script>
+    <noscript>
+      <a href="/">Go home</a>
+    </noscript>
+  </body>
+</html>

@@ -5,7 +5,20 @@ import { TermsPage } from './pages/TermsPage';
 import { SupabaseDebugPage } from './pages/SupabaseDebugPage';
 
 export function Router() {
-  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  const [currentPath, setCurrentPath] = useState(() => {
+    const url = new URL(window.location.href);
+    const redirectTarget = url.searchParams.get('__redirect');
+
+    if (redirectTarget && redirectTarget.startsWith('/')) {
+      try {
+        window.history.replaceState({}, '', redirectTarget);
+      } catch {
+        // Ignore invalid redirect targets
+      }
+    }
+
+    return window.location.pathname;
+  });
 
   useEffect(() => {
     const handlePopState = () => {
