@@ -1,5 +1,12 @@
 {
+  "redirects": [
+    {
+      "source": "/.spark/:path*",
+      "destination": "/",
+      "permanent": false
+    }
+  ],
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/:path*", "destination": "/index.html" }
   ]
 }
