@@ -42,6 +42,38 @@ CREATE TABLE IF NOT EXISTS meal_plans (
   UNIQUE(user_id, plan_id)
 );
 
+-- Meals table - Normalized meals extracted from meal_plans.days JSON
+-- (Used by Workers API for analytics/search; required by backend upserts)
+CREATE TABLE IF NOT EXISTS meals (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  meal_id TEXT NOT NULL,
+  plan_id TEXT NOT NULL,
+  day_number INTEGER NOT NULL,
+  date DATE NOT NULL,
+  meal_type TEXT NOT NULL,
+  recipe_name TEXT NOT NULL,
+  nutrition JSONB NOT NULL,
+  cost_eur DECIMAL(10,2) NOT NULL,
+  ingredients JSONB NOT NULL,
+  cooking_instructions JSONB NOT NULL DEFAULT '[]'::jsonb,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(user_id, meal_id)
+);
+
+-- Streaks table - Optional snapshot updated by backend
+CREATE TABLE IF NOT EXISTS streaks (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  current_streak INTEGER NOT NULL DEFAULT 0,
+  longest_streak INTEGER NOT NULL DEFAULT 0,
+  streak_active BOOLEAN NOT NULL DEFAULT FALSE,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(user_id)
+);
+
 -- Meal preferences table - User likes/dislikes for meals
 CREATE TABLE IF NOT EXISTS meal_preferences (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -154,12 +186,16 @@ CREATE TABLE IF NOT EXISTS user_settings (
 CREATE INDEX IF NOT EXISTS idx_profiles_user_id ON profiles(user_id);
 CREATE INDEX IF NOT EXISTS idx_meal_plans_user_id ON meal_plans(user_id);
 CREATE INDEX IF NOT EXISTS idx_meal_plans_is_saved ON meal_plans(user_id, is_saved);
+CREATE INDEX IF NOT EXISTS idx_meals_user_id ON meals(user_id);
+CREATE INDEX IF NOT EXISTS idx_meals_plan_id ON meals(user_id, plan_id);
+CREATE INDEX IF NOT EXISTS idx_meals_date ON meals(user_id, date);
 CREATE INDEX IF NOT EXISTS idx_meal_preferences_user_id ON meal_preferences(user_id);
 CREATE INDEX IF NOT EXISTS idx_portion_adjustments_user_id ON portion_adjustments(user_id);
 CREATE INDEX IF NOT EXISTS idx_scheduled_days_user_id ON scheduled_days(user_id);
 CREATE INDEX IF NOT EXISTS idx_scheduled_days_date ON scheduled_days(user_id, date);
 CREATE INDEX IF NOT EXISTS idx_day_progress_user_id ON day_progress(user_id);
 CREATE INDEX IF NOT EXISTS idx_day_progress_date ON day_progress(user_id, date);
+CREATE INDEX IF NOT EXISTS idx_streaks_user_id ON streaks(user_id);
 CREATE INDEX IF NOT EXISTS idx_badges_user_id ON badges(user_id);
 CREATE INDEX IF NOT EXISTS idx_shopping_lists_user_id ON shopping_lists(user_id);
 CREATE INDEX IF NOT EXISTS idx_meal_prep_plans_user_id ON meal_prep_plans(user_id);
@@ -171,10 +207,12 @@ CREATE INDEX IF NOT EXISTS idx_user_settings_user_id ON user_settings(user_id);
 
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE meal_plans ENABLE ROW LEVEL SECURITY;
+ALTER TABLE meals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE meal_preferences ENABLE ROW LEVEL SECURITY;
 ALTER TABLE portion_adjustments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE scheduled_days ENABLE ROW LEVEL SECURITY;
 ALTER TABLE day_progress ENABLE ROW LEVEL SECURITY;
+ALTER TABLE streaks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE badges ENABLE ROW LEVEL SECURITY;
 ALTER TABLE shopping_lists ENABLE ROW LEVEL SECURITY;
 ALTER TABLE meal_prep_plans ENABLE ROW LEVEL SECURITY;
@@ -202,6 +240,16 @@ CREATE POLICY "Users can insert own meal plans" ON meal_plans
 CREATE POLICY "Users can update own meal plans" ON meal_plans
   FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "Users can delete own meal plans" ON meal_plans
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- Meals policies
+CREATE POLICY "Users can view own meals" ON meals
+  FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own meals" ON meals
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own meals" ON meals
+  FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own meals" ON meals
   FOR DELETE USING (auth.uid() = user_id);
 
 -- Meal preferences policies
@@ -242,6 +290,16 @@ CREATE POLICY "Users can insert own day progress" ON day_progress
 CREATE POLICY "Users can update own day progress" ON day_progress
   FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "Users can delete own day progress" ON day_progress
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- Streaks policies
+CREATE POLICY "Users can view own streaks" ON streaks
+  FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own streaks" ON streaks
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own streaks" ON streaks
+  FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own streaks" ON streaks
   FOR DELETE USING (auth.uid() = user_id);
 
 -- Badges policies
@@ -304,6 +362,9 @@ CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON profiles
 CREATE TRIGGER update_meal_plans_updated_at BEFORE UPDATE ON meal_plans
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_meals_updated_at BEFORE UPDATE ON meals
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 CREATE TRIGGER update_portion_adjustments_updated_at BEFORE UPDATE ON portion_adjustments
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
@@ -317,6 +378,9 @@ CREATE TRIGGER update_meal_prep_plans_updated_at BEFORE UPDATE ON meal_prep_plan
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_user_settings_updated_at BEFORE UPDATE ON user_settings
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_streaks_updated_at BEFORE UPDATE ON streaks
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ==================================================
