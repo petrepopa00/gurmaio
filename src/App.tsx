@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useKV } from '@github/spark/hooks';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { MealPlan, UserProfile, ShoppingList, MealPreference, Meal, MealPrepPlan, DayProgress, Badge, CompletedMeal, ScheduledDay, MealPortionAdjustment } from '@/types/domain';
-import { generateMealPlan, generateShoppingList } from '@/lib/mock-data';
 import { generateMealSubstitution } from '@/lib/meal-substitution';
 import { generateMealPrepPlan } from '@/lib/meal-prep-generator';
 import { OnboardingDialog } from '@/components/onboarding-dialog';
@@ -42,7 +41,19 @@ import { exportMealPlanToPDF } from '@/lib/export-meal-plan-pdf';
 import { DISCLAIMERS } from '@/lib/disclaimers';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { generateMealPlanViaWorkers, isWorkersApiConfigured } from '@/lib/workers-api';
+import { generateMealPlanViaWorkers, isWorkersApiConfigured, upsertProgressViaWorkers } from '@/lib/workers-api';
+import {
+  useBadges,
+  useCurrentMealPlan,
+  useDayProgress,
+  useMealPreferences,
+  useMealPrepPlanState,
+  usePortionAdjustments,
+  useSavedMealPlans,
+  useScheduledDays,
+  useShoppingListState,
+  useUserProfile,
+} from '@/hooks/use-supabase-data';
 
 interface UserInfo {
   avatarUrl: string;
@@ -55,16 +66,18 @@ interface UserInfo {
 function App() {
   const { user: authUser, signOut } = useAuth();
   const { language, setLanguage, t } = useLanguage();
-  const [userProfile, setUserProfile] = useKV<UserProfile | null>('user_profile', null);
-  const [mealPlan, setMealPlan] = useKV<MealPlan | null>('current_meal_plan', null);
-  const [mealPrepPlan, setMealPrepPlan] = useKV<MealPrepPlan | null>('current_meal_prep_plan', null);
-  const [shoppingListState, setShoppingListState] = useKV<ShoppingList | null>('shopping_list_state', null);
-  const [savedMealPlans, setSavedMealPlans] = useKV<MealPlan[]>('saved_meal_plans', []);
-  const [mealPreferences, setMealPreferences] = useKV<MealPreference[]>('meal_preferences', []);
-  const [portionAdjustments, setPortionAdjustments] = useKV<MealPortionAdjustment[]>('portion_adjustments', []);
-  const [scheduledDays, setScheduledDays] = useKV<ScheduledDay[]>('scheduled_days', []);
-  const [dayProgress, setDayProgress] = useKV<DayProgress[]>('day_progress', []);
-  const [badges, setBadges] = useKV<Badge[]>('earned_badges', []);
+
+  const [userProfile, saveUserProfile, clearUserProfile] = useUserProfile();
+  const [mealPlan, saveCurrentMealPlan, clearCurrentMealPlan] = useCurrentMealPlan();
+  const [savedMealPlans, saveSavedMealPlan, deleteSavedMealPlan, , reloadSavedMealPlans] = useSavedMealPlans();
+  const [mealPreferences, saveMealPreference, deleteMealPreference, , reloadMealPreferences] = useMealPreferences();
+  const [portionAdjustments, savePortionAdjustment, deletePortionAdjustment, , reloadPortionAdjustments] = usePortionAdjustments();
+  const [scheduledDays, saveScheduledDay, deleteScheduledDay, , reloadScheduledDays] = useScheduledDays();
+  const [dayProgress, saveDayProgress, deleteDayProgress, , reloadDayProgress] = useDayProgress();
+  const [badges, saveBadge] = useBadges();
+
+  const [shoppingListState, saveShoppingListState] = useShoppingListState(mealPlan?.plan_id ?? null);
+  const [mealPrepPlan, saveMealPrepPlan] = useMealPrepPlanState(mealPlan?.plan_id ?? null);
   const [isOnboarding, setIsOnboarding] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGeneratingPrep, setIsGeneratingPrep] = useState(false);
@@ -120,7 +133,7 @@ function App() {
   const canSaveMorePlans = (savedMealPlans?.length ?? 0) < 5;
   const isCurrentPlanAlreadySaved = mealPlan ? (savedMealPlans || []).some(p => p.plan_id === mealPlan.plan_id) : false;
 
-  const currentShoppingList = shoppingListState || (mealPlan ? generateShoppingList(mealPlan) : null);
+  const currentShoppingList = shoppingListState;
 
   const mealPreferencesMap = new Map<string, 'like' | 'dislike'>();
   (mealPreferences || []).forEach(pref => {
@@ -205,13 +218,10 @@ function App() {
       sessionStorage.setItem('logout_in_progress', 'true');
       
       setCurrentUser(null);
-      setUserProfile(() => null);
-      setMealPlan(() => null);
-      setMealPrepPlan(() => null);
-      setShoppingListState(() => null);
-      setScheduledDays(() => []);
-      setDayProgress(() => []);
-      setBadges(() => []);
+      void clearUserProfile();
+      void clearCurrentMealPlan();
+      void saveMealPrepPlan(null);
+      void saveShoppingListState(null);
       setIsDemoMode(false);
       
       resetVerification();
@@ -246,7 +256,10 @@ function App() {
       
       sessionStorage.setItem('logout_in_progress', 'true');
       setCurrentUser(null);
-      setUserProfile(() => null);
+      void clearUserProfile();
+      void clearCurrentMealPlan();
+      void saveMealPrepPlan(null);
+      void saveShoppingListState(null);
       
       try {
         localStorage.clear();
@@ -301,54 +314,43 @@ function App() {
       return;
     }
 
-    setIsSaving(true);
-    
-    const result = await new Promise<boolean>((resolve) => {
-      setSavedMealPlans((current) => {
-        const plans = current || [];
-        const existingIndex = plans.findIndex(p => p.plan_id === mealPlan.plan_id);
-        
-        if (existingIndex >= 0) {
-          const updated = [...plans];
-          updated[existingIndex] = mealPlan;
-          resolve(true);
-          return updated;
-        }
-        
-        if (plans.length >= 5) {
-          resolve(false);
-          return plans;
-        }
-        
-        resolve(true);
-        return [...plans, mealPlan];
-      });
-    });
+    if (!canSaveMorePlans && !isCurrentPlanAlreadySaved) {
+      toast.error('Maximum 5 saved plans reached. Please delete an old plan first.');
+      return;
+    }
 
-    setIsSaving(false);
-    
-    if (result) {
+    setIsSaving(true);
+    try {
+      await saveSavedMealPlan(mealPlan);
       setJustSaved(true);
       toast.success('Meal plan saved successfully!');
       setTimeout(() => setJustSaved(false), 2000);
-    } else {
-      toast.error('Maximum 5 saved plans reached. Please delete an old plan first.');
+    } catch (error) {
+      console.error('Save meal plan error:', error);
+      toast.error('Failed to save meal plan');
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const handleSaveProfile = (profile: UserProfile, autoRegenerate = false) => {
+  const handleSaveProfile = async (profile: UserProfile, autoRegenerate = false) => {
     const shouldRegenerate = autoRegenerate || hasMealPlan;
-    
-    setUserProfile(() => profile);
-    setIsOnboarding(false);
-    
-    if (shouldRegenerate) {
-      toast.success('Profile saved! Regenerating meal plan with new settings...');
-      setTimeout(() => {
-        handleGeneratePlan(profile);
-      }, 300);
-    } else {
-      toast.success('Profile saved successfully');
+
+    try {
+      await saveUserProfile(profile);
+      setIsOnboarding(false);
+
+      if (shouldRegenerate) {
+        toast.success('Profile saved! Regenerating meal plan with new settings...');
+        setTimeout(() => {
+          void handleGeneratePlan(profile);
+        }, 300);
+      } else {
+        toast.success('Profile saved successfully');
+      }
+    } catch (error) {
+      console.error('Save profile error:', error);
+      toast.error('Failed to save profile');
     }
   };
 
@@ -373,10 +375,9 @@ function App() {
       duration: 3000
     });
 
-    setMealPlan(() => null);
-    setShoppingListState(() => null);
-    setMealPrepPlan(() => null);
-    setScheduledDays(() => []);
+    await saveCurrentMealPlan(null);
+    await saveShoppingListState(null);
+    await saveMealPrepPlan(null);
     setActiveTab('meals');
     
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -386,11 +387,17 @@ function App() {
     try {
       await new Promise(resolve => setTimeout(resolve, 300));
 
-      const shouldUseWorker = !isDemoMode && Boolean(authUser) && Boolean(supabase) && isWorkersApiConfigured();
+      if (isDemoMode) {
+        throw new Error('Demo mode: meal plan generation requires an account');
+      }
+      if (!authUser || !supabase) {
+        throw new Error('Not authenticated');
+      }
+      if (!isWorkersApiConfigured()) {
+        throw new Error('Backend API not configured. Missing VITE_WORKERS_API_URL');
+      }
 
-      const newPlan = shouldUseWorker
-        ? await generateMealPlanViaWorkers()
-        : await generateMealPlan(profileToUse);
+      const newPlan = await generateMealPlanViaWorkers();
       
       console.log('✅ New plan generated successfully:', {
         planId: newPlan.plan_id,
@@ -400,18 +407,15 @@ function App() {
         totalCost: `€${newPlan.metadata.period_cost_eur.toFixed(2)}`
       });
       
-      setMealPlan(() => newPlan);
+      await saveCurrentMealPlan(newPlan);
       
       toast.success('New meal plan generated!', {
         description: `${newPlan.days.length} days created with unique recipes`
       });
     } catch (error) {
       console.error('Error generating meal plan:', error);
-      if (!isDemoMode && Boolean(authUser) && !isWorkersApiConfigured()) {
-        toast.error('Backend API not configured. Set VITE_WORKERS_API_URL to enable meal plan generation.');
-      } else {
-        toast.error('Failed to generate meal plan. Please try again.');
-      }
+      const msg = error instanceof Error ? error.message : 'Failed to generate meal plan. Please try again.';
+      toast.error(msg);
     } finally {
       setIsGenerating(false);
     }
@@ -427,7 +431,7 @@ function App() {
     
     try {
       const newPrepPlan = await generateMealPrepPlan(mealPlan);
-      setMealPrepPlan(() => newPrepPlan);
+      await saveMealPrepPlan(newPrepPlan);
       
       toast.success('Meal prep plan generated!');
       setActiveTab('prep');
@@ -439,55 +443,50 @@ function App() {
     }
   };
 
-  const handleToggleOwned = (ingredientId: string) => {
+  const handleToggleOwned = async (ingredientId: string) => {
     if (!currentShoppingList) return;
-    
-    setShoppingListState((current) => {
-      const base = current || currentShoppingList;
-      return {
-        ...base,
-        items: base.items.map(item =>
-          item.ingredient_id === ingredientId
-            ? { ...item, owned: !item.owned }
-            : item
-        )
-      };
-    });
+
+    const updated: ShoppingList = {
+      ...currentShoppingList,
+      items: currentShoppingList.items.map(item =>
+        item.ingredient_id === ingredientId
+          ? { ...item, owned: !item.owned }
+          : item
+      )
+    };
+
+    await saveShoppingListState(updated);
   };
 
-  const handleDeleteItem = (ingredientId: string) => {
+  const handleDeleteItem = async (ingredientId: string) => {
     if (!currentShoppingList) return;
-    
-    setShoppingListState((current) => {
-      const base = current || currentShoppingList;
-      return {
-        ...base,
-        items: base.items.map(item =>
-          item.ingredient_id === ingredientId
-            ? { ...item, deleted: true }
-            : item
-        )
-      };
-    });
+
+    const updated: ShoppingList = {
+      ...currentShoppingList,
+      items: currentShoppingList.items.map(item =>
+        item.ingredient_id === ingredientId
+          ? { ...item, deleted: true }
+          : item
+      )
+    };
+
+    await saveShoppingListState(updated);
   };
 
   const handleLoadSavedPlan = (plan: MealPlan) => {
-    setMealPlan(() => plan);
-    setShoppingListState(() => null);
-    setMealPrepPlan(() => null);
+    void saveCurrentMealPlan(plan);
+    void saveShoppingListState(null);
+    void saveMealPrepPlan(null);
     toast.success('Meal plan loaded successfully');
   };
 
   const handleDeleteSavedPlan = (planId: string) => {
-    setSavedMealPlans((current) => {
-      const plans = current || [];
-      return plans.filter(p => p.plan_id !== planId);
-    });
+    void deleteSavedMealPlan(planId).then(() => reloadSavedMealPlans());
     toast.success('Meal plan deleted');
   };
 
   const handleShareSavedPlan = (plan: MealPlan) => {
-    setMealPlan(() => plan);
+    void saveCurrentMealPlan(plan);
     setShareMealPlanOpen(true);
   };
 
@@ -536,17 +535,11 @@ function App() {
       toast.loading('Deleting your account and all data...', { id: 'delete-account' });
       
       sessionStorage.setItem('logout_in_progress', 'true');
-      
-      setUserProfile(() => null);
-      setMealPlan(() => null);
-      setShoppingListState(() => null);
-      setSavedMealPlans(() => []);
-      setMealPreferences(() => []);
-      setPortionAdjustments(() => []);
-      setMealPrepPlan(() => null);
-      setScheduledDays(() => []);
-      setDayProgress(() => []);
-      setBadges(() => []);
+
+      void clearUserProfile();
+      void clearCurrentMealPlan();
+      void saveShoppingListState(null);
+      void saveMealPrepPlan(null);
       
       resetVerification();
       
@@ -590,92 +583,69 @@ function App() {
   };
 
   const handleLikeMeal = (mealId: string, meal: Meal) => {
-    setMealPreferences((current) => {
-      const preferences = current || [];
-      const existingIndex = preferences.findIndex(p => p.meal_id === mealId);
-      
-      const newPreference: MealPreference = {
-        meal_id: mealId,
-        recipe_name: meal.recipe_name,
-        meal_type: meal.meal_type,
-        preference: 'like',
-        rated_at: new Date().toISOString(),
-        ingredients: meal.ingredients.map(ing => ing.name),
-      };
-      
-      if (existingIndex >= 0) {
-        const existing = preferences[existingIndex];
-        if (existing.preference === 'like') {
-          toast.info('Like removed');
-          return preferences.filter((_, i) => i !== existingIndex);
-        }
-        const updated = [...preferences];
-        updated[existingIndex] = newPreference;
-        toast.success('Meal liked! 👍');
-        return updated;
-      }
-      
-      toast.success('Meal liked! 👍');
-      return [...preferences, newPreference];
-    });
+    const preferences = mealPreferences || [];
+    const existing = preferences.find(p => p.meal_id === mealId);
+
+    if (existing?.preference === 'like') {
+      void deleteMealPreference(mealId).then(() => reloadMealPreferences());
+      toast.info('Like removed');
+      return;
+    }
+
+    const newPreference: MealPreference = {
+      meal_id: mealId,
+      recipe_name: meal.recipe_name,
+      meal_type: meal.meal_type,
+      preference: 'like',
+      rated_at: new Date().toISOString(),
+      ingredients: meal.ingredients.map(ing => ing.name),
+    };
+
+    void saveMealPreference(newPreference).then(() => reloadMealPreferences());
+    toast.success('Meal liked! 👍');
   };
 
   const handleDislikeMeal = (mealId: string, meal: Meal) => {
-    setMealPreferences((current) => {
-      const preferences = current || [];
-      const existingIndex = preferences.findIndex(p => p.meal_id === mealId);
-      
-      const newPreference: MealPreference = {
-        meal_id: mealId,
-        recipe_name: meal.recipe_name,
-        meal_type: meal.meal_type,
-        preference: 'dislike',
-        rated_at: new Date().toISOString(),
-        ingredients: meal.ingredients.map(ing => ing.name),
-      };
-      
-      if (existingIndex >= 0) {
-        const existing = preferences[existingIndex];
-        if (existing.preference === 'dislike') {
-          toast.info('Dislike removed');
-          return preferences.filter((_, i) => i !== existingIndex);
-        }
-        const updated = [...preferences];
-        updated[existingIndex] = newPreference;
-        toast.info('Meal disliked. We\'ll avoid similar meals in future plans');
-        return updated;
-      }
-      
-      toast.info('Meal disliked. We\'ll avoid similar meals in future plans');
-      return [...preferences, newPreference];
-    });
+    const preferences = mealPreferences || [];
+    const existing = preferences.find(p => p.meal_id === mealId);
+
+    if (existing?.preference === 'dislike') {
+      void deleteMealPreference(mealId).then(() => reloadMealPreferences());
+      toast.info('Dislike removed');
+      return;
+    }
+
+    const newPreference: MealPreference = {
+      meal_id: mealId,
+      recipe_name: meal.recipe_name,
+      meal_type: meal.meal_type,
+      preference: 'dislike',
+      rated_at: new Date().toISOString(),
+      ingredients: meal.ingredients.map(ing => ing.name),
+    };
+
+    void saveMealPreference(newPreference).then(() => reloadMealPreferences());
+    toast.info('Meal disliked. We\'ll avoid similar meals in future plans');
   };
 
   const handlePortionAdjustment = (mealId: string, multiplier: number, dayNumber: number) => {
-    setPortionAdjustments((current) => {
-      const adjustments = current || [];
-      const existingIndex = adjustments.findIndex(a => a.meal_id === mealId);
-      
-      if (multiplier === 1) {
-        if (existingIndex >= 0) {
-          return adjustments.filter((_, i) => i !== existingIndex);
-        }
-        return adjustments;
+    void dayNumber;
+    const adjustments = portionAdjustments || [];
+    const existing = adjustments.find(a => a.meal_id === mealId);
+
+    if (multiplier === 1) {
+      if (existing) {
+        void deletePortionAdjustment(mealId).then(() => reloadPortionAdjustments());
       }
-      
-      const newAdjustment: MealPortionAdjustment = {
-        meal_id: mealId,
-        portion_multiplier: multiplier,
-      };
-      
-      if (existingIndex >= 0) {
-        const updated = [...adjustments];
-        updated[existingIndex] = newAdjustment;
-        return updated;
-      }
-      
-      return [...adjustments, newAdjustment];
-    });
+      return;
+    }
+
+    const newAdjustment: MealPortionAdjustment = {
+      meal_id: mealId,
+      portion_multiplier: multiplier,
+    };
+
+    void savePortionAdjustment(newAdjustment).then(() => reloadPortionAdjustments());
   };
 
   const handleSwapMeal = async (mealId: string, dayNumber: number) => {
@@ -699,61 +669,57 @@ function App() {
         mealPreferences || []
       );
 
-      setMealPlan((currentPlan) => {
-        if (!currentPlan) return null;
+      const updatedDays = mealPlan.days.map(d => {
+        if (d.day_number !== dayNumber) return d;
 
-        const updatedDays = currentPlan.days.map(d => {
-          if (d.day_number !== dayNumber) return d;
-
-          const updatedMeals = d.meals.map(m => 
-            m.meal_id === mealId ? newMeal : m
-          );
-
-          const dayTotals = updatedMeals.reduce(
-            (acc, meal) => ({
-              calories: acc.calories + meal.nutrition.calories,
-              protein_g: acc.protein_g + meal.nutrition.protein_g,
-              carbohydrates_g: acc.carbohydrates_g + meal.nutrition.carbohydrates_g,
-              fats_g: acc.fats_g + meal.nutrition.fats_g,
-              cost_eur: acc.cost_eur + meal.cost.meal_cost_eur,
-            }),
-            { calories: 0, protein_g: 0, carbohydrates_g: 0, fats_g: 0, cost_eur: 0 }
-          );
-
-          return {
-            ...d,
-            meals: updatedMeals,
-            totals: dayTotals,
-          };
-        });
-
-        const planTotals = updatedDays.reduce(
-          (acc, day) => ({
-            calories: acc.calories + day.totals.calories,
-            protein_g: acc.protein_g + day.totals.protein_g,
-            carbohydrates_g: acc.carbohydrates_g + day.totals.carbohydrates_g,
-            fats_g: acc.fats_g + day.totals.fats_g,
-            total_cost_eur: acc.total_cost_eur + day.totals.cost_eur,
-          }),
-          { calories: 0, protein_g: 0, carbohydrates_g: 0, fats_g: 0, total_cost_eur: 0 }
+        const updatedMeals = d.meals.map(m =>
+          m.meal_id === mealId ? newMeal : m
         );
 
-        const isOverBudget = planTotals.total_cost_eur > currentPlan.metadata.period_budget_eur;
+        const dayTotals = updatedMeals.reduce(
+          (acc, meal) => ({
+            calories: acc.calories + meal.nutrition.calories,
+            protein_g: acc.protein_g + meal.nutrition.protein_g,
+            carbohydrates_g: acc.carbohydrates_g + meal.nutrition.carbohydrates_g,
+            fats_g: acc.fats_g + meal.nutrition.fats_g,
+            cost_eur: acc.cost_eur + meal.cost.meal_cost_eur,
+          }),
+          { calories: 0, protein_g: 0, carbohydrates_g: 0, fats_g: 0, cost_eur: 0 }
+        );
 
         return {
-          ...currentPlan,
-          days: updatedDays,
-          plan_totals: planTotals,
-          metadata: {
-            ...currentPlan.metadata,
-            period_cost_eur: planTotals.total_cost_eur,
-            budget_remaining_eur: currentPlan.metadata.period_budget_eur - planTotals.total_cost_eur,
-            is_over_budget: isOverBudget,
-          },
+          ...d,
+          meals: updatedMeals,
+          totals: dayTotals,
         };
       });
 
-      setShoppingListState(() => null);
+      const planTotals = updatedDays.reduce(
+        (acc, day) => ({
+          calories: acc.calories + day.totals.calories,
+          protein_g: acc.protein_g + day.totals.protein_g,
+          carbohydrates_g: acc.carbohydrates_g + day.totals.carbohydrates_g,
+          fats_g: acc.fats_g + day.totals.fats_g,
+          total_cost_eur: acc.total_cost_eur + day.totals.cost_eur,
+        }),
+        { calories: 0, protein_g: 0, carbohydrates_g: 0, fats_g: 0, total_cost_eur: 0 }
+      );
+
+      const isOverBudget = planTotals.total_cost_eur > mealPlan.metadata.period_budget_eur;
+
+      const updatedPlan: MealPlan = {
+        ...mealPlan,
+        days: updatedDays,
+        plan_totals: planTotals,
+        metadata: {
+          ...mealPlan.metadata,
+          period_cost_eur: planTotals.total_cost_eur,
+          budget_remaining_eur: mealPlan.metadata.period_budget_eur - planTotals.total_cost_eur,
+          is_over_budget: isOverBudget,
+        },
+      };
+
+      await saveCurrentMealPlan(updatedPlan);
 
       toast.success(t.mealSwapped);
     } catch (error) {
@@ -762,7 +728,7 @@ function App() {
     }
   };
 
-  const handleScheduleDay = (day: any, selectedDate: string) => {
+  const handleScheduleDay = async (day: any, selectedDate: string) => {
     if (isDemoMode) {
       toast.error('Demo mode: Create an account to schedule days', {
         action: {
@@ -783,39 +749,36 @@ function App() {
       return;
     }
 
-    setScheduledDays((current) => {
-      const scheduled = current || [];
-      
-      const existingDate = scheduled.find(s => s.date === selectedDate);
-      if (existingDate) {
-        toast.error('This date is already scheduled for another day');
-        return scheduled;
-      }
+    const existingDate = (scheduledDays || []).find(s => s.date === selectedDate);
+    if (existingDate) {
+      toast.error('This date is already scheduled for another day');
+      return;
+    }
 
-      const newScheduledDay: ScheduledDay = {
-        date: selectedDate,
-        day_number: day.day_number,
-        plan_id: mealPlan?.plan_id || '',
-        scheduled_at: new Date().toISOString(),
-        meals: day.meals.map((meal: any) => ({
-          meal_id: meal.meal_id,
-          meal_type: meal.meal_type,
-          recipe_name: meal.recipe_name,
-          nutrition: meal.nutrition,
-          cost_eur: meal.cost.meal_cost_eur,
-        })),
-        total_nutrition: day.totals,
-        total_cost: day.totals.cost_eur,
-        meals_count: day.meals.length,
-        is_completed: false,
-      };
+    const newScheduledDay: ScheduledDay = {
+      date: selectedDate,
+      day_number: day.day_number,
+      plan_id: mealPlan?.plan_id || '',
+      scheduled_at: new Date().toISOString(),
+      meals: day.meals.map((meal: any) => ({
+        meal_id: meal.meal_id,
+        meal_type: meal.meal_type,
+        recipe_name: meal.recipe_name,
+        nutrition: meal.nutrition,
+        cost_eur: meal.cost.meal_cost_eur,
+      })),
+      total_nutrition: day.totals,
+      total_cost: day.totals.cost_eur,
+      meals_count: day.meals.length,
+      is_completed: false,
+    };
 
-      toast.success(`Day ${day.day_number} scheduled for ${new Date(selectedDate).toLocaleDateString()}! 📅`);
-      return [...scheduled, newScheduledDay];
-    });
+    await saveScheduledDay(newScheduledDay);
+    await reloadScheduledDays();
+    toast.success(`Day ${day.day_number} scheduled for ${new Date(selectedDate).toLocaleDateString()}! 📅`);
   };
 
-  const handleUnscheduleDay = (date: string) => {
+  const handleUnscheduleDay = async (date: string) => {
     if (isDemoMode) {
       toast.error('Demo mode: Create an account to modify schedule', {
         action: {
@@ -836,17 +799,15 @@ function App() {
       return;
     }
 
-    setScheduledDays((current) => {
-      const scheduled = current || [];
-      const removed = scheduled.find(s => s.date === date);
-      if (removed) {
-        toast.info(`Day ${removed.day_number} removed from schedule`);
-      }
-      return scheduled.filter(s => s.date !== date);
-    });
+    const removed = (scheduledDays || []).find(s => s.date === date);
+    await deleteScheduledDay(date);
+    await reloadScheduledDays();
+    if (removed) {
+      toast.info(`Day ${removed.day_number} removed from schedule`);
+    }
   };
 
-  const handleChangeDayDate = (oldDate: string, newDate: string, dayNumber: number) => {
+  const handleChangeDayDate = async (oldDate: string, newDate: string, dayNumber: number) => {
     if (isDemoMode) {
       toast.error('Demo mode: Create an account to modify schedule', {
         action: {
@@ -867,31 +828,29 @@ function App() {
       return;
     }
 
-    setScheduledDays((current) => {
-      const scheduled = current || [];
-      
-      const existingNewDate = scheduled.find(s => s.date === newDate);
-      if (existingNewDate) {
-        toast.error('This date is already scheduled for another day');
-        return scheduled;
-      }
+    const existingNewDate = (scheduledDays || []).find(s => s.date === newDate);
+    if (existingNewDate) {
+      toast.error('This date is already scheduled for another day');
+      return;
+    }
 
-      const updatedList = scheduled.map(s => {
-        if (s.date === oldDate) {
-          return {
-            ...s,
-            date: newDate,
-          };
-        }
-        return s;
-      });
+    const existing = (scheduledDays || []).find(s => s.date === oldDate);
+    if (!existing) {
+      toast.error('Scheduled day not found');
+      return;
+    }
 
-      toast.success(`Day ${dayNumber} rescheduled to ${new Date(newDate).toLocaleDateString()}! 📅`);
-      return updatedList;
+    await deleteScheduledDay(oldDate);
+    await saveScheduledDay({
+      ...existing,
+      date: newDate,
     });
+    await reloadScheduledDays();
+
+    toast.success(`Day ${dayNumber} rescheduled to ${new Date(newDate).toLocaleDateString()}! 📅`);
   };
 
-  const handleToggleComplete = (date: string, isComplete: boolean) => {
+  const handleToggleComplete = async (date: string, isComplete: boolean) => {
     if (isDemoMode) {
       toast.error('Demo mode: Create an account to track completion', {
         action: {
@@ -912,69 +871,47 @@ function App() {
       return;
     }
 
-    setScheduledDays((current) => {
-      const scheduled = current || [];
-      
-      const updatedList = scheduled.map(s => {
-        if (s.date === date) {
-          const wasPreviouslyComplete = s.is_completed;
-          
-          if (!wasPreviouslyComplete && isComplete) {
-            const completedMeals: CompletedMeal[] = s.meals.map(meal => ({
-              meal_id: meal.meal_id,
-              plan_id: s.plan_id,
-              completed_at: new Date().toISOString(),
-              date: s.date,
-              meal_type: meal.meal_type,
-              recipe_name: meal.recipe_name,
-              nutrition: meal.nutrition,
-              cost_eur: meal.cost_eur,
-            }));
+    const scheduled = (scheduledDays || []).find(s => s.date === date);
+    if (!scheduled) return;
 
-            const dayProgress: DayProgress = {
-              date: s.date,
-              completed_meals: completedMeals,
-              total_nutrition: s.total_nutrition,
-              total_cost: s.total_cost,
-              meals_count: s.meals_count,
-            };
+    const wasPreviouslyComplete = scheduled.is_completed;
+    const updatedScheduled: ScheduledDay = { ...scheduled, is_completed: isComplete };
+    await saveScheduledDay(updatedScheduled);
 
-            setDayProgress((currentProgress) => {
-              const progress = currentProgress || [];
-              const existingIndex = progress.findIndex(p => p.date === date);
-              
-              if (existingIndex >= 0) {
-                const updated = [...progress];
-                updated[existingIndex] = dayProgress;
-                return updated;
-              }
-              
-              return [...progress, dayProgress];
-            });
-            
-            toast.success(`Day ${s.day_number} marked as complete! 🎉`);
-          } else if (wasPreviouslyComplete && !isComplete) {
-            setDayProgress((currentProgress) => {
-              const progress = currentProgress || [];
-              return progress.filter(p => p.date !== date);
-            });
-            
-            toast.info(`Day ${s.day_number} marked as incomplete`);
-          }
-          
-          return {
-            ...s,
-            is_completed: isComplete,
-          };
-        }
-        return s;
-      });
+    if (!wasPreviouslyComplete && isComplete) {
+      const completedMeals: CompletedMeal[] = scheduled.meals.map(meal => ({
+        meal_id: meal.meal_id,
+        plan_id: scheduled.plan_id,
+        completed_at: new Date().toISOString(),
+        date: scheduled.date,
+        meal_type: meal.meal_type,
+        recipe_name: meal.recipe_name,
+        nutrition: meal.nutrition,
+        cost_eur: meal.cost_eur,
+      }));
 
-      return updatedList;
-    });
+      const progress: DayProgress = {
+        date: scheduled.date,
+        completed_meals: completedMeals,
+        total_nutrition: scheduled.total_nutrition,
+        total_cost: scheduled.total_cost,
+        meals_count: scheduled.meals_count,
+      };
+
+      await upsertProgressViaWorkers(progress);
+      await saveDayProgress(progress);
+      await reloadDayProgress();
+      toast.success(`Day ${scheduled.day_number} marked as complete! 🎉`);
+    } else if (wasPreviouslyComplete && !isComplete) {
+      await deleteDayProgress(date);
+      await reloadDayProgress();
+      toast.info(`Day ${scheduled.day_number} marked as incomplete`);
+    }
+
+    await reloadScheduledDays();
   };
 
-  const handleCopyWeek = (sourceDates: string[], targetStartDate: string) => {
+  const handleCopyWeek = async (sourceDates: string[], targetStartDate: string) => {
     if (isDemoMode) {
       toast.error('Demo mode: Create an account to copy schedule', {
         action: {
@@ -995,92 +932,92 @@ function App() {
       return;
     }
 
-    setScheduledDays((current) => {
-      const scheduled = current || [];
-      const newScheduledDays: ScheduledDay[] = [];
-      
-      sourceDates.forEach((sourceDate, index) => {
-        const sourceScheduled = scheduled.find(s => s.date === sourceDate);
-        if (!sourceScheduled) return;
-        
-        const targetDate = new Date(targetStartDate);
-        targetDate.setDate(targetDate.getDate() + index);
-        const targetDateStr = targetDate.toISOString().split('T')[0];
-        
-        const existingTarget = scheduled.find(s => s.date === targetDateStr);
-        if (existingTarget) {
-          toast.error(`Date ${new Date(targetDateStr).toLocaleDateString()} is already scheduled`);
-          return;
-        }
-        
-        const copiedScheduledDay: ScheduledDay = {
-          date: targetDateStr,
-          day_number: sourceScheduled.day_number,
-          plan_id: sourceScheduled.plan_id,
-          scheduled_at: new Date().toISOString(),
-          meals: sourceScheduled.meals.map(meal => ({
-            ...meal,
-            meal_id: `${meal.meal_id}_copy_${Date.now()}_${index}`,
-          })),
-          total_nutrition: { ...sourceScheduled.total_nutrition },
-          total_cost: sourceScheduled.total_cost,
-          meals_count: sourceScheduled.meals_count,
-          is_completed: false,
-        };
-        
-        newScheduledDays.push(copiedScheduledDay);
-      });
-      
-      if (newScheduledDays.length === 0) {
-        toast.error('Could not copy week - some dates are already scheduled');
-        return scheduled;
+    const scheduled = scheduledDays || [];
+    const newScheduled: ScheduledDay[] = [];
+
+    for (let index = 0; index < sourceDates.length; index++) {
+      const sourceDate = sourceDates[index];
+      const sourceScheduled = scheduled.find(s => s.date === sourceDate);
+      if (!sourceScheduled) continue;
+
+      const targetDate = new Date(targetStartDate);
+      targetDate.setDate(targetDate.getDate() + index);
+      const targetDateStr = targetDate.toISOString().split('T')[0];
+
+      const existingTarget = scheduled.find(s => s.date === targetDateStr);
+      if (existingTarget) {
+        toast.error(`Date ${new Date(targetDateStr).toLocaleDateString()} is already scheduled`);
+        return;
       }
-      
-      toast.success(`Week copied! ${newScheduledDays.length} day${newScheduledDays.length !== 1 ? 's' : ''} scheduled 📅`, {
-        description: `Starting from ${new Date(targetStartDate).toLocaleDateString()}`
-      });
-      
-      return [...scheduled, ...newScheduledDays];
+
+      const copied: ScheduledDay = {
+        date: targetDateStr,
+        day_number: sourceScheduled.day_number,
+        plan_id: sourceScheduled.plan_id,
+        scheduled_at: new Date().toISOString(),
+        meals: sourceScheduled.meals.map(meal => ({
+          ...meal,
+          meal_id: `${meal.meal_id}_copy_${Date.now()}_${index}`,
+        })),
+        total_nutrition: { ...sourceScheduled.total_nutrition },
+        total_cost: sourceScheduled.total_cost,
+        meals_count: sourceScheduled.meals_count,
+        is_completed: false,
+      };
+
+      newScheduled.push(copied);
+    }
+
+    if (newScheduled.length === 0) {
+      toast.error('Could not copy week - some dates are already scheduled');
+      return;
+    }
+
+    for (const day of newScheduled) {
+      await saveScheduledDay(day);
+    }
+    await reloadScheduledDays();
+
+    toast.success(`Week copied! ${newScheduled.length} day${newScheduled.length !== 1 ? 's' : ''} scheduled 📅`, {
+      description: `Starting from ${new Date(targetStartDate).toLocaleDateString()}`
     });
   };
 
   const handleBadgeGenerated = (badge: Badge) => {
-    setBadges((current) => {
-      const badges = current || [];
-      const exists = badges.some(b => b.badge_id === badge.badge_id);
-      if (exists) return badges;
-      
-      toast.success('🏆 New badge earned!', {
-        description: `You completed every day in ${badge.month}/${badge.year}!`,
-        action: {
-          label: 'View Badge',
-          onClick: () => setProgressDialogOpen(true)
-        }
-      });
-      
-      return [...badges, badge];
+    const exists = (badges || []).some(b => b.badge_id === badge.badge_id);
+    if (exists) return;
+
+    void saveBadge(badge);
+
+    toast.success('🏆 New badge earned!', {
+      description: `You completed every day in ${badge.month}/${badge.year}!`,
+      action: {
+        label: 'View Badge',
+        onClick: () => setProgressDialogOpen(true)
+      }
     });
   };
 
   const handleRemovePreference = (mealId: string) => {
-    setMealPreferences((current) => {
-      const preferences = current || [];
-      return preferences.filter(p => p.meal_id !== mealId);
-    });
+    void deleteMealPreference(mealId).then(() => reloadMealPreferences());
     toast.info('Preference removed');
   };
 
   const handleClearAllPreferences = (type: 'like' | 'dislike' | 'all') => {
-    setMealPreferences((current) => {
-      const preferences = current || [];
-      if (type === 'all') {
-        toast.success('All preferences cleared');
-        return [];
+    const prefs = mealPreferences || [];
+    const toDelete = type === 'all' ? prefs : prefs.filter(p => p.preference === type);
+    void (async () => {
+      for (const pref of toDelete) {
+        await deleteMealPreference(pref.meal_id);
       }
-      const filtered = preferences.filter(p => p.preference !== type);
+      await reloadMealPreferences();
+    })();
+
+    if (type === 'all') {
+      toast.success('All preferences cleared');
+    } else {
       toast.success(`All ${type}d meals cleared`);
-      return filtered;
-    });
+    }
   };
 
   if (!hasProfile) {
@@ -1341,12 +1278,10 @@ function App() {
             <div 
               className="cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => {
-                setUserProfile(() => null);
-                setMealPlan(() => null);
-                setMealPrepPlan(() => null);
-                setShoppingListState(() => null);
-                setScheduledDays(() => []);
-                setDayProgress(() => []);
+                void clearUserProfile();
+                void clearCurrentMealPlan();
+                void saveMealPrepPlan(null);
+                void saveShoppingListState(null);
                 setActiveTab('meals');
               }}
             >
