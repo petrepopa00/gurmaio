@@ -10,3 +10,4 @@ compatibility_date = "2025-01-01"
 
 [vars]
 ALLOWED_ORIGINS = "*"
+SUPABASE_URL = "https://aheicnxgdqtpzqbutlmw.supabase.co"

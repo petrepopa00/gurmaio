@@ -10,3 +10,4 @@ compatibility_date = "2025-01-01"
 [vars]
 # Default to permissive for local dev; override in production.
 ALLOWED_ORIGINS = "*"
+SUPABASE_URL = "https://aheicnxgdqtpzqbutlmw.supabase.co"
